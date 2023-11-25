@@ -2,6 +2,7 @@ import argparse
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
 from report import generate_html_report
+from matrix import import_matrix
 import csv
 import sys
 import glob
@@ -23,14 +24,9 @@ def cmd_prepare_matrix(args):
         sys.exit(-1)
 
     # recover the previous matrix if specified
-    matrix_content = {}
+    matrix = {}
     if args.matrix:
-        with open(args.matrix, newline='') as csvfile:
-            r = csv.reader(csvfile, delimiter=',', quotechar='|')
-            for row in r:
-                # keep the content of the row if it was filled in
-                if len(row) > 1:
-                    matrix_content[row[0]] = row[1:]
+        matrix = import_matrix(args.matrix)
 
     checks = extract_checks(args.tests)
     with open(args.output, 'w', newline='') as csvfile:
@@ -47,8 +43,10 @@ def cmd_print_testdata(args):
         print(check)
 
 def cmd_gen_report(args):
+    reqs = extract_reqs(args.spec)
     checks = import_testdata(args.data)
-    generate_html_report(checks)
+    matrix = import_matrix(args.matrix)
+    generate_html_report(reqs, checks, matrix)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -70,21 +68,25 @@ def main():
     parser_print_testdata = subparsers.add_parser('print_testdata')
     parser_print_testdata.add_argument('-d', '--data', required=True)
 
-    parser_print_testdata = subparsers.add_parser('gen_report')
-    parser_print_testdata.add_argument('-d', '--data', required=True)
+    parser_gen_report= subparsers.add_parser('gen_report')
+    parser_gen_report.add_argument('-s', '--spec', required=True)
+    parser_gen_report.add_argument('-d', '--data', required=True)
+    parser_gen_report.add_argument('-m', '--matrix', required=True)
 
     args = parser.parse_args()
 
     if args.command == "print_reqs":
         cmd_print_reqs(args)
-    if args.command == "print_checks":
+    elif args.command == "print_checks":
         cmd_print_checks(args)
-    if args.command == "prepare_matrix":
+    elif args.command == "prepare_matrix":
         cmd_prepare_matrix(args)
-    if args.command == "print_testdata":
+    elif args.command == "print_testdata":
         cmd_print_testdata(args)
-    if args.command == "gen_report":
+    elif args.command == "gen_report":
         cmd_gen_report(args)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()   
