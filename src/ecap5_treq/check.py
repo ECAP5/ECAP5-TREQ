@@ -1,4 +1,5 @@
 import re
+import csv
 import glob
 
 class Check:
@@ -52,4 +53,17 @@ def extract_checks(path):
     for file in files:
         checklist += parse_checks_in_file(file)
     return checklist
+
+def import_testdata(path):
+    checks = []
+    files = glob.glob(path + "/tb_*.csv")
+    for file in files:
+        with open(file, newline='') as csvfile:
+            r = csv.reader(csvfile, delimiter=',', quotechar='|')
+            for row in r:
+                if len(row) < 2:
+                    print("ERROR: Incomplete test data in {}".format(file))
+                    sys.exit(-1)
+                checks += [Check(row[0], row[1], (row[2] if len(row) >= 3 else None))]
+    return checks
 
