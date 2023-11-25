@@ -1,0 +1,43 @@
+\req{REQ\_1}
+
+\req{REQ\_2}{
+  REQ\_2 Description
+}
+
+\req{REQ\_2}{
+  REQ\_2 Description with \texttt{latex clauses}
+}
+
+\req{REQ\_3}{
+  REQ\_3 Description
+}[
+  refersto=REQ\_1
+]
+
+\req{REQ\_4}{
+  REQ\_4 Description
+}[
+  refersto=REQ\_2,
+  rationale=This is the rationale
+]
+
+\req{REQ\_5}{
+  REQ\_5 Description
+}[
+  refersto=REQ\_3,
+  rationale=This is the rationale with \texttt{latex clause}
+]
+
+\req{REQ\_6}{
+  REQ\_6 Description
+}[
+  refersto=REQ\_4,
+  rationale={This is the rationale with \texttt{latex clause} surrounded}
+]
+
+\req{REQ\_6}{
+  REQ\_6 Description
+}[
+  refersto=REQ\_4,
+  rationale={This is the rationale with \texttt{latex clause} surrounded and added an = to check}
+]
