@@ -1,0 +1,5 @@
+tb_regm_read_port_a,OK
+tb_regm_write_x0,KO,This is the ko message
+tb_regm_write,OK
+tb_regm_parallel_read_01,OK
+tb_regm_read_before_write_01,KO,This is another ko message

@@ -2,14 +2,22 @@ import re
 import glob
 
 class Check:
-    def __init__(self, id):
+    def __init__(self, id, status=None, errormsg=None):
         self.id = id
+        self.status = status
+        self.errormsg = errormsg
 
     def __repr__(self):
-        return "CHECK(id=\"{}\")".format(self.id)
+        status_and_error = ""
+        if(self.status):
+            status_and_error = ", status={}, errormsg={}".format(self.status, self.errormsg)
+        return "CHECK(id=\"{}\"{})".format(self.id, status_and_error)
 
     def __str__(self):
-        return "CHECK(id=\"{}\")".format(self.id)
+        status_and_error = ""
+        if(self.status):
+            status_and_error = ", status={}, errormsg={}".format(self.status, self.errormsg)
+        return "CHECK(id=\"{}\"{})".format(self.id, status_and_error)
 
 def process_keyword(cur, content):
     # Go to the next (
