@@ -44,9 +44,10 @@ def cmd_print_testdata(args):
 
 def cmd_gen_test_report(args):
     reqs = extract_reqs(args.spec)
-    checks = import_testdata(args.data)
+    checks = extract_checks(args.tests)
+    testdata = import_testdata(args.data)
     matrix = import_matrix(args.matrix)
-    generate_test_report(reqs, checks, matrix, args.output)
+    generate_test_report(reqs, checks, testdata, matrix, args.output)
 
 def cmd_gen_trace_report(args):
     reqs = extract_reqs(args.spec)
@@ -76,6 +77,7 @@ def main():
 
     parser_gen_test_report= subparsers.add_parser('gen_test_report')
     parser_gen_test_report.add_argument('-s', '--spec', required=True)
+    parser_gen_test_report.add_argument('-t', '--tests', required=True)
     parser_gen_test_report.add_argument('-d', '--data', required=True)
     parser_gen_test_report.add_argument('-m', '--matrix', required=True)
     parser_gen_test_report.add_argument('-o', '--output', required=True)
