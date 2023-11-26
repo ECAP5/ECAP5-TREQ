@@ -1,4 +1,4 @@
-def generate_html_report(reqs, checks, matrix, output):
+def generate_test_report(reqs, checks, matrix, output):
     report = ""
     
     # Generate the summary table
@@ -18,6 +18,15 @@ def generate_html_report(reqs, checks, matrix, output):
     for check in checks:
         report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(check.id, check.status, check.errormsg)
     report += "</table>"
+
+    with open(output, 'w') as f:
+        f.write(report)
+
+def generate_trace_report(reqs, checks, matrix, output):
+    report = ""
+    
+    # Generate the summary table
+    report += "<h1>Summary</h1>"
 
     # Generate the traceability report
     report += "<h1>Traceability report</h1>"

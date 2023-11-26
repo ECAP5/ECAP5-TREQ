@@ -1,7 +1,7 @@
 import argparse
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_html_report
+from report import generate_test_report, generate_trace_report
 from matrix import import_matrix
 import csv
 import sys
@@ -42,11 +42,17 @@ def cmd_print_testdata(args):
     for check in checks:
         print(check)
 
-def cmd_gen_report(args):
+def cmd_gen_test_report(args):
     reqs = extract_reqs(args.spec)
     checks = import_testdata(args.data)
     matrix = import_matrix(args.matrix)
-    generate_html_report(reqs, checks, matrix, args.output)
+    generate_test_report(reqs, checks, matrix, args.output)
+
+def cmd_gen_trace_report(args):
+    reqs = extract_reqs(args.spec)
+    checks = import_testdata(args.data)
+    matrix = import_matrix(args.matrix)
+    generate_trace_report(reqs, checks, matrix, args.output)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -68,11 +74,17 @@ def main():
     parser_print_testdata = subparsers.add_parser('print_testdata')
     parser_print_testdata.add_argument('-d', '--data', required=True)
 
-    parser_gen_report= subparsers.add_parser('gen_report')
-    parser_gen_report.add_argument('-s', '--spec', required=True)
-    parser_gen_report.add_argument('-d', '--data', required=True)
-    parser_gen_report.add_argument('-m', '--matrix', required=True)
-    parser_gen_report.add_argument('-o', '--output', required=True)
+    parser_gen_test_report= subparsers.add_parser('gen_test_report')
+    parser_gen_test_report.add_argument('-s', '--spec', required=True)
+    parser_gen_test_report.add_argument('-d', '--data', required=True)
+    parser_gen_test_report.add_argument('-m', '--matrix', required=True)
+    parser_gen_test_report.add_argument('-o', '--output', required=True)
+
+    parser_gen_test_report= subparsers.add_parser('gen_trace_report')
+    parser_gen_test_report.add_argument('-s', '--spec', required=True)
+    parser_gen_test_report.add_argument('-d', '--data', required=True)
+    parser_gen_test_report.add_argument('-m', '--matrix', required=True)
+    parser_gen_test_report.add_argument('-o', '--output', required=True)
 
     args = parser.parse_args()
 
@@ -84,8 +96,10 @@ def main():
         cmd_prepare_matrix(args)
     elif args.command == "print_testdata":
         cmd_print_testdata(args)
-    elif args.command == "gen_report":
-        cmd_gen_report(args)
+    elif args.command == "gen_test_report":
+        cmd_gen_test_report(args)
+    elif args.command == "gen_trace_report":
+        cmd_gen_trace_report(args)
     else:
         parser.print_help()
 
