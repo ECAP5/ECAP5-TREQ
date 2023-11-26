@@ -46,7 +46,7 @@ def cmd_gen_report(args):
     reqs = extract_reqs(args.spec)
     checks = import_testdata(args.data)
     matrix = import_matrix(args.matrix)
-    generate_html_report(reqs, checks, matrix)
+    generate_html_report(reqs, checks, matrix, args.output)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -72,6 +72,7 @@ def main():
     parser_gen_report.add_argument('-s', '--spec', required=True)
     parser_gen_report.add_argument('-d', '--data', required=True)
     parser_gen_report.add_argument('-m', '--matrix', required=True)
+    parser_gen_report.add_argument('-o', '--output', required=True)
 
     args = parser.parse_args()
 

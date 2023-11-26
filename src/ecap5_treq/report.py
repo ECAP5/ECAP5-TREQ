@@ -1,4 +1,4 @@
-def generate_html_report(reqs, checks, matrix):
+def generate_html_report(reqs, checks, matrix, output):
     report = ""
     
     # Generate the summary table
@@ -27,5 +27,5 @@ def generate_html_report(reqs, checks, matrix):
         report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(req.id, None, None)
     report += "</table>"
 
-    with open("index.html", 'w') as f:
+    with open(output, 'w') as f:
         f.write(report)
