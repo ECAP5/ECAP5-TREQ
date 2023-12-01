@@ -1,4 +1,5 @@
 import argparse
+import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
 from report import generate_test_report
@@ -7,6 +8,12 @@ from config import load_config, check_config
 import csv
 import sys
 import glob
+
+def rel_to_abs(path):
+    if len(path) > 0:
+        if path[0] != "/":
+            path = os.path.abspath(os.getcwd()) + "/" + path
+    return path
 
 def cmd_print_reqs(config, args):
     check_config(config, ["spec_dir_path"])
@@ -92,6 +99,12 @@ def main():
         config["test_dir_path"] = args.tests
         config["testdata_dir_path"] = args.data
         config["matrix_path"] = args.matrix
+
+    # convert relative paths to absolute paths
+    config["spec_dir_path"]      =  rel_to_abs(config["spec_dir_path"])
+    config["test_dir_path"]      =  rel_to_abs(config["test_dir_path"])
+    config["testdata_dir_path"]  =  rel_to_abs(config["testdata_dir_path"])
+    config["matrix_path"]        =  rel_to_abs(config["matrix_path"])
 
     if args.command == "print_reqs":
         cmd_print_reqs(config, args)

@@ -43,7 +43,7 @@ def process_matching_token(cur, content, opening_token, closing_token):
 
 def parse_reqs_in_file(filepath):
     reqlist = []
-    content = "".join(l[:-1] for l in open(os.path.abspath(os.getcwd()) + filepath))
+    content = "".join(l[:-1] for l in open(filepath))
     for i in [m.start() for m in re.finditer(r"\\req", content)]:
         cur = process_keyword(i, content)
         cur, id = process_matching_token(cur, content, "{", "}")
