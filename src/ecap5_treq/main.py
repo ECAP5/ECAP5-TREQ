@@ -1,107 +1,108 @@
 import argparse
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_test_report, generate_trace_report
+from report import generate_test_report
 from matrix import import_matrix
+from config import load_config, check_config
 import csv
 import sys
 import glob
 
-def cmd_print_reqs(args):
-    reqs = extract_reqs(args.spec)
+def cmd_print_reqs(config, args):
+    check_config(config, ["spec_dir_path"])
+    reqs = extract_reqs(config["spec_dir_path"])
     for req in reqs:
         print(req)
 
-def cmd_print_checks(args):
-    checks = extract_checks(args.tests)
+def cmd_print_checks(config, args):
+    check_config(config, ["test_dir_path"])
+    checks = extract_checks(config["test_dir_path"])
     for check in checks:
         print(check)
 
-def cmd_prepare_matrix(args):
-    if not args.output:
-        print("ERROR: The output parameter is required for the prepare_matrix command.\n")
-        parser.print_help()
-        sys.exit(-1)
+def cmd_prepare_matrix(config, args):
+    check_config(config, ["test_dir_path"])
 
     # recover the previous matrix if specified
     matrix = {}
-    if args.matrix:
-        matrix = import_matrix(args.matrix)
+    if "matrix_path" in config:
+        matrix = import_matrix(config["matrix_path"])
 
-    checks = extract_checks(args.tests)
-    with open(args.output, 'w', newline='') as csvfile:
-        w = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for c in checks:
-            # write the check and add the previous matrix content if there was any
-            w.writerow([c.id] + (matrix_content[c.id] if c.id in matrix_content else []))
-        # add a row at the end for requirements that cannot be traced
-        w.writerow(["__UNTRACEABLE__"])
+    checks = extract_checks(config["test_dir_path"])
+    result = io.StringIO()
+    w = csv.writer(result, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    for c in checks:
+        # write the check and add the previous matrix content if there was any
+        w.writerow([c.id] + (matrix_content[c.id] if c.id in matrix_content else []))
+    # add a row at the end for requirements that cannot be traced
+    w.writerow(["__UNTRACEABLE__"])
 
-def cmd_print_testdata(args):
-    checks = import_testdata(args.data)
+    if(args.output):
+        with open(args.output, 'w') as f:
+            f.write(result)
+    else:
+        print(result)
+
+def cmd_print_testdata(config, args):
+    check_config(config, ["testdata_dir_path"])
+
+    checks = import_testdata(config["testdata_dir_path"])
     for check in checks:
         print(check)
 
-def cmd_gen_test_report(args):
-    reqs = extract_reqs(args.spec)
-    checks = extract_checks(args.tests)
-    testdata = import_testdata(args.data)
-    matrix = import_matrix(args.matrix)
-    generate_test_report(reqs, checks, testdata, matrix, args.output)
+def cmd_report_tests(config, args):
+    check_config(config, [
+        "spec_dir_path",
+        "test_dir_path",
+        "testdata_dir_path",
+        "matrix_path"
+    ])
 
-def cmd_gen_trace_report(args):
-    reqs = extract_reqs(args.spec)
-    checks = import_testdata(args.data)
-    matrix = import_matrix(args.matrix)
-    generate_trace_report(reqs, checks, matrix, args.output)
+    reqs = extract_reqs(config["spec_dir_path"])
+    checks = extract_checks(config["test_dir_path"])
+    testdata = import_testdata(config["testdata_dir_path"])
+    matrix = import_matrix(config["matrix_path"])
+    report = generate_test_report(reqs, checks, testdata, matrix, args.format)
+    if(args.output):
+        with open(args.output, 'w') as f:
+            f.write(report)
+    else:
+        print(report)
 
 def main():
     parser = argparse.ArgumentParser(
             prog="ECAP5-TREQ",
             description="Requirement and traceability management for ECAP5")
-    subparsers = parser.add_subparsers(help='commands', dest='command')
-
-    parser_print_reqs = subparsers.add_parser('print_reqs')
-    parser_print_reqs.add_argument('-s', '--spec')
-
-    parser_print_checks = subparsers.add_parser('print_checks')
-    parser_print_checks.add_argument('-t', '--tests')
-
-    parser_prepare_matrix = subparsers.add_parser('prepare_matrix')
-    parser_prepare_matrix.add_argument('-t', '--tests', required=True)
-    parser_prepare_matrix.add_argument('-m', '--matrix')
-    parser_prepare_matrix.add_argument('-o', '--output', required=True)
-
-    parser_print_testdata = subparsers.add_parser('print_testdata')
-    parser_print_testdata.add_argument('-d', '--data', required=True)
-
-    parser_gen_test_report= subparsers.add_parser('gen_test_report')
-    parser_gen_test_report.add_argument('-s', '--spec', required=True)
-    parser_gen_test_report.add_argument('-t', '--tests', required=True)
-    parser_gen_test_report.add_argument('-d', '--data', required=True)
-    parser_gen_test_report.add_argument('-m', '--matrix', required=True)
-    parser_gen_test_report.add_argument('-o', '--output', required=True)
-
-    parser_gen_test_report= subparsers.add_parser('gen_trace_report')
-    parser_gen_test_report.add_argument('-s', '--spec', required=True)
-    parser_gen_test_report.add_argument('-d', '--data', required=True)
-    parser_gen_test_report.add_argument('-m', '--matrix', required=True)
-    parser_gen_test_report.add_argument('-o', '--output', required=True)
+    parser.add_argument('command')
+    parser.add_argument('-c', '--config')
+    parser.add_argument("-f", "--format", default="html")
+    parser.add_argument('-s', '--spec')
+    parser.add_argument('-t', '--tests')
+    parser.add_argument('-d', '--data' )
+    parser.add_argument('-m', '--matrix')
+    parser.add_argument('-o', '--output')
 
     args = parser.parse_args()
 
+    config = {}
+    if(args.config):
+        config = load_config(args.config)
+    else:
+        config["spec_dir_path"] = args.spec
+        config["test_dir_path"] = args.tests
+        config["testdata_dir_path"] = args.data
+        config["matrix_path"] = args.matrix
+
     if args.command == "print_reqs":
-        cmd_print_reqs(args)
+        cmd_print_reqs(config, args)
     elif args.command == "print_checks":
-        cmd_print_checks(args)
+        cmd_print_checks(config, args)
     elif args.command == "prepare_matrix":
-        cmd_prepare_matrix(args)
+        cmd_prepare_matrix(config, args)
     elif args.command == "print_testdata":
-        cmd_print_testdata(args)
-    elif args.command == "gen_test_report":
-        cmd_gen_test_report(args)
-    elif args.command == "gen_trace_report":
-        cmd_gen_trace_report(args)
+        cmd_print_testdata(config, args)
+    elif args.command == "report_tests":
+        cmd_report_tests(config, args)
     else:
         parser.print_help()
 

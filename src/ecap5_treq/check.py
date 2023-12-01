@@ -1,4 +1,5 @@
 import re
+import sys
 import csv
 import glob
 
@@ -62,7 +63,7 @@ def import_testdata(path):
             r = csv.reader(csvfile, delimiter=',', quotechar='|')
             for row in r:
                 if len(row) < 2:
-                    print("ERROR: Incomplete test data in {}".format(file))
+                    print("ERROR: Incomplete test data in {}".format(file), file=sys.stderr)
                     sys.exit(-1)
                 checks += [Check(row[0], row[1], (row[2] if len(row) >= 3 else None))]
     return checks

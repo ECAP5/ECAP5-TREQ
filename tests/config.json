@@ -1,0 +1,6 @@
+{
+  "spec_dir_path": "tests/spec",
+  "test_dir_path": "tests/tests",
+  "testdata_dir_path": "tests/data",
+  "matrix_path": "tests/sample-matrix.csv"
+}

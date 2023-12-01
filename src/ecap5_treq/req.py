@@ -1,3 +1,4 @@
+import sys
 import re
 import glob
 
@@ -57,7 +58,7 @@ def parse_reqs_in_file(filepath):
             for op in options:
                 op = op.split("=")
                 if(len(op) == 1):
-                    print("Syntax error while processing {}".format(id))
+                    print("ERROR: Syntax error while processing {}".format(id), file=sys.stderr)
                 # Elements from 1 to the end are joined with = to allow for the = character in the content of the option
                 options_dict[op[0].strip()] = "=".join(op[1:]).strip()
 
