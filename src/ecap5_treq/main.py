@@ -50,7 +50,7 @@ def cmd_print_testdata(config, args):
     for check in checks:
         print(check)
 
-def cmd_report_tests(config, args):
+def cmd_gen_test_report(config, args):
     check_config(config, [
         "spec_dir_path",
         "test_dir_path",
@@ -101,8 +101,8 @@ def main():
         cmd_prepare_matrix(config, args)
     elif args.command == "print_testdata":
         cmd_print_testdata(config, args)
-    elif args.command == "report_tests":
-        cmd_report_tests(config, args)
+    elif args.command == "gen_test_report":
+        cmd_gen_test_report(config, args)
     else:
         parser.print_help()
 
