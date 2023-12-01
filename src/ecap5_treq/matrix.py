@@ -2,7 +2,7 @@ import csv
 
 def import_matrix(path):
     matrix = {}
-    with open(path, newline='') as csvfile:
+    with open(os.path.abspath(os.getcwd()) + path, newline='') as csvfile:
         r = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in r:
             # keep the content of the row if it was filled in

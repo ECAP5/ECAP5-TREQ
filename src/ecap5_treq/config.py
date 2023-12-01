@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 
 def load_config(path):
     data = None
