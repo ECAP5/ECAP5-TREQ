@@ -57,10 +57,10 @@ def extract_checks(path):
 
 def import_testdata(path):
     checks = []
-    files = glob.glob(path + "/tb_*.csv")
+    files = glob.glob(path + "/*.csv")
     for file in files:
         with open(file, newline='') as csvfile:
-            r = csv.reader(csvfile, delimiter=',', quotechar='|')
+            r = csv.reader(csvfile, delimiter=';', quotechar='|')
             for row in r:
                 if len(row) < 2:
                     print("ERROR: Incomplete test data in {}".format(file), file=sys.stderr)

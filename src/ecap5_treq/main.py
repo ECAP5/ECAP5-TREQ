@@ -37,7 +37,7 @@ def cmd_prepare_matrix(config, args):
 
     checks = extract_checks(config["test_dir_path"])
     result = io.StringIO()
-    w = csv.writer(result, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    w = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for c in checks:
         # write the check and add the previous matrix content if there was any
         w.writerow([c.id] + (matrix_content[c.id] if c.id in matrix_content else []))
