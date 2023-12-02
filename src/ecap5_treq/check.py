@@ -6,7 +6,7 @@ import glob
 class Check:
     def __init__(self, id, status=None, errormsg=None):
         self.id = id
-        self.status = status
+        self.status = int(status) if status else None
         self.errormsg = errormsg
 
     def __repr__(self):

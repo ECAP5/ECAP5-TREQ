@@ -16,6 +16,7 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
     unknown_tests = []
     for check in testdata:
         if check.id not in [c.id for c in checks]:
+            print(check.id, checks)
             unknown_tests += [check]
 
     def generate_html():
