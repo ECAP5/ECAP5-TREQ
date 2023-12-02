@@ -5,7 +5,7 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
     # Generate the summary table
     count_success = 0
     for check in testdata:
-        if check.status == "OK":
+        if check.status:
             count_success += 1
 
     skipped_tests = []
