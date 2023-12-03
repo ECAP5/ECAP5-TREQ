@@ -4,7 +4,7 @@
       <style></style>
 
       
-    <div style="display:flex"><div xmlns="http://www.w3.org/1999/xhtml" class="container" style="padding: 5px 10px; background-color: #8DFA91; /* display: flex; */ border-radius: 15px; color: ;">
+    <div style="display:flex"><div xmlns="http://www.w3.org/1999/xhtml" class="container" style="padding: 15px 10px; background-color: #8DFA91; /* display: flex; */ border-radius: 15px; color: ;">
         
       
 <label style="color:#3E613F">Success</label>
