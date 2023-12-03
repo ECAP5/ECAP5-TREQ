@@ -35,6 +35,9 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
             unknown_tests += [check]
 
     def generate_html():
+        success_badge = """<img width="10%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/success-badge.svg#svgView(viewBox(-10,0,81,38))?">"""
+        failure_badge = """<img width="10%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/failure-badge.svg#svgView(viewBox(-10,0,75,38))?">"""
+
         report = "<h1>Test report</h1>"
         report += "<h2>Summary</h2>"
         report += "<table>"
@@ -44,7 +47,7 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
         report += "<h2>Run tests</h2>"
         for t in testsuites:
             report += "<details{}>".format(" open" if t in failing_testsuites else "")
-            report += "<summary>Testcase {} {}</summary>".format(t, "✅" if t not in failing_testsuites else "❌")
+            report += "<summary>Testcase {} {}</summary>".format(t, success_badge if t not in failing_testsuites else failure_badge)
             report += "<table>"
             report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
             for c in testsuites[t]:
