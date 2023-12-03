@@ -44,7 +44,7 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
         report += "<h2>Run tests</h2>"
         for t in testsuites:
             report += "<details{}>".format(" open" if t in failing_testsuites else "")
-            report += "<summary>{}</summary>".format(t)
+            report += "<summary>Testcase {} {}</summary>".format(t, "✅" if t not in failing_testsuites else "❌")
             report += "<table>"
             report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
             for c in testsuites[t]:
