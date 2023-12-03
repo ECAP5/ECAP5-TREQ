@@ -38,7 +38,8 @@ def generate_test_summary(reqs, checks, testdata, matrix, format):
 
     report = "# Test report\n"
     report += "<table>\n"
-    report += "<tr><td><b>Test results</b></td><td>{}/{}</td></tr>\n".format(count_success, len(checks))
+    report += "<thead><tr><th>Success</th><th>Failure</th><th>Total</th></tr></thead>\n"
+    report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(count_success, len(checks)-count_success, len(checks))
     report += "</table>\n\n"
 
     report += "## Run tests\n"
