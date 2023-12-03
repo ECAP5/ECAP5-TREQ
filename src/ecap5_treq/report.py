@@ -36,7 +36,7 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
 
     def generate_html():
         success_badge = """<img width="10%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/success-badge.svg#svgView(viewBox(-10,0,81,38))?">"""
-        failure_badge = """<img width="10%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/failure-badge.svg#svgView(viewBox(-10,0,75,38))?">"""
+        failure_badge = """<img width="9%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/failure-badge.svg#svgView(viewBox(-10,0,75,38))?">"""
 
         report = "<h1>Test report</h1>"
         report += "<h2>Summary</h2>"
