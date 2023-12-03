@@ -1,3 +1,3 @@
-tb_first_01;1
-tb_first_03;0;This is an error message from another file
+testsuite.tb_first_01;1
+testsuite.tb_first_03;0;This is an error message from another file
 tb_second_02;1

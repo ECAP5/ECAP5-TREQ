@@ -58,7 +58,7 @@ void tb_regm_read_port_a(TB_Regm * tb) {
     }
   }
 
-  CHECK("tb_regm_read_port_a",
+  CHECK("tb_regm.read_port_a",
     success,
     "Failed to read registers from port A");
 
@@ -84,7 +84,7 @@ void tb_regm_read_port_b(TB_Regm * tb) {
     }
   }
 
-  CHECK("tb_regm_read_port_b",
+  CHECK("tb_regm.read_port_b",
     success,
     "Failed to read registers from port B");
 
@@ -105,7 +105,7 @@ void tb_regm_write_x0(TB_Regm * tb) {
   core->write_i = 0;
   tb->tick();
 
-  CHECK("tb_regm_write_x0",
+  CHECK("tb_regm.write_x0",
     core->rdata1_o == 0,
     "Failed to prevent writing to x0");
 }
@@ -131,7 +131,7 @@ void tb_regm_write(TB_Regm * tb) {
     }
   }
 
-  CHECK("tb_regm_write",
+  CHECK("tb_regm.write",
     success,
     "Failed writing to registers");
 }
@@ -148,11 +148,11 @@ void tb_regm_parallel_read(TB_Regm * tb) {
   core->write_i = 0;
   tb->tick();
 
-  CHECK("tb_regm_parallel_read_01",
+  CHECK("tb_regm.parallel_read_01",
     core->rdata1_o == value,
     "Failed reading from port A");
 
-  CHECK("tb_regm_parallel_read_02",
+  CHECK("tb_regm.parallel_read_02",
     core->rdata1_o == value,
     "Failed reading from port B");
 }
@@ -172,7 +172,7 @@ void tb_regm_read_before_write(TB_Regm * tb) {
   tb->tick();
 
   // check that the read result is the value set at the start
-  CHECK("tb_regm_read_before_write_01",
+  CHECK("tb_regm.read_before_write_01",
     core->rdata1_o == previous_value,
     "Failed reading previous value");
 
@@ -181,7 +181,7 @@ void tb_regm_read_before_write(TB_Regm * tb) {
   tb->tick();
 
   // check that the read result is the new written value
-  CHECK("tb_regm_read_before_write_02",
+  CHECK("tb_regm.read_before_write_02",
     core->rdata1_o == value,
     "Failed reading the written value");
 }

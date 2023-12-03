@@ -4,9 +4,24 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
 
     # Generate the summary table
     count_success = 0
+    failing_testsuites = {}
     for check in testdata:
         if check.status == 1:
             count_success += 1
+        else:
+            if check.testsuite:
+                failing_testsuites[check.testsuite] = True
+
+    testsuites = {}
+    no_testsuite = []
+    for check in testdata:
+        if check.testsuite:
+            if check.testsuite in testsuites:
+                testsuites[check.testsuite] += [check]
+            else:
+                testsuites[check.testsuite] = []
+        else:
+            no_testsuite += [check]
 
     skipped_tests = []
     for check in checks:
@@ -27,10 +42,20 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
         report += "</table>"
 
         report += "<h2>Run tests</h2>"
+        for t in testsuites:
+            report += "<details{}>".format(" open" if t in failing_testsuites else "")
+            report += "<summary>{}</summary>".format(t)
+            report += "<table>"
+            report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
+            for c in testsuites[t]:
+                report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(c.id, c.status, c.errormsg if c.errormsg else "")
+            report += "</table>"
+            report += "</details>"
+        report += "<h3>No testsuite</h3>"
         report += "<table>"
         report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
-        for t in testdata:
-            report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(t.id, t.status, t.errormsg if t.errormsg else "")
+        for c in no_testsuite:
+            report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(c.id, c.status, c.errormsg if c.errormsg else "")
         report += "</table>"
         report += "<h2>Skipped tests</h2>"
         report += "<table>"
