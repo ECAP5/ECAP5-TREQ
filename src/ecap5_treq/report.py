@@ -1,7 +1,9 @@
 import sys
 
 def generate_test_report(reqs, checks, testdata, matrix, format):
+    return ""
 
+def generate_test_summary(reqs, checks, testdata, matrix, format):
     # Generate the summary table
     count_success = 0
     failing_testsuites = {}
@@ -34,70 +36,40 @@ def generate_test_report(reqs, checks, testdata, matrix, format):
             print(check.id, checks)
             unknown_tests += [check]
 
-    def generate_html():
-        success_badge = """<img width="10%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/success-badge.svg#svgView(viewBox(-10,0,81,38))?">"""
-        failure_badge = """<img width="9%" align="middle" src="https://raw.githubusercontent.com/cchaine/ECAP5-TREQ/feature/svg-resources/resources/failure-badge.svg#svgView(viewBox(-10,0,75,38))?">"""
+    report = "# Test report\n"
+    report += "<table>\n"
+    report += "<tr><td><b>Test results</b></td><td>{}/{}</td></tr>\n".format(count_success, len(checks))
+    report += "</table>\n\n"
 
-        report = "<h1>Test report</h1>"
-        report += "<h2>Summary</h2>"
-        report += "<table>"
-        report += "<tr><td>Test results</td><td>{}%</td></tr>".format(count_success / len(checks) * 100)
-        report += "</table>"
+    report += "## Run tests\n"
+    report += "<table>\n"
+    report += "<thead><tr><th>Testsuite</th><th>Test check</th><th>Status</th><th>Log</th></tr></thead>\n"
+    for t in testsuites:
+        for i, c in enumerate(testsuites[t]):
+            report += "<tr>"
+            if i == 0:
+                report += "<td rowspan=\"{}\"><samp>{}</samp></td>".format(len(testsuites[t]), t)
+            report += "<td><samp>{}</samp></td><td>{}</td><td>{}</td></tr>\n".format(c.id, "✅" if c.status else "🚫", c.errormsg if c.errormsg else "")
+    # Handle tests that do not belong to a testsuite
+    for i, c in enumerate(no_testsuite):
+        report += "<tr>"
+        if i == 0:
+            report += "<td rowspan=\"{}\"></td>".format(len(no_testsuite))
+        report += "<td><samp>{}</samp></td><td>{}</td><td>{}</td></tr>\n".format(c.id, "✅" if c.status else "🚫", c.errormsg if c.errormsg else "")
+    report += "</table>\n\n"
 
-        report += "<h2>Run tests</h2>"
-        for t in testsuites:
-            report += "<details{}>".format(" open" if t in failing_testsuites else "")
-            report += "<summary>Testcase {} {}</summary>".format(t, success_badge if t not in failing_testsuites else failure_badge)
-            report += "<table>"
-            report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
-            for c in testsuites[t]:
-                report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(c.id, c.status, c.errormsg if c.errormsg else "")
-            report += "</table>"
-            report += "</details>"
-        report += "<h3>No testsuite</h3>"
-        report += "<table>"
-        report += "<thead><tr><th>Test check</th><th>Status</th><th>Log</th></tr></thead>"
-        for c in no_testsuite:
-            report += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(c.id, c.status, c.errormsg if c.errormsg else "")
-        report += "</table>"
-        report += "<h2>Skipped tests</h2>"
-        report += "<table>"
-        for t in skipped_tests:
-            report += "<tr><td>{}</td></tr>".format(t.id)
-        report += "</table>"
-        report += "<h2>Unknown tests</h2>"
-        report += "<table>"
-        for t in unknown_tests:
-            report += "<tr><td>{}</td></tr>".format(t.id)
-        report += "</table>"
-        return report
-
-    def generate_markdown():
-        report = "# Test report\n"
-        report += "## Summary\n"
-        report += "|   |   |\n|---|---|\n"
-        report += "| Test results | {} |\n".format(count_success / len(checks) * 100)
-        report += "## Run tests\n"
-        report += "| Test check | Status | Log |\n"
-        report += "|------------|--------|-----|\n"
-        for t in testdata:
-            report += "| {} | {} | {} |\n".format(t.id, t.status, t.errormsg if t.errormsg else "")
+    if(len(skipped_tests) > 0):
         report += "## Skipped tests\n"
-        report += "|   |   |\n|---|---|\n"
+        report += "<table>\n"
         for t in skipped_tests:
-            report += "| {} |\n".format(t.id)
-        report += "## Unknown tests\n"
-        report += "|   |   |\n|---|---|\n"
-        for t in unknown_tests:
-            report += "| {} |\n".format(t.id)
-        return report
+            report += "<tr><td><samp>{}</samp></td></tr>\n".format(t.id)
+        report += "</table>\n\n"
 
-    if format == "html":
-        report = generate_html()
-    elif format == "markdown":
-        report = generate_markdown()
-    else:
-        print("ERROR: Unknown report format", file=sys.stderr) 
-        sys.exit(-1)
+    if(len(unknown_tests) > 0):
+        report += "## Unknown tests\n"
+        report += "<table>\n"
+        for t in unknown_tests:
+            report += "<tr><td><samp>{}</samp></td></tr>\n".format(t.id)
+        report += "</table>\n\n"
 
     return report

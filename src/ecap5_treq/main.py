@@ -2,7 +2,7 @@ import argparse
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_test_report
+from report import generate_test_report, generate_test_summary
 from matrix import import_matrix
 from config import load_config, check_config
 import csv
@@ -76,6 +76,25 @@ def cmd_gen_test_report(config, args):
     else:
         print(report)
 
+def cmd_gen_test_summary(config, args):
+    check_config(config, [
+        "spec_dir_path",
+        "test_dir_path",
+        "testdata_dir_path",
+        "matrix_path"
+    ])
+
+    reqs = extract_reqs(config["spec_dir_path"])
+    checks = extract_checks(config["test_dir_path"])
+    testdata = import_testdata(config["testdata_dir_path"])
+    matrix = import_matrix(config["matrix_path"])
+    report = generate_test_summary(reqs, checks, testdata, matrix, args.format)
+    if(args.output):
+        with open(args.output, 'w') as f:
+            f.write(report)
+    else:
+        print(report)
+
 def main():
     parser = argparse.ArgumentParser(
             prog="ECAP5-TREQ",
@@ -116,6 +135,8 @@ def main():
         cmd_print_testdata(config, args)
     elif args.command == "gen_test_report":
         cmd_gen_test_report(config, args)
+    elif args.command == "gen_test_summary":
+        cmd_gen_test_summary(config, args)
     else:
         parser.print_help()
 
