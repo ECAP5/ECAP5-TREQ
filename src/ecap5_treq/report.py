@@ -75,6 +75,6 @@ def generate_test_summary(reqs, checks, testdata, matrix, format):
         report += "</table>\n\n"
 
     # Set environment variables for the status
-    os.environ["ECAP5_TREQ_TEST_STATUS"] = str(count_success / len(checks) * 100)
+    os.environ["ECAP5_TREQ_TEST_RESULT"] = str(count_success / len(checks) * 100)
 
     return report
