@@ -98,8 +98,9 @@ def cmd_gen_test_summary(config, args):
         print(report)
 
     # write test result
-    with open(os.path.dirname(rel_to_abs(args.output)) + "/test-result.log", 'w') as f:
-        f.write(str(analysis[0] / len(analysis[5]) * 100.0))
+    badge = generate_test_result_badge(analysis[0], analysis[5])
+    with open(os.path.dirname(rel_to_abs(args.output)) + "/test-result-badge.json", 'w') as f:
+        f.write(badge)
 
 def main():
     parser = argparse.ArgumentParser(
