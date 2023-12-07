@@ -1,4 +1,5 @@
 import sys
+import os
 
 def generate_test_report(reqs, checks, testdata, matrix, format):
     return ""
@@ -72,5 +73,8 @@ def generate_test_summary(reqs, checks, testdata, matrix, format):
         for t in unknown_tests:
             report += "<tr><td><samp>{}</samp></td></tr>\n".format(t.id)
         report += "</table>\n\n"
+
+    # Set environment variables for the status
+    os.environ["ECAP5_TREQ_TEST_STATUS"] = count_success / len(checks) * 100
 
     return report
