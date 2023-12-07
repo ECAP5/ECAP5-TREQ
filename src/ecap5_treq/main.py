@@ -5,6 +5,7 @@ from check import Check, extract_checks, import_testdata
 from report import generate_test_report, generate_test_summary
 from matrix import import_matrix
 from config import load_config, check_config
+from analyse import analyse_tests
 import csv
 import sys
 import glob
@@ -88,12 +89,17 @@ def cmd_gen_test_summary(config, args):
     checks = extract_checks(config["test_dir_path"])
     testdata = import_testdata(config["testdata_dir_path"])
     matrix = import_matrix(config["matrix_path"])
-    report = generate_test_summary(reqs, checks, testdata, matrix, args.format)
+    analysis = analyse_tests(reqs, checks, testdata, matrix)
+    report = generate_test_summary(*analysis)
     if(args.output):
         with open(args.output, 'w') as f:
             f.write(report)
     else:
         print(report)
+
+    # write test result
+    with open(os.path.dirname(rel_to_abs(args.output)) + "/test_result.log", 'w') as f:
+        f.write(str(analysis[0] / len(analysis[5]) * 100.0))
 
 def main():
     parser = argparse.ArgumentParser(
