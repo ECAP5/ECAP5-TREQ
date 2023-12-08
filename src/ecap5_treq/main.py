@@ -2,7 +2,7 @@ import argparse
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_test_report, generate_test_summary
+from report import generate_test_report, generate_test_summary, generate_test_result_badge
 from matrix import import_matrix
 from config import load_config, check_config
 from analyse import analyse_tests
