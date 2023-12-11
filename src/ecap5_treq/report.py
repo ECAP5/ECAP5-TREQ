@@ -48,7 +48,7 @@ def generate_test_result_badge(count_success, checks):
     badge = "{"
     badge += "\"schemaVersion\": 1, "
     badge += "\"label\": \"Test result\", "
-    badge += "\"message\": \"{}\", ".format(str(count_success / len(checks) * 100))
-    badge += "\"color\": \"orange\""
+    badge += "\"message\": \"{}%\", ".format(str(count_success / len(checks) * 100))
+    badge += "\"color\": \"hsl({}, 60%, 50%)\"".format(str(int(count_success / len(checks) * 100.0)))
     badge += "}"
     return badge
