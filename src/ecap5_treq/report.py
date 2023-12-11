@@ -45,10 +45,10 @@ def generate_test_summary(count_success, testsuites, no_testsuite, skipped_tests
     return report
 
 def generate_test_result_badge(count_success, checks):
-    badge += "{"
-    badge += "\"schemaVersion\": 1"
-    badge += "\"label\": \"Test result\""
-    badge += "\"message\": \"{}\"".format(str(count_success / len(checks) * 100))
+    badge = "{"
+    badge += "\"schemaVersion\": 1, "
+    badge += "\"label\": \"Test result\", "
+    badge += "\"message\": \"{}\", ".format(str(count_success / len(checks) * 100))
     badge += "\"color\": \"orange\""
     badge += "}"
     return badge
