@@ -4,12 +4,12 @@ import glob
 
 class Req:
     def __init__(self, id, description, options):
-        self.id = id
+        self.id = id.replace("\\", "")
         self.description = description
         self.derivedFrom = None
         if options:
             if "derivedfrom" in options:
-                self.derivedFrom = options["derivedfrom"]
+                self.derivedFrom = options["derivedfrom"].replace("\\", "")
 
     def __repr__(self):
         return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")".format(self.id, self.description, self.derivedFrom)
