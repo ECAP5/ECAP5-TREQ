@@ -26,7 +26,7 @@ def generate_report_summary(analysis):
     return report
 
 def generate_test_report(analysis):
-    report = "\n## Test report\n"
+    report = "\n## <a id=\"test-report\"></a> Test report\n"
     report += "<table>\n"
     report += "  <thead>\n"
     report += "    <tr>\n"
@@ -112,7 +112,7 @@ def generate_test_report(analysis):
     return report
 
 def generate_traceability_report(analysis):
-    report = "\n## Traceability report\n"
+    report = "\n## <a id=\"traceability-report\"></a> Traceability report\n"
     report += "<table>\n"
     report += "  <thead>\n"
     report += "    <tr>\n"
