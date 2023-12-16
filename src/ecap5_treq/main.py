@@ -2,7 +2,7 @@ import argparse
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_test_report, generate_test_result_badge
+from report import generate_report_summary, generate_test_report, generate_traceability_report, generate_test_result_badge
 from matrix import import_matrix
 from config import load_config, check_config
 from analyse import analyse_tests
@@ -71,7 +71,12 @@ def cmd_gen_report(config, args):
     testdata = import_testdata(config["testdata_dir_path"])
     matrix = import_matrix(config["matrix_path"])
     analysis = analyse_tests(reqs, checks, testdata, matrix)
-    report = generate_test_report(*analysis)
+
+    report_summary = generate_report_summary(*analysis)
+    test_report = generate_test_report(*analysis)
+    traceability_report = generate_traceability_report(*analysis)
+    report = report_summary + test_report + traceability_report
+
     if(args.output):
         with open(args.output, 'w') as f:
             f.write(report)
