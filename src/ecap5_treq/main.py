@@ -2,7 +2,7 @@ import argparse
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_test_report, generate_test_summary, generate_test_result_badge
+from report import generate_test_report, generate_test_result_badge
 from matrix import import_matrix
 from config import load_config, check_config
 from analyse import analyse_tests
@@ -58,26 +58,7 @@ def cmd_print_testdata(config, args):
     for check in checks:
         print(check)
 
-def cmd_gen_test_report(config, args):
-    check_config(config, [
-        "spec_dir_path",
-        "test_dir_path",
-        "testdata_dir_path",
-        "matrix_path"
-    ])
-
-    reqs = extract_reqs(config["spec_dir_path"])
-    checks = extract_checks(config["test_dir_path"])
-    testdata = import_testdata(config["testdata_dir_path"])
-    matrix = import_matrix(config["matrix_path"])
-    report = generate_test_report(reqs, checks, testdata, matrix, args.format)
-    if(args.output):
-        with open(args.output, 'w') as f:
-            f.write(report)
-    else:
-        print(report)
-
-def cmd_gen_test_summary(config, args):
+def cmd_gen_report(config, args):
     check_config(config, [
         "spec_dir_path",
         "test_dir_path",
@@ -90,17 +71,32 @@ def cmd_gen_test_summary(config, args):
     testdata = import_testdata(config["testdata_dir_path"])
     matrix = import_matrix(config["matrix_path"])
     analysis = analyse_tests(reqs, checks, testdata, matrix)
-    report = generate_test_summary(*analysis)
+    report = generate_test_report(*analysis)
     if(args.output):
         with open(args.output, 'w') as f:
             f.write(report)
     else:
         print(report)
 
-    # write test result
+def cmd_gen_test_result_badge(config, args):
+    check_config(config, [
+        "spec_dir_path",
+        "test_dir_path",
+        "testdata_dir_path",
+        "matrix_path"
+    ])
+
+    reqs = extract_reqs(config["spec_dir_path"])
+    checks = extract_checks(config["test_dir_path"])
+    testdata = import_testdata(config["testdata_dir_path"])
+    matrix = import_matrix(config["matrix_path"])
+    analysis = analyse_tests(reqs, checks, testdata, matrix)
     badge = generate_test_result_badge(analysis[0], analysis[5])
-    with open(os.path.dirname(rel_to_abs(args.output)) + "/test-report-badge.json", 'w') as f:
-        f.write(badge)
+    if(args.output):
+        with open(args.output, 'w') as f:
+            f.write(badge)
+    else:
+        print(badge)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -140,10 +136,10 @@ def main():
         cmd_prepare_matrix(config, args)
     elif args.command == "print_testdata":
         cmd_print_testdata(config, args)
-    elif args.command == "gen_test_report":
-        cmd_gen_test_report(config, args)
-    elif args.command == "gen_test_summary":
-        cmd_gen_test_summary(config, args)
+    elif args.command == "gen_report":
+        cmd_gen_report(config, args)
+    elif args.command == "gen_test_result_badge":
+        cmd_gen_test_result_badge(config, args)
     else:
         parser.print_help()
 

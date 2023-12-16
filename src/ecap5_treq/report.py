@@ -1,10 +1,7 @@
 import sys
 import os
 
-def generate_test_report(reqs, checks, testdata, matrix, format):
-    return ""
-
-def generate_test_summary(count_success, testsuites, no_testsuite, skipped_tests, unknown_tests, checks):
+def generate_test_report(count_success, testsuites, no_testsuite, skipped_tests, unknown_tests, checks):
     report = "# Test report\n"
     report += "<table>\n"
     report += "<thead><tr><th>Success</th><th>Failure</th><th>Total</th></tr></thead>\n"
