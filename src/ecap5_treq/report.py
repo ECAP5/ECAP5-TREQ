@@ -125,10 +125,10 @@ def generate_traceability_report(analysis):
     report += "  </thead>\n"
     report += "  <tr>\n"
     report += "    <td>Requirements</td>\n"
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.covered_reqs))
     report += "    <td align=\"right\">{}</td>\n".format(0)
     report += "    <td align=\"right\">{}</td>\n".format(0)
-    report += "    <td align=\"right\">{}</td>\n".format(0)
-    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
     report += "</table>\n"
 
