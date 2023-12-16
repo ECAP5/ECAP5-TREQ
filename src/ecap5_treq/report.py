@@ -1,72 +1,164 @@
 import sys
 import os
 
-def generate_report_summary(count_success, testsuites, no_testsuite, skipped_tests, unknown_tests, checks):
-    testresult = int(count_success / len(checks) * 100.0)
-    traceabilityresult = 0
+def generate_report_summary(analysis):
+    test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
+    traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
 
     report = "# Summary\n"
     report += "<table>\n"
-    report += "<tr><td>{}</td><td><a href=\"#test-report\">Test report</a></td><td align=\"right\">{}</td>\n".format("✅" if testresult == 100 else "🚫", str(testresult) + "%")
-    report += "<tr><td>{}</td><td><a href=\"#traceability-report\">Traceability report</a></td><td align=\"right\">{}</td>\n".format("✅" if traceabilityresult == 100 else "🚫", str(traceabilityresult) + "%")
+    report += "  <tr>\n"
+    report += "    <td>{}</td>\n".format(test_result_icon)
+    report += "    <td>\n"
+    report += "      <a href=\"#test-report\">Test report</a>\n"
+    report += "    </td>\n"
+    report += "    <td align=\"right\">{}</td>\n".format(str(analysis.test_result) + "%")
+    report += "  </tr>\n"
+    report += "  <tr>\n"
+    report += "    <td>{}</td>\n".format(traceability_result_icon)
+    report += "    <td>\n"
+    report += "      <a href=\"#traceability-report\">Traceability report</a>\n"
+    report += "    </td>\n"
+    report += "    <td align=\"right\">{}</td>\n".format(str(analysis.traceability_result) + "%")
+    report += "  </tr>\n"
     report += "</table>\n"
 
-    return report + "\n"
+    return report
 
-def generate_test_report(count_success, testsuites, no_testsuite, skipped_tests, unknown_tests, checks):
-    report = "## Test report\n"
+def generate_test_report(analysis):
+    report = "\n## Test report\n"
     report += "<table>\n"
-    report += "<thead><tr><th></th><th>Success</th><th>Failure</th><th>Total</th></tr></thead>\n"
-    report += "<tr><td>Tests</td><td align=\"right\">{}</td><td align=\"right\">{}</td><td align=\"right\">{}</td></tr>\n".format(count_success, len(checks)-count_success, len(checks))
-    report += "</table>\n\n"
+    report += "  <thead>\n"
+    report += "    <tr>\n"
+    report += "      <th></th>\n"
+    report += "      <th>Success</th>\n"
+    report += "      <th>Failure</th>\n"
+    report += "      <th>Skipped</th>\n"
+    report += "      <th>Unknown</th>\n"
+    report += "      <th>Total</th>\n"
+    report += "    </tr>\n"
+    report += "  </thead>\n"
+    report += "  <tr>\n"
+    report += "    <td>Tests</td>\n"
+    report += "    <td align=\"right\">{}</td>\n".format(analysis.num_successfull_checks)
+    report += "    <td align=\"right\">{}</td>\n".format(analysis.num_failed_checks)
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.skipped_checks))
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.unknown_checks))
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.checks))
+    report += "  </tr>\n"
+    report += "</table>\n"
 
-    report += "### Run tests\n"
+    report += "\n### Run tests\n"
     report += "<table>\n"
-    report += "<thead><tr><th>Testsuite</th><th>Test check</th><th>Status</th><th>Log</th></tr></thead>\n"
-    for t in testsuites:
-        for i, c in enumerate(testsuites[t]):
-            report += "<tr>"
+    report += "  <thead>\n"
+    report += "    <tr>\n"
+    report += "      <th>Testsuite</th>\n"
+    report += "      <th>Test check</th>\n"
+    report += "      <th>Status</th>\n"
+    report += "      <th>Log</th>\n"
+    report += "    </tr>\n"
+    report += "  </thead>\n"
+    for t in analysis.testsuites:
+        for i, c in enumerate(analysis.testsuites[t]):
+            report += "  <tr>\n"
+            # Insert the name of the testsuite on the first row
             if i == 0:
-                report += "<td rowspan=\"{}\"><samp>{}</samp></td>".format(len(testsuites[t]), t)
-            report += "<td><samp>{}</samp></td><td align=\"center\">{}</td><td>{}</td></tr>\n".format(c.id, "✅" if c.status else "🚫", c.errormsg if c.errormsg else "")
+                report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[t]))
+                report += "      <samp>{}</samp>\n".format(t)
+                report += "    </td>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(c.id)
+            report += "    </td>\n"
+            report += "    <td align=\"center\">{}</td>\n".format("✅" if c.status else "🚫")
+            report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
+            report += "  </tr>\n"
+
     # Handle tests that do not belong to a testsuite
-    for i, c in enumerate(no_testsuite):
-        report += "<tr>"
+    for i, c in enumerate(analysis.no_testsuite):
+        report += "  <tr>\n"
+        # Insert the name of the testsuite on the first row
         if i == 0:
-            report += "<td rowspan=\"{}\"></td>".format(len(no_testsuite))
-        report += "<td><samp>{}</samp></td><td align=\"center\">{}</td><td>{}</td></tr>\n".format(c.id, "✅" if c.status else "🚫", c.errormsg if c.errormsg else "")
-    report += "</table>\n\n"
+            report += "    <td rowspan=\"{}\"></td>\n".format(len(analysis.no_testsuite))
+        report += "    <td>\n"
+        report += "      <samp>{}</samp>\n".format(c.id)
+        report += "    </td>\n"
+        report += "    <td align=\"center\">{}</td>\n".format("✅" if c.status else "🚫")
+        report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
+        report += "  </tr>\n"
+    report += "</table>\n"
 
-    if(len(skipped_tests) > 0):
-        report += "### Skipped tests\n"
+    if(len(analysis.skipped_checks) > 0):
+        report += "\n### Skipped tests\n"
         report += "<table>\n"
-        for t in skipped_tests:
-            report += "<tr><td><samp>{}</samp></td></tr>\n".format(t.id)
-        report += "</table>\n\n"
+        for t in analysis.skipped_checks:
+            report += "  <tr>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(t.id)
+            report += "    </td>\n"
+            report += "  </tr>\n"
+        report += "</table>\n"
 
-    if(len(unknown_tests) > 0):
-        report += "### Unknown tests\n"
+    if(len(analysis.unknown_checks) > 0):
+        report += "\n### Unknown tests\n"
         report += "<table>\n"
-        for t in unknown_tests:
-            report += "<tr><td><samp>{}</samp></td></tr>\n".format(t.id)
-        report += "</table>\n\n"
+        for t in analysis.unknown_checks:
+            report += "  <tr>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(t.id)
+            report += "    </td>\n"
+            report += "  </tr>\n"
+        report += "</table>\n"
 
     return report
 
-def generate_traceability_report(count_success, testsuites, no_testsuite, skipped_tests, unknown_tests, checks):
-    report = "## Traceability report\n"
+def generate_traceability_report(analysis):
+    report = "\n## Traceability report\n"
     report += "<table>\n"
-    report += "<thead><tr><th></th><th>Covered</th><th>Untraceable</th><th>Uncovered</th><th>Total</th></tr></thead>\n"
-    report += "<tr><td>Requirements</td><td align=\"right\">{}</td><td align=\"right\">{}</td><td align=\"right\">{}</td><td align=\"right\">{}</td></tr>\n".format(0, 0, 0, len(checks))
-    report += "</table>\n\n"
+    report += "  <thead>\n"
+    report += "    <tr>\n"
+    report += "      <th></th>\n"
+    report += "      <th>Covered</th>\n"
+    report += "      <th>Untraceable</th>\n"
+    report += "      <th>Uncovered</th>\n"
+    report += "      <th>Total</th>\n"
+    report += "    </tr>\n"
+    report += "  </thead>\n"
+    report += "  <tr>\n"
+    report += "    <td>Requirements</td>\n"
+    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "  </tr>\n"
+    report += "</table>\n"
+
+    if(len(analysis.covered_reqs) > 0):
+        report += "\n### Covered requirements\n"
+        report += "<table>\n"
+        report += "  <thead>\n"
+        report += "    <tr>\n"
+        report += "      <th></th>\n"
+        report += "      <th>Covered by</th>\n"
+        report += "      <th>Tested by</th>\n"
+        report += "    </tr>\n"
+        report += "  </thead>\n"
+        for r in analysis.covered_reqs:
+            report += "  <tr>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "    </td>\n"
+            report += "    <td></td>\n"
+            report += "    <td></td>\n"
+            report += "  </tr>\n"
+        report += "</table>\n"
 
     return report
 
-def generate_test_result_badge(count_success, checks):
+def generate_test_result_badge(analysis):
     badge = "{"
     badge += "\"schemaVersion\": 1, "
     badge += "\"label\": \"Test result\", "
-    badge += "\"message\": \"{}%\", ".format(str(count_success / len(checks) * 100))
-    badge += "\"color\": \"hsl({}, 60%, 50%)\"".format(str(int(count_success / len(checks) * 100.0)))
+    badge += "\"message\": \"{}%\", ".format(str(analysis.test_result) + "%")
+    badge += "\"color\": \"hsl({}, 60%, 50%)\"".format(str(analysis.test_result))
     badge += "}"
     return badge
