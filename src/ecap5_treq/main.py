@@ -1,10 +1,9 @@
 import argparse
-import io
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
 from report import generate_report_summary, generate_test_report, generate_traceability_report, generate_test_result_badge
-from matrix import import_matrix
+from matrix import import_matrix, prepare_matrix, check_matrix
 from config import load_config, check_config
 from analyse import Analysis
 import csv
@@ -33,24 +32,18 @@ def cmd_prepare_matrix(config, args):
     check_config(config, ["test_dir_path"])
 
     # recover the previous matrix if specified
-    matrix = {}
+    previous_matrix = {}
     if "matrix_path" in config:
-        matrix = import_matrix(config["matrix_path"])
+        previous_matrix = import_matrix(config["matrix_path"])
 
     checks = extract_checks(config["test_dir_path"])
-    result = io.StringIO()
-    w = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    for c in checks:
-        # write the check and add the previous matrix content if there was any
-        w.writerow([c.id] + (matrix[c.id] if c.id in matrix else []))
-    # add a row at the end for requirements that cannot be traced
-    w.writerow(["__UNTRACEABLE__"] + matrix["__UNTRACEABLE__"] if "__UNTRACEABLE__" in matrix else [])
+    matrix, matrix_str = prepare_matrix(checks, previous_matrix)
 
     if(args.output):
         with open(args.output, 'w') as f:
-            f.write(result.getvalue())
+            f.write(matrix_str)
     else:
-        print(result.getvalue())
+        print(matrix_str)
 
 def cmd_print_testdata(config, args):
     check_config(config, ["testdata_dir_path"])
@@ -72,6 +65,9 @@ def cmd_gen_report(config, args):
     testdata = import_testdata(config["testdata_dir_path"])
     matrix = import_matrix(config["matrix_path"])
     analysis = Analysis(reqs, checks, testdata, matrix)
+
+    # Check if the matrix is up to date
+    check_matrix(matrix, checks)
 
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
@@ -122,10 +118,14 @@ def main():
     config = {}
     if(args.config):
         config = load_config(args.config)
-    else:
+    # Command line arguments override the configuration
+    if args.spec:
         config["spec_dir_path"] = args.spec
+    if args.tests:
         config["test_dir_path"] = args.tests
+    if args.data:
         config["testdata_dir_path"] = args.data
+    if args.matrix:
         config["matrix_path"] = args.matrix
 
     # convert relative paths to absolute paths
@@ -133,6 +133,8 @@ def main():
     config["test_dir_path"]      =  rel_to_abs(config["test_dir_path"])
     config["testdata_dir_path"]  =  rel_to_abs(config["testdata_dir_path"])
     config["matrix_path"]        =  rel_to_abs(config["matrix_path"])
+    
+    print(config["matrix_path"])
 
     if args.command == "print_reqs":
         cmd_print_reqs(config, args)

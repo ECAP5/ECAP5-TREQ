@@ -1,3 +1,5 @@
+from matrix import check_matrix
+
 class Analysis():
     def __init__(self, reqs, checks, testdata, matrix):
         self.reqs = reqs
@@ -15,6 +17,8 @@ class Analysis():
         self.covered_reqs = []
         self.uncovered_reqs = []
         self.untraceable_reqs = []
+
+        self.is_matrix_too_old = False
 
         self.test_result = 0
 
@@ -66,36 +70,40 @@ class Analysis():
         ###################################################
 
         # Checks which requirements are covered by sub-requirements
-        self.reqs_derived_from = {}
+        self.reqs_covered_by_reqs = {}
         for r in self.reqs:
             if r.derivedFrom:
-                if r.derivedFrom not in self.reqs_derived_from:
-                    self.reqs_derived_from[r.derivedFrom] = [r]
+                if r.derivedFrom not in self.reqs_covered_by_reqs:
+                    self.reqs_covered_by_reqs[r.derivedFrom] = [r]
                 else:
-                    self.reqs_derived_from[r.derivedFrom] += [r]
+                    self.reqs_covered_by_reqs[r.derivedFrom] += [r]
 
         # Checks which requirements are covered by a test from the matrix
-        self.reqs_covered_by_test = {}
+        self.reqs_covered_by_checks = {}
         self.reqs_untraceable = []
         for c in self.matrix:
             for rid in self.matrix[c]:
                 if c == "__UNTRACEABLE__":
                     self.reqs_untraceable += [rid]
                 else:
-                    if rid not in self.reqs_covered_by_test:
-                        self.reqs_covered_by_test[rid] = [c]
+                    if rid not in self.reqs_covered_by_checks:
+                        self.reqs_covered_by_checks[rid] = [c]
                     else:
-                        self.reqs_covered_by_test[rid] += [c]
+                        self.reqs_covered_by_checks[rid] += [c]
         
         # Sorts the requirements 
         self.covered_reqs = []
         self.untraceable_reqs = []
         self.uncovered_reqs = []
         for r in self.reqs:
-            if (r.id in self.reqs_derived_from) or (r.id in self.reqs_covered_by_test):
+            if (r.id in self.reqs_covered_by_reqs) or (r.id in self.reqs_covered_by_checks):
                 self.covered_reqs += [r]
             elif (r.id in self.reqs_untraceable):
                 self.untraceable_reqs += [r]
             else:
                 self.uncovered_reqs += [r]
 
+        # Checks if the matrix is up to date
+        self.is_matrix_too_old = not check_matrix(self.matrix, self.checks)
+
+        print(self.covered_reqs[0].id)

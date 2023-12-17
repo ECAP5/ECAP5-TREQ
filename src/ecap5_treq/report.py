@@ -14,6 +14,12 @@ def generate_report_summary(analysis):
     traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
 
     report = "# Summary\n"
+
+    # Adds warnings
+    if analysis.is_matrix_too_old:
+        report += "\n> [!CAUTION]\n"
+        report += "> The traceability matrix is not up to date and shall be regenerated\n"
+
     report += "<table>\n"
     report += "  <tr>\n"
     report += "    <td>{}</td>\n".format(test_result_icon)
@@ -162,8 +168,16 @@ def generate_traceability_report(analysis):
             report += "    <td>\n"
             report += "      <samp>{}</samp>\n".format(r.id)
             report += "    </td>\n"
-            report += "    <td></td>\n"
-            report += "    <td></td>\n"
+            # Adds the list of covering reqs
+            if r.id in analysis.reqs_covered_by_reqs:
+                report += "    <td><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
+            else:
+                report += "    <td></td>\n"
+            # Adds the list of covering checks
+            if r.id in analysis.reqs_covered_by_checks:
+                report += "    <td><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
+            else:
+                report += "    <td></td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
 
