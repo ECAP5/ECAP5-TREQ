@@ -158,10 +158,11 @@ def generate_traceability_report(analysis):
         report += "<table>\n"
         report += "  <thead>\n"
         report += "    <tr>\n"
-        report += "      <th></th>\n"
+        report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Covered by</th>\n"
         report += "      <th>Tested by</th>\n"
+        report += "      <th>Test results</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
         for r in analysis.covered_reqs:
@@ -180,6 +181,7 @@ def generate_traceability_report(analysis):
                 report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
             else:
                 report += "    <td></td>\n"
+            report += "    <td></td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
 
@@ -188,7 +190,7 @@ def generate_traceability_report(analysis):
         report += "<table>\n"
         report += "  <thead>\n"
         report += "    <tr>\n"
-        report += "      <th></th>\n"
+        report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
@@ -206,7 +208,7 @@ def generate_traceability_report(analysis):
         report += "<table>\n"
         report += "  <thead>\n"
         report += "    <tr>\n"
-        report += "      <th></th>\n"
+        report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
