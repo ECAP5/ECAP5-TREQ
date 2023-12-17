@@ -159,6 +159,7 @@ def generate_traceability_report(analysis):
         report += "  <thead>\n"
         report += "    <tr>\n"
         report += "      <th></th>\n"
+        report += "      <th>Description</th>\n"
         report += "      <th>Covered by</th>\n"
         report += "      <th>Tested by</th>\n"
         report += "    </tr>\n"
@@ -166,8 +167,9 @@ def generate_traceability_report(analysis):
         for r in analysis.covered_reqs:
             report += "  <tr>\n"
             report += "    <td valign=\"top\">\n"
-            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "      <samp><b>{}</b></samp>\n".format(r.id)
             report += "    </td>\n"
+            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
             # Adds the list of covering reqs
             if r.id in analysis.reqs_covered_by_reqs:
                 report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
@@ -184,22 +186,36 @@ def generate_traceability_report(analysis):
     if(len(analysis.untraceable_reqs) > 0):
         report += "\n### <a id=\"untraceable-reqs\"></a> Untraceable requirements\n"
         report += "<table>\n"
+        report += "  <thead>\n"
+        report += "    <tr>\n"
+        report += "      <th></th>\n"
+        report += "      <th>Description</th>\n"
+        report += "    </tr>\n"
+        report += "  </thead>\n"
         for r in analysis.untraceable_reqs:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "      <samp><b>{}</b></samp>\n".format(r.id)
             report += "    </td>\n"
+            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
             report += "  </tr>\n"
         report += "</table>\n"
 
     if(len(analysis.uncovered_reqs) > 0):
         report += "\n### <a id=\"uncovered-reqs\"></a> Uncovered requirements\n"
         report += "<table>\n"
+        report += "  <thead>\n"
+        report += "    <tr>\n"
+        report += "      <th></th>\n"
+        report += "      <th>Description</th>\n"
+        report += "    </tr>\n"
+        report += "  </thead>\n"
         for r in analysis.uncovered_reqs:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "      <samp><b>{}</b></samp>\n".format(r.id)
             report += "    </td>\n"
+            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
             report += "  </tr>\n"
         report += "</table>\n"
 
