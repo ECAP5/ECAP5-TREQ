@@ -42,7 +42,7 @@ def cmd_prepare_matrix(config, args):
     w = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for c in checks:
         # write the check and add the previous matrix content if there was any
-        w.writerow([c.id] + (matrix_content[c.id] if c.id in matrix_content else []))
+        w.writerow([c.id] + (matrix[c.id] if c.id in matrix else []))
     # add a row at the end for requirements that cannot be traced
     w.writerow(["__UNTRACEABLE__"])
 
