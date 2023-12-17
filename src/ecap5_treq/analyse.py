@@ -82,7 +82,7 @@ class Analysis():
                    self.reqs_covered_by_test[rid] = [c]
                else:
                    self.reqs_covered_by_test[rid] += [c]
-
+        
         self.covered_reqs = []
         for r in self.reqs:
             if (r.id in self.reqs_derived_from) or (r.id in self.reqs_covered_by_test):

@@ -1,4 +1,5 @@
 import argparse
+import io
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
@@ -47,9 +48,9 @@ def cmd_prepare_matrix(config, args):
 
     if(args.output):
         with open(args.output, 'w') as f:
-            f.write(result)
+            f.write(result.getvalue())
     else:
-        print(result)
+        print(result.getvalue())
 
 def cmd_print_testdata(config, args):
     check_config(config, ["testdata_dir_path"])
