@@ -1,6 +1,14 @@
 import sys
 import os
 
+def surround_with_link_if(cond, href, content):
+    res = ""
+    if cond:
+        res = "<a href=\"{}\">{}</a>".format(href, content)
+    else:
+        res = content
+    return res
+
 def generate_report_summary(analysis):
     test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
     traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
@@ -41,9 +49,9 @@ def generate_test_report(analysis):
     report += "  <tr>\n"
     report += "    <td>Tests</td>\n"
     report += "    <td align=\"right\">{}</td>\n".format(analysis.num_successfull_checks)
-    report += "    <td align=\"right\"><a href=\"#first-failed-check\">{}</a></td>\n".format(analysis.num_failed_checks)
-    report += "    <td align=\"right\"><a href=\"#skipped-checks\">{}</a></td>\n".format(len(analysis.skipped_checks))
-    report += "    <td align=\"right\"><a href=\"#unknown-checks\">{}</a></td>\n".format(len(analysis.unknown_checks))
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_failed_checks > 0, "#first-failed-check", str(analysis.num_failed_checks)))
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.skipped_checks) > 0, "#skipped-checks", str(len(analysis.skipped_checks))))
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.unknown_checks) > 0, "#unknown-checks", str(len(analysis.unknown_checks))))
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.checks))
     report += "  </tr>\n"
     report += "</table>\n"
@@ -134,7 +142,7 @@ def generate_traceability_report(analysis):
     report += "    <td>Requirements</td>\n"
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.covered_reqs))
     report += "    <td align=\"right\">{}</td>\n".format(0)
-    report += "    <td align=\"right\"><a href=\"#uncovered-reqs\">{}</a></td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.uncovered_reqs) > 0, "#uncovered-reqs", str(len(analysis.uncovered_reqs))))
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
     report += "</table>\n"

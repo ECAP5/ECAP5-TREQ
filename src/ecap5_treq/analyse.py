@@ -13,6 +13,7 @@ class Analysis():
         self.unknown_checks = []
 
         self.covered_reqs = []
+        self.uncovered_reqs = []
 
         self.test_result = 0
 
@@ -76,3 +77,5 @@ class Analysis():
         for r in self.reqs:
             if r.id in self.reqs_derived_from:
                 self.covered_reqs += [r]
+
+        self.uncovered_reqs = []
