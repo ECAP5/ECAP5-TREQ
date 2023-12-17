@@ -1,10 +1,11 @@
 tb_regm_read_port_a;REQ_1;REQ_2
 tb_regm_write_x0
 tb_regm_write;REQ_3
-tb_regm_parallel_read_01; REQ_4; REQ_5
-tb_regm_read_before_write_01; REQ_2
+tb_regm_parallel_read_01;REQ_4;REQ_5
+tb_regm_read_before_write_01;REQ_2
 tb_regm_read_before_write_02
 tb_first_01
-tb_first_02; REQ_2
-tb_first_03; REQ_1
-tb_second_02; REQ_4
+tb_first_02;REQ_2
+tb_first_03;REQ_1
+tb_second_02;REQ_4
+__UNTRACEABLE__;REQ_1

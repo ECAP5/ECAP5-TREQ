@@ -141,7 +141,7 @@ def generate_traceability_report(analysis):
     report += "  <tr>\n"
     report += "    <td>Requirements</td>\n"
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.covered_reqs))
-    report += "    <td align=\"right\">{}</td>\n".format(0)
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.untraceable_reqs) > 0, "#untraceable-reqs", str(len(analysis.untraceable_reqs))))
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.uncovered_reqs) > 0, "#uncovered-reqs", str(len(analysis.uncovered_reqs))))
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
@@ -164,6 +164,17 @@ def generate_traceability_report(analysis):
             report += "    </td>\n"
             report += "    <td></td>\n"
             report += "    <td></td>\n"
+            report += "  </tr>\n"
+        report += "</table>\n"
+
+    if(len(analysis.untraceable_reqs) > 0):
+        report += "\n### <a id=\"untraceable-reqs\"></a> Untraceable requirements\n"
+        report += "<table>\n"
+        for r in analysis.untraceable_reqs:
+            report += "  <tr>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
 

@@ -44,7 +44,7 @@ def cmd_prepare_matrix(config, args):
         # write the check and add the previous matrix content if there was any
         w.writerow([c.id] + (matrix[c.id] if c.id in matrix else []))
     # add a row at the end for requirements that cannot be traced
-    w.writerow(["__UNTRACEABLE__"])
+    w.writerow(["__UNTRACEABLE__"] + matrix["__UNTRACEABLE__"] if "__UNTRACEABLE__" in matrix else [])
 
     if(args.output):
         with open(args.output, 'w') as f:

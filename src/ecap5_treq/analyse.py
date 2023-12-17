@@ -14,6 +14,7 @@ class Analysis():
 
         self.covered_reqs = []
         self.uncovered_reqs = []
+        self.untraceable_reqs = []
 
         self.test_result = 0
 
@@ -75,17 +76,25 @@ class Analysis():
 
         # Checks which requirements are covered by a test from the matrix
         self.reqs_covered_by_test = {}
+        self.reqs_untraceable = []
         for c in self.matrix:
-           print(self.matrix[c]) 
-           for rid in self.matrix[c]:
-               if rid not in self.reqs_covered_by_test:
-                   self.reqs_covered_by_test[rid] = [c]
-               else:
-                   self.reqs_covered_by_test[rid] += [c]
+            for rid in self.matrix[c]:
+                if c == "__UNTRACEABLE__":
+                    self.reqs_untraceable += [rid]
+                else:
+                    if rid not in self.reqs_covered_by_test:
+                        self.reqs_covered_by_test[rid] = [c]
+                    else:
+                        self.reqs_covered_by_test[rid] += [c]
         
         self.covered_reqs = []
         for r in self.reqs:
             if (r.id in self.reqs_derived_from) or (r.id in self.reqs_covered_by_test):
                 self.covered_reqs += [r]
+
+        self.untraceable_reqs = []
+        for r in self.reqs:
+            if (r.id in self.reqs_untraceable):
+                self.untraceable_reqs += [r]
 
         self.uncovered_reqs = []
