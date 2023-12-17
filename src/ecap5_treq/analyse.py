@@ -73,9 +73,19 @@ class Analysis():
                 else:
                     self.reqs_derived_from[r.derivedFrom] += [r]
 
+        # Checks which requirements are covered by a test from the matrix
+        self.reqs_covered_by_test = {}
+        for c in self.matrix:
+           print(self.matrix[c]) 
+           for rid in self.matrix[c]:
+               if rid not in self.reqs_covered_by_test:
+                   self.reqs_covered_by_test[rid] = [c]
+               else:
+                   self.reqs_covered_by_test[rid] += [c]
+
         self.covered_reqs = []
         for r in self.reqs:
-            if r.id in self.reqs_derived_from:
+            if (r.id in self.reqs_derived_from) or (r.id in self.reqs_covered_by_test):
                 self.covered_reqs += [r]
 
         self.uncovered_reqs = []
