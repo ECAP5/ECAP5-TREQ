@@ -165,17 +165,17 @@ def generate_traceability_report(analysis):
         report += "  </thead>\n"
         for r in analysis.covered_reqs:
             report += "  <tr>\n"
-            report += "    <td>\n"
+            report += "    <td valign=\"top\">\n"
             report += "      <samp>{}</samp>\n".format(r.id)
             report += "    </td>\n"
             # Adds the list of covering reqs
             if r.id in analysis.reqs_covered_by_reqs:
-                report += "    <td><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
+                report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
             else:
                 report += "    <td></td>\n"
             # Adds the list of covering checks
             if r.id in analysis.reqs_covered_by_checks:
-                report += "    <td><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
+                report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
             else:
                 report += "    <td></td>\n"
             report += "  </tr>\n"
