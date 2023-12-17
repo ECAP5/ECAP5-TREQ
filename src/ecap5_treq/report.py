@@ -58,7 +58,7 @@ def generate_test_report(analysis):
     report += "      <th>Log</th>\n"
     report += "    </tr>\n"
     report += "  </thead>\n"
-    failed_test_anchor = False
+    failed_test_anchor_placed = False
     for t in analysis.testsuites:
         for i, c in enumerate(analysis.testsuites[t]):
             check_status_icon = "✅" if c.status else "🚫"
@@ -74,6 +74,7 @@ def generate_test_report(analysis):
             report += "    <td align=\"center\">\n"
             if not c.status and not failed_test_anchor_placed:
                 report += "      <a id=\"first-failed-check\"></a>"
+                failed_test_anchor_placed = True
             report += "      {}\n".format(check_status_icon)
             report += "    </td>\n"
             report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
