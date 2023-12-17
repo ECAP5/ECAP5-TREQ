@@ -178,6 +178,17 @@ def generate_traceability_report(analysis):
             report += "  </tr>\n"
         report += "</table>\n"
 
+    if(len(analysis.uncovered_reqs) > 0):
+        report += "\n### <a id=\"uncovered-reqs\"></a> Uncovered requirements\n"
+        report += "<table>\n"
+        for r in analysis.uncovered_reqs:
+            report += "  <tr>\n"
+            report += "    <td>\n"
+            report += "      <samp>{}</samp>\n".format(r.id)
+            report += "    </td>\n"
+            report += "  </tr>\n"
+        report += "</table>\n"
+
     return report
 
 def generate_test_result_badge(analysis):

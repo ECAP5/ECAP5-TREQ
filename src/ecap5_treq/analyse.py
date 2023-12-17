@@ -87,14 +87,15 @@ class Analysis():
                     else:
                         self.reqs_covered_by_test[rid] += [c]
         
+        # Sorts the requirements 
         self.covered_reqs = []
+        self.untraceable_reqs = []
+        self.uncovered_reqs = []
         for r in self.reqs:
             if (r.id in self.reqs_derived_from) or (r.id in self.reqs_covered_by_test):
                 self.covered_reqs += [r]
-
-        self.untraceable_reqs = []
-        for r in self.reqs:
-            if (r.id in self.reqs_untraceable):
+            elif (r.id in self.reqs_untraceable):
                 self.untraceable_reqs += [r]
+            else:
+                self.uncovered_reqs += [r]
 
-        self.uncovered_reqs = []
