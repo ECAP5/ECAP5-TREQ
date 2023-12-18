@@ -111,6 +111,8 @@ class Analysis():
         self.user_reqs = []
         self.external_interface_reqs = []
         self.functional_reqs = []
+        self.design_reqs = []
+        self.non_functional_reqs = []
         self.other_reqs = []
         for r in self.reqs:
             prefix = r.id.split("_")[0]
@@ -120,6 +122,10 @@ class Analysis():
                 self.external_interface_reqs += [r]
             elif prefix == "F":
                 self.functional_reqs += [r]
+            elif prefix == "D":
+                self.design_reqs += [r]
+            elif prefix == "N":
+                self.non_functional_reqs += [r]
             else:
                 self.other_reqs += [r]
 
