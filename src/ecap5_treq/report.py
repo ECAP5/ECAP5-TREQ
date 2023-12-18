@@ -124,7 +124,7 @@ def generate_test_report(analysis):
                 report += "      <samp>{}</samp>\n".format(t)
                 report += "    </td>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(c.id)
+            report += "      <samp>{}</samp>\n".format(c.shortid)
             report += "    </td>\n"
             report += "    <td align=\"center\">\n"
             if not c.status and not failed_test_anchor_placed:
@@ -142,7 +142,7 @@ def generate_test_report(analysis):
         if i == 0:
             report += "    <td rowspan=\"{}\"></td>\n".format(len(analysis.no_testsuite))
         report += "    <td>\n"
-        report += "      <samp>{}</samp>\n".format(c.id)
+        report += "      <samp>{}</samp>\n".format(c.shortid)
         report += "    </td>\n"
         report += "    <td align=\"center\">{}</td>\n".format("✅" if c.status else "🚫")
         report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
@@ -152,10 +152,10 @@ def generate_test_report(analysis):
     if(len(analysis.skipped_checks) > 0):
         report += "\n### <a id=\"skipped-checks\"></a> Skipped tests\n"
         report += "<table>\n"
-        for t in analysis.skipped_checks:
+        for c in analysis.skipped_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(t.id)
+            report += "      <samp>{}</samp>\n".format(c.shortid)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
@@ -163,10 +163,10 @@ def generate_test_report(analysis):
     if(len(analysis.unknown_checks) > 0):
         report += "\n### <a id=\"unknown-checks\"></a> Unknown tests\n"
         report += "<table>\n"
-        for t in analysis.unknown_checks:
+        for c in analysis.unknown_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(t.id)
+            report += "      <samp>{}</samp>\n".format(c.shortid)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"

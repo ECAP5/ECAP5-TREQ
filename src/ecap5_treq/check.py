@@ -5,8 +5,12 @@ import glob
 
 class Check:
     def __init__(self, testsuite, id, status=None, errormsg=None):
+        if testsuite:
+            self.id = testsuite + "." + id
+        else:
+            self.id = id
         self.testsuite = testsuite
-        self.id = id
+        self.shortid = id
         self.status = int(status) if status else None
         self.errormsg = errormsg
 
