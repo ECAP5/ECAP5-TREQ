@@ -1,4 +1,5 @@
 from matrix import check_matrix
+from req import ReqStatus
 
 class Analysis():
     def __init__(self, reqs, checks, testdata, matrix):
@@ -13,10 +14,10 @@ class Analysis():
         self.no_testsuite = []
         self.skipped_checks = []
         self.unknown_checks = []
-
-        self.covered_reqs = []
-        self.uncovered_reqs = []
-        self.untraceable_reqs = []
+        
+        self.num_covered_reqs = 0
+        self.num_untraceable_reqs = 0
+        self.num_uncovered_reqs = 0
 
         self.is_matrix_too_old = False
 
@@ -91,19 +92,36 @@ class Analysis():
                     else:
                         self.reqs_covered_by_checks[rid] += [c]
         
-        # Sorts the requirements 
-        self.covered_reqs = []
-        self.untraceable_reqs = []
-        self.uncovered_reqs = []
+        # Set the requirement flags
+        self.num_covered_reqs = 0
+        self.num_untraceable_reqs = 0
+        self.num_uncovered_reqs = 0
         for r in self.reqs:
             if (r.id in self.reqs_covered_by_reqs) or (r.id in self.reqs_covered_by_checks):
-                self.covered_reqs += [r]
+                r.status = ReqStatus.COVERED
+                self.num_covered_reqs += 1
             elif (r.id in self.reqs_untraceable):
-                self.untraceable_reqs += [r]
+                r.status = ReqStatus.UNTRACEABLE
+                self.num_untraceable_reqs += 1
             else:
-                self.uncovered_reqs += [r]
+                r.status = ReqStatus.UNCOVERED
+                self.num_uncovered_reqs += 1
+
+        # Sort requirements based on type
+        self.user_reqs = []
+        self.external_interface_reqs = []
+        self.functional_reqs = []
+        self.other_reqs = []
+        for r in self.reqs:
+            prefix = r.id.split("_")[0]
+            if prefix == "U":
+                self.user_reqs += [r]
+            elif prefix == "I":
+                self.external_interface_reqs += [r]
+            elif prefix == "F":
+                self.functional_reqs += [r]
+            else:
+                self.other_reqs += [r]
 
         # Checks if the matrix is up to date
         self.is_matrix_too_old = not check_matrix(self.matrix, self.checks)
-
-        print(self.covered_reqs[0].id)

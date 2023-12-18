@@ -1,5 +1,6 @@
 import sys
 import os
+from req import ReqStatus
 
 def surround_with_link_if(cond, href, content):
     res = ""
@@ -132,6 +133,29 @@ def generate_test_report(analysis):
 
     return report
 
+def req_list_to_table_rows(analysis, reqs):
+    result = ""
+    for r in reqs:
+        result += "  <tr>\n"
+        result += "    <td valign=\"top\">\n"
+        result += "      <samp><b>{}</b></samp>\n".format(r.id)
+        result += "    </td>\n"
+        result += "    <td valign=\"top\">{}</td>\n".format(r.description)
+        if r.status != ReqStatus.UNCOVERED:
+            # Adds the list of covering reqs
+            if r.id in analysis.reqs_covered_by_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
+            else:
+                result += "    <td></td>\n"
+            # Adds the list of covering checks
+            if r.id in analysis.reqs_covered_by_checks:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
+            else:
+                result += "    <td></td>\n"
+            result += "    <td></td>\n"
+        result += "  </tr>\n"
+    return result
+
 def generate_traceability_report(analysis):
     report = "\n## <a id=\"traceability-report\"></a> Traceability report\n"
     report += "<table>\n"
@@ -146,14 +170,18 @@ def generate_traceability_report(analysis):
     report += "  </thead>\n"
     report += "  <tr>\n"
     report += "    <td>Requirements</td>\n"
-    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.covered_reqs))
-    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.untraceable_reqs) > 0, "#untraceable-reqs", str(len(analysis.untraceable_reqs))))
-    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.uncovered_reqs) > 0, "#uncovered-reqs", str(len(analysis.uncovered_reqs))))
+    report += "    <td align=\"right\">{}</td>\n".format(analysis.num_covered_reqs)
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_untraceable_reqs > 0, "#untraceable-reqs", str(analysis.num_untraceable_reqs)))
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_uncovered_reqs > 0, "#uncovered-reqs", str(analysis.num_uncovered_reqs)))
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
     report += "</table>\n"
 
-    if(len(analysis.covered_reqs) > 0):
+    if(analysis.num_covered_reqs > 0):
+        filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.user_reqs))
+        filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.external_interface_reqs))
+        filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.functional_reqs))
+        filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.other_reqs))
         report += "\n### Covered requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -165,28 +193,25 @@ def generate_traceability_report(analysis):
         report += "      <th>Test results</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
-        report += "  <thead><tr><th><i>User requirements</i></th></tr></thead>\n"
-        for r in analysis.covered_reqs:
-            report += "  <tr>\n"
-            report += "    <td valign=\"top\">\n"
-            report += "      <samp><b>{}</b></samp>\n".format(r.id)
-            report += "    </td>\n"
-            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
-            # Adds the list of covering reqs
-            if r.id in analysis.reqs_covered_by_reqs:
-                report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
-            else:
-                report += "    <td></td>\n"
-            # Adds the list of covering checks
-            if r.id in analysis.reqs_covered_by_checks:
-                report += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
-            else:
-                report += "    <td></td>\n"
-            report += "    <td></td>\n"
-            report += "  </tr>\n"
+        if len(filtered_user_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"5\"><i>User Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
+        if len(filtered_external_interface_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"5\"><i>External Interface Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
+        if len(filtered_functional_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"5\"><i>Functional Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_other_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"5\"><i>Other Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
-    if(len(analysis.untraceable_reqs) > 0):
+    if(analysis.num_untraceable_reqs > 0):
+        filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.user_reqs))
+        filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.external_interface_reqs))
+        filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.functional_reqs))
+        filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.other_reqs))
         report += "\n### <a id=\"untraceable-reqs\"></a> Untraceable requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -195,16 +220,25 @@ def generate_traceability_report(analysis):
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
-        for r in analysis.untraceable_reqs:
-            report += "  <tr>\n"
-            report += "    <td>\n"
-            report += "      <samp><b>{}</b></samp>\n".format(r.id)
-            report += "    </td>\n"
-            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
-            report += "  </tr>\n"
+        if len(filtered_user_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>User Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
+        if len(filtered_external_interface_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>External Interface Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
+        if len(filtered_functional_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Functional Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_other_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Other Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
-    if(len(analysis.uncovered_reqs) > 0):
+    if(analysis.num_uncovered_reqs > 0):
+        filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.user_reqs))
+        filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.external_interface_reqs))
+        filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.functional_reqs))
+        filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.other_reqs))
         report += "\n### <a id=\"uncovered-reqs\"></a> Uncovered requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -213,13 +247,18 @@ def generate_traceability_report(analysis):
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
-        for r in analysis.uncovered_reqs:
-            report += "  <tr>\n"
-            report += "    <td>\n"
-            report += "      <samp><b>{}</b></samp>\n".format(r.id)
-            report += "    </td>\n"
-            report += "    <td valign=\"top\">{}</td>\n".format(r.description)
-            report += "  </tr>\n"
+        if len(filtered_user_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>User Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
+        if len(filtered_external_interface_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>External Interface Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
+        if len(filtered_functional_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Functional Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_other_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Other Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
     return report

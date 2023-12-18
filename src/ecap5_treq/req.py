@@ -1,12 +1,20 @@
 import sys
 import re
 import glob
+from enum import Enum
+
+class ReqStatus:
+    UNCOVERED = 0
+    COVERED = 1
+    UNTRACEABLE = 2
 
 class Req:
     def __init__(self, id, description, options):
         self.id = id.replace("\\", "")
         self.description = description
         self.derivedFrom = None
+        self.status = ReqStatus.UNCOVERED
+
         if options:
             if "derivedfrom" in options:
                 self.derivedFrom = options["derivedfrom"].replace("\\", "")
