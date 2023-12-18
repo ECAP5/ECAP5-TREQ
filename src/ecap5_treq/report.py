@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 from req import ReqStatus
 
 def surround_with_link_if(cond, href, content):
@@ -10,7 +11,40 @@ def surround_with_link_if(cond, href, content):
         res = content
     return res
 
+def latex_to_html(text):
+    if text == None:
+        return None
+
+    # Replace texttt with samp
+    result = re.sub(r"\\texttt{([^}]*)}", r"<samp>\1</samp>", text)
+
+    return result
+
+def req_list_to_table_rows(analysis, reqs):
+    result = ""
+    for r in reqs:
+        result += "  <tr>\n"
+        result += "    <td valign=\"top\">\n"
+        result += "      <samp><b>{}</b></samp>\n".format(r.id)
+        result += "    </td>\n"
+        result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
+        if r.status != ReqStatus.UNCOVERED:
+            # Adds the list of covering reqs
+            if r.id in analysis.reqs_covered_by_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
+            else:
+                result += "    <td></td>\n"
+            # Adds the list of covering checks
+            if r.id in analysis.reqs_covered_by_checks:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
+            else:
+                result += "    <td></td>\n"
+            result += "    <td></td>\n"
+        result += "  </tr>\n"
+    return result
+
 def generate_report_summary(analysis):
+    print(latex_to_html("this is a text and \\texttt{this shall be surrounded} and this shall not"))
     report = ""
 
     # Adds warnings
@@ -133,29 +167,6 @@ def generate_test_report(analysis):
         report += "</table>\n"
 
     return report
-
-def req_list_to_table_rows(analysis, reqs):
-    result = ""
-    for r in reqs:
-        result += "  <tr>\n"
-        result += "    <td valign=\"top\">\n"
-        result += "      <samp><b>{}</b></samp>\n".format(r.id)
-        result += "    </td>\n"
-        result += "    <td valign=\"top\">{}</td>\n".format(r.description)
-        if r.status != ReqStatus.UNCOVERED:
-            # Adds the list of covering reqs
-            if r.id in analysis.reqs_covered_by_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
-            else:
-                result += "    <td></td>\n"
-            # Adds the list of covering checks
-            if r.id in analysis.reqs_covered_by_checks:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
-            else:
-                result += "    <td></td>\n"
-            result += "    <td></td>\n"
-        result += "  </tr>\n"
-    return result
 
 def generate_traceability_report(analysis):
     report = "\n## <a id=\"traceability-report\"></a> Traceability report\n"
