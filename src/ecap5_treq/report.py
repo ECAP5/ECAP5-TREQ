@@ -11,16 +11,17 @@ def surround_with_link_if(cond, href, content):
     return res
 
 def generate_report_summary(analysis):
-    test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
-    traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
-
-    report = "# Summary\n"
+    report = ""
 
     # Adds warnings
     if analysis.is_matrix_too_old:
         report += "\n> [!CAUTION]\n"
         report += "> The traceability matrix is not up to date and shall be regenerated\n"
 
+    report += "# Summary\n"
+
+    test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
+    traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
     report += "<table>\n"
     report += "  <tr>\n"
     report += "    <td>{}</td>\n".format(test_result_icon)
