@@ -165,6 +165,7 @@ def generate_traceability_report(analysis):
         report += "      <th>Test results</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
+        report += "  <thead><tr><th><i>User requirements</i></th></tr></thead>\n"
         for r in analysis.covered_reqs:
             report += "  <tr>\n"
             report += "    <td valign=\"top\">\n"
