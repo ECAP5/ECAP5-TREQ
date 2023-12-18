@@ -15,8 +15,13 @@ def latex_to_html(text):
     if text == None:
         return None
 
-    # Replace texttt with samp
-    result = re.sub(r"\\texttt{([^}]*)}", r"<samp>\1</samp>", text)
+    result = text
+    # Replace \texttt{} with samp
+    result = re.sub(r"\\texttt{([^}]*)}", r"<samp>\1</samp>", result)
+    # Replace \_ with _
+    result = re.sub(r"\\_", "_", result)
+    # Replace \textsuperscript with sup
+    result = re.sub(r"\\textsuperscript{([^}]*)}", r"<sup>\1</sup>", result)
 
     return result
 
