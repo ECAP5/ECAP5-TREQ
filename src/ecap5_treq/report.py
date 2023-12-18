@@ -33,7 +33,7 @@ def req_list_to_table_rows(analysis, reqs):
         result += "      <samp><b>{}</b></samp>\n".format(r.id)
         result += "    </td>\n"
         result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
-        if r.status != ReqStatus.UNCOVERED:
+        if r.status == ReqStatus.COVERED:
             # Adds the list of covering reqs
             if r.id in analysis.reqs_covered_by_reqs:
                 result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
