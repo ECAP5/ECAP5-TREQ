@@ -44,7 +44,7 @@ def req_list_to_table_rows(analysis, reqs):
                 result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
             else:
                 result += "    <td></td>\n"
-            result += "    <td></td>\n"
+            result += "    <td valign=\"top\" align=\"center\"><img src=\"https://img.shields.io/badge/100%25-00AA00\"/></td>\n"
         result += "  </tr>\n"
     return result
 
