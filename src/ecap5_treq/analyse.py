@@ -152,7 +152,11 @@ class Analysis():
             else:
                 self.other_reqs += [r]
 
+        # List req ids
         reqs_ids = []
+        for r in self.reqs:
+            reqs_ids += [r.id]
+
         ###################################################
         #              Check matrix                       #
         ###################################################
@@ -191,8 +195,6 @@ class Analysis():
         ###################################################
 
         # Checks if there are any duplicate requirement ids
-        for r in self.reqs:
-            reqs_ids += [r.id]
         reqs_ids_seen = set()
         duplicate_reqs = [x for x in reqs_ids if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
         for r in duplicate_reqs:
