@@ -50,11 +50,12 @@ def req_list_to_table_rows(analysis, reqs):
             # Adds the list of covering checks
             if r.id in analysis.checks_covering_reqs:
                 result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[r.id]]))
+                result += "    <td valign=\"top\" align=\"center\">\n"
+                result += "      <img src=\"https://img.shields.io/badge/{}\"/>\n".format(gen_result_badge(r.result))
+                result += "    </td>\n"
             else:
                 result += "    <td></td>\n"
-            result += "    <td valign=\"top\" align=\"center\">\n"
-            result += "      <img src=\"https://img.shields.io/badge/{}\"/>\n".format(gen_result_badge(r.result))
-            result += "    </td>\n"
+                result += "    <td></td>\n"
         result += "  </tr>\n"
     return result
 
