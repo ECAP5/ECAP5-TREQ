@@ -14,10 +14,14 @@ class Req:
         self.description = description
         self.derivedFrom = None
         self.status = ReqStatus.UNCOVERED
+        self.result = 0
 
         if options:
             if "derivedfrom" in options:
-                self.derivedFrom = options["derivedfrom"].replace("\\", "")
+                self.derivedFrom = options["derivedfrom"]
+                if len(self.derivedFrom) > 1:
+                    print("ERROR: The derivedfrom parameter do not allow multiple values", file=sys.stderr)
+                self.derivedFrom = self.derivedFrom[0].replace("\\", "")
 
     def __repr__(self):
         return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")".format(self.id, self.description, self.derivedFrom)
@@ -65,13 +69,35 @@ def parse_reqs_in_file(filepath):
         options_dict = None
         if options:
             options_dict = {}
-            options = options.split(",")
-            for op in options:
+            unjoined_options = options.split(",")
+            joined_options = []
+            # join elements when {
+            current = []
+            for op in unjoined_options:
+                current += [op.strip()]
+                # If we haven't seen any { yet
+                if len(current) == 1:
+                    if op.count('{') == op.count('}'):
+                        joined_options += current
+                        current = []
+                else:
+                    if op.count('{') < op.count('}'):
+                        joined_options += [", ".join(current)]
+                        current = []
+
+            for op in joined_options:
                 op = op.split("=")
                 if(len(op) == 1):
                     print("ERROR: Syntax error while processing {}".format(id), file=sys.stderr)
                 # Elements from 1 to the end are joined with = to allow for the = character in the content of the option
-                options_dict[op[0].strip()] = "=".join(op[1:]).strip()
+                op_content = "=".join(op[1:]).strip()
+                # Convert the content to a table
+                op_content_tab = []
+                if op_content[0] == '{':
+                    op_content_tab = op_content[1:-1].split(", ")
+                else:
+                    op_content_tab = [op_content]
+                options_dict[op[0].strip()] = op_content_tab
 
         reqlist += [Req(id, description, options_dict)]
     return reqlist

@@ -32,11 +32,18 @@ class Analysis():
 
         # Count the number of successfull tests
         self.num_successfull_checks = 0
+        self.check_status_by_check_id = {}
         for check in self.testdata:
             if check.status == 1:
                 self.num_successfull_checks += 1
             else:
                 self.num_failed_checks += 1
+            self.check_status_by_check_id[check.id] = check.status
+
+        # Fill the check status to all checks
+        for c in self.checks:
+            if c.id in self.check_status_by_check_id:
+                c.status = self.check_status_by_check_id[c.id]
 
         # Sort tests in testsuites
         self.testsuites = {}
@@ -46,7 +53,7 @@ class Analysis():
                 if check.testsuite in self.testsuites:
                     self.testsuites[check.testsuite] += [check]
                 else:
-                    self.testsuites[check.testsuite] = []
+                    self.testsuites[check.testsuite] = [check]
             else:
                 self.no_testsuite += [check]
 
@@ -71,41 +78,55 @@ class Analysis():
         ###################################################
 
         # Checks which requirements are covered by sub-requirements
-        self.reqs_covered_by_reqs = {}
+        self.reqs_covering_reqs = {}
         for r in self.reqs:
             if r.derivedFrom:
-                if r.derivedFrom not in self.reqs_covered_by_reqs:
-                    self.reqs_covered_by_reqs[r.derivedFrom] = [r]
+                if r.derivedFrom not in self.reqs_covering_reqs:
+                    self.reqs_covering_reqs[r.derivedFrom] = [r]
                 else:
-                    self.reqs_covered_by_reqs[r.derivedFrom] += [r]
+                    self.reqs_covering_reqs[r.derivedFrom] += [r]
 
         # Checks which requirements are covered by a test from the matrix
-        self.reqs_covered_by_checks = {}
-        self.reqs_untraceable = []
-        for c in self.matrix:
-            for rid in self.matrix[c]:
-                if c == "__UNTRACEABLE__":
-                    self.reqs_untraceable += [rid]
-                else:
-                    if rid not in self.reqs_covered_by_checks:
-                        self.reqs_covered_by_checks[rid] = [c]
+        self.checks_covering_reqs = {}
+        for c in self.checks:
+            if c.id in self.matrix:
+                matrix_entry = self.matrix[c.id]
+                for rid in matrix_entry:
+                    if rid not in self.checks_covering_reqs:
+                        self.checks_covering_reqs[rid] = [c]
                     else:
-                        self.reqs_covered_by_checks[rid] += [c]
+                        self.checks_covering_reqs[rid] += [c]
+        # Recover untraceable requirements
+        self.ids_reqs_untraceable = []
+        if "__UNTRACEABLE__" in self.matrix:
+            for rid in self.matrix["__UNTRACEABLE__"]:
+                self.ids_reqs_untraceable += [rid]
         
         # Set the requirement flags
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
         for r in self.reqs:
-            if (r.id in self.reqs_covered_by_reqs) or (r.id in self.reqs_covered_by_checks):
+            if (r.id in self.reqs_covering_reqs) or (r.id in self.checks_covering_reqs):
                 r.status = ReqStatus.COVERED
                 self.num_covered_reqs += 1
-            elif (r.id in self.reqs_untraceable):
+            elif (r.id in self.ids_reqs_untraceable):
                 r.status = ReqStatus.UNTRACEABLE
                 self.num_untraceable_reqs += 1
             else:
                 r.status = ReqStatus.UNCOVERED
                 self.num_uncovered_reqs += 1
+
+        # Compute the requirement test result
+        for r in self.reqs:
+            if r.id in self.checks_covering_reqs:
+                checks = self.checks_covering_reqs[r.id]
+                result = 0
+                for c in checks:
+                    if c.status == 1:
+                        result += 1
+                result = result / len(checks) * 100.0
+                r.result = result
 
         # Sort requirements based on type
         self.user_reqs = []

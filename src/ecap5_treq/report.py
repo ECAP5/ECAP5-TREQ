@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import colorsys
 from req import ReqStatus
 
 def surround_with_link_if(cond, href, content):
@@ -25,6 +26,12 @@ def latex_to_html(text):
 
     return result
 
+def gen_result_badge(result):
+    rgb_color = colorsys.hsv_to_rgb(int(result) / 360.0, 1.0, 0.8)
+    hex_color = '{:02x}{:02x}{:02x}'.format(*tuple(int(255*i) for i in rgb_color))
+    badge = "{}%25-{}".format(int(result), hex_color)
+    return badge
+
 def req_list_to_table_rows(analysis, reqs):
     result = ""
     for r in reqs:
@@ -35,21 +42,22 @@ def req_list_to_table_rows(analysis, reqs):
         result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
         if r.status == ReqStatus.COVERED:
             # Adds the list of covering reqs
-            if r.id in analysis.reqs_covered_by_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covered_by_reqs[r.id]]))
+            if r.id in analysis.reqs_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[r.id]]))
             else:
                 result += "    <td></td>\n"
             # Adds the list of covering checks
-            if r.id in analysis.reqs_covered_by_checks:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join(analysis.reqs_covered_by_checks[r.id]))
+            if r.id in analysis.checks_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[r.id]]))
             else:
                 result += "    <td></td>\n"
-            result += "    <td valign=\"top\" align=\"center\"><img src=\"https://img.shields.io/badge/100%25-00AA00\"/></td>\n"
+            result += "    <td valign=\"top\" align=\"center\">\n"
+            result += "      <img src=\"https://img.shields.io/badge/{}\"/>\n".format(gen_result_badge(r.result))
+            result += "    </td>\n"
         result += "  </tr>\n"
     return result
 
 def generate_report_summary(analysis):
-    print(latex_to_html("this is a text and \\texttt{this shall be surrounded} and this shall not"))
     report = ""
 
     # Adds warnings
