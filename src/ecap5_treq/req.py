@@ -2,6 +2,7 @@ import sys
 import re
 import glob
 from enum import Enum
+from log import *
 
 class ReqStatus:
     UNCOVERED = 0
@@ -20,7 +21,7 @@ class Req:
             if "derivedfrom" in options:
                 self.derivedFrom = options["derivedfrom"]
                 if len(self.derivedFrom) > 1:
-                    print("ERROR: The derivedfrom parameter do not allow multiple values", file=sys.stderr)
+                    log_error("Multiple values for option parameter \"derivedfrom\" of the \"{}\" are not allowed.".format(self.id))
                 self.derivedFrom = self.derivedFrom[0].replace("\\", "")
 
     def __repr__(self):
@@ -65,6 +66,11 @@ def parse_reqs_in_file(filepath):
         cur, description = process_matching_token(cur, content, "{", "}")
         cur, options = process_matching_token(cur, content, "[", "]")
 
+        if len(id) == 0:
+            log_error("Missing id for requirement: \"{}\"".format(content[i:cur]))
+        if not description or len(description) == 0:
+            log_error("Missing description for requirement: \"{}\"".format(content[i:cur]))
+
         # convert the options string to a dictionary
         options_dict = None
         if options:
@@ -88,7 +94,7 @@ def parse_reqs_in_file(filepath):
             for op in joined_options:
                 op = op.split("=")
                 if(len(op) == 1):
-                    print("ERROR: Syntax error while processing {}".format(id), file=sys.stderr)
+                    log_error("Syntax error while processing requirement \"{}\"".format(id))
                 # Elements from 1 to the end are joined with = to allow for the = character in the content of the option
                 op_content = "=".join(op[1:]).strip()
                 # Convert the content to a table

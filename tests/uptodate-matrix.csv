@@ -12,5 +12,5 @@ tb_regm.write;REQ_3;REQ_5
 tb_regm.parallel_read_01;REQ_5
 tb_regm.parallel_read_02;REQ_4;REQ_2;REQ_5
 tb_regm.read_before_write_01
-tb_regm.read_before_write_02;REQ_4
-__UNTRACEABLE__;REQ_1
+tb_regm.read_before_write_02;REQ_4;REQ_4;REQ_10
+__UNTRACEABLE__;REQ_1;REQ_10;REQ_10;REQ_PNPON

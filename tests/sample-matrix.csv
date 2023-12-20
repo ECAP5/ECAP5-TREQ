@@ -7,5 +7,5 @@ tb_regm_read_before_write_02
 tb_first_01
 tb_first_02;REQ_2
 tb_first_03;REQ_1
-tb_second_02;REQ_4
+tb_second_02;REQ_4;REQ_4
 __UNTRACEABLE__;REQ_1

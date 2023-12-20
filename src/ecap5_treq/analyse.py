@@ -1,5 +1,6 @@
 from matrix import check_matrix
 from req import ReqStatus
+from log import *
 
 class Analysis():
     def __init__(self, reqs, checks, testdata, matrix):
@@ -26,6 +27,7 @@ class Analysis():
         self.analyse()
 
     def analyse(self):
+
         ###################################################
         #                 Tests analysis                  #
         ###################################################
@@ -150,5 +152,74 @@ class Analysis():
             else:
                 self.other_reqs += [r]
 
+        reqs_ids = []
+        ###################################################
+        #              Check matrix                       #
+        ###################################################
+
         # Checks if the matrix is up to date
-        self.is_matrix_too_old = not check_matrix(self.matrix, self.checks)
+        if not check_matrix(self.matrix, self.checks):
+            log_imp("The traceability matrix is not up to date and shall be regenerated")
+
+        # Checks if checks are traced to untraceable requirements
+        for rid in self.ids_reqs_untraceable:
+            if rid in self.checks_covering_reqs:
+                log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}".format(rid, ", ".join([c.id for c in self.checks_covering_reqs[rid]])))
+
+        # Check if requirements used in the matrix exist
+        for cid in self.matrix:
+            for rid in self.matrix[cid]:
+                if rid not in reqs_ids:
+                    if cid == "__UNTRACEABLE__":
+                        log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid, cid))
+                    else:
+                        log_warn("Missing requirement \"{}\" traced to check \"{}\" in the matrix".format(rid, cid))
+
+        # Check if the same requirement is traced multiple times to the same check
+        for cid in self.matrix:
+            reqs_ids_seen = set()
+            duplicate_reqs = [x for x in self.matrix[cid] if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
+            if len(duplicate_reqs) > 0:
+                for r in duplicate_reqs:
+                    if cid == "__UNTRACEABLE__":
+                        log_warn("Requirement \"{}\" is marked untraceable multiple times".format(r, cid))
+                    else:
+                        log_warn("Requirement \"{}\" is traced multiple times to the same test \"{}\"".format(r, cid))
+
+        ###################################################
+        #              Check reqs                         #
+        ###################################################
+
+        # Checks if there are any duplicate requirement ids
+        for r in self.reqs:
+            reqs_ids += [r.id]
+        reqs_ids_seen = set()
+        duplicate_reqs = [x for x in reqs_ids if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
+        for r in duplicate_reqs:
+            log_error("Multiple requirements share the same id \"{}\"".format(r))
+
+        # Checks if derivedfrom requirements exist
+        for r in self.reqs:
+            if r.derivedFrom:
+                if r.derivedFrom not in reqs_ids:
+                    log_warn("Requirement \"{}\" is derived from missing requirement \"{}\"".format(r.id, r.derivedFrom))
+
+        # Checks if derivedfrom is different than current
+        for r in self.reqs:
+            if r.derivedFrom:
+                if r.derivedFrom == r.id:
+                    log_warn("Requirement \"{}\" is derived from itself".format(r.id))
+
+        ###################################################
+        #              Check checks                       #
+        ###################################################
+
+        # Checks if there are any duplicate check ids
+        checks_ids = []
+        for c in self.checks:
+            checks_ids += [c.id]
+        checks_ids_seen = set()
+        duplicate_checks = [x for x in checks_ids if x in checks_ids_seen or checks_ids_seen.add(x)]  
+        for c in duplicate_checks:
+            log_error("Multiple tests share the same id \"{}\"".format(c))
+

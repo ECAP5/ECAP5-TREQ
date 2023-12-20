@@ -3,6 +3,7 @@ import os
 import re
 import colorsys
 from req import ReqStatus
+from log import *
 
 def surround_with_link_if(cond, href, content):
     res = ""
@@ -56,6 +57,19 @@ def req_list_to_table_rows(analysis, reqs):
             result += "    </td>\n"
         result += "  </tr>\n"
     return result
+
+def generate_report_warning_section():
+    report = ""
+    for msg in log_error.msgs:
+        report += "\n> [!CAUTION]\n"
+        report += "> <samp>{}</samp>\n".format(msg)
+    for msg in log_imp.msgs:
+        report += "\n> [!IMPORTANT]\n"
+        report += "> <samp>{}</samp>\n".format(msg)
+    for msg in log_warn.msgs:
+        report += "\n> [!WARNING]\n"
+        report += "> <samp>{}</samp>\n".format(msg)
+    return report
 
 def generate_report_summary(analysis):
     report = ""

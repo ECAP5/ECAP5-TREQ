@@ -1,4 +1,5 @@
 import re
+from log import *
 import sys
 import csv
 import glob
@@ -31,7 +32,7 @@ def process_testsuite(s):
     testsuite = None
     id = None
     if len(raw_id) == 1:
-        print("WARN: Check {} doesn't have any parent testsuite".format(s), file=sys.stderr)
+        log_warn("Test \"{}\" doesn't have any parent testsuite".format(s))
         id = raw_id[0]
     else:
         testsuite = raw_id[0]
@@ -63,6 +64,11 @@ def parse_checks_in_file(filepath):
         cur, id = process_string(cur, content)
 
         testsuite, id = process_testsuite(id)
+        if len(id) == 0:
+            log_error("Missing id for test: \"{}\"".format(content[i:cur]))
+        if testsuite != None:
+            if len(testsuite) == 0:
+                log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
         checklist += [Check(testsuite, id)]
     return checklist
 
@@ -81,7 +87,7 @@ def import_testdata(path):
             r = csv.reader(csvfile, delimiter=';', quotechar='|')
             for row in r:
                 if len(row) < 2:
-                    print("ERROR: Incomplete test data in {}".format(file), file=sys.stderr)
+                    log_error("Incomplete test data in {}".format(file), file=sys.stderr)
                     sys.exit(-1)
                 testsuite, id = process_testsuite(row[0])
                 checks += [Check(testsuite, id, row[1], (row[2] if len(row) >= 3 else None))]

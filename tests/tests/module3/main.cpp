@@ -12,11 +12,4 @@ void main(void) {
   CHECK("tb_second_03", cond, msg);
 
   CHECK("testsuite.tb_second_04", cond, msg);
-
-  CHECK("testsuite.tb_second_04", cond, msg);
-
-  CHECK("testsuite.", cond, msg);
-  CHECK(".", cond, msg);
-  CHECK(".pon", cond, msg);
-  CHECK("", cond, msg);
 }

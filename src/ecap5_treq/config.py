@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+from log import *
 
 def load_config(path):
     data = None
@@ -16,7 +17,7 @@ def load_config(path):
     # check if there is any unknown key
     for key in data.keys():
         if key not in allowed_keys:
-            print("ERROR: Unknown key \"{}\" while reading the {}".format(key, path), file=sys.stderr)
+            log_error("Unknown key \"{}\" while reading config at {}".format(key, path))
 
     return data
 
@@ -24,7 +25,7 @@ def check_config(config, mandatory_parameters):
     valid = True
     for p in mandatory_parameters:
         if p not in config:
-            print("ERROR: {} is missing".format(p))
+            log_error("The \"{}\" config parameter is missing".format(p))
             valid = False
     if not valid:
         sys.exit(-1)

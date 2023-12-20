@@ -2,13 +2,14 @@ import argparse
 import os
 from req import extract_reqs 
 from check import Check, extract_checks, import_testdata
-from report import generate_report_summary, generate_test_report, generate_traceability_report, generate_test_result_badge
+from report import *
 from matrix import import_matrix, prepare_matrix, check_matrix
 from config import load_config, check_config
 from analyse import Analysis
 import csv
 import sys
 import glob
+from log import *
 
 def rel_to_abs(path):
     if len(path) > 0:
@@ -69,10 +70,15 @@ def cmd_gen_report(config, args):
     # Check if the matrix is up to date
     check_matrix(matrix, checks)
 
+    report_warnings = generate_report_warning_section()
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
     traceability_report = generate_traceability_report(analysis)
-    report = report_summary + test_report + traceability_report
+    # Only output the full report if there are no error messages
+    if len(log_error.msgs) > 0:
+        report = report_warnings + "\n**Report generation failed.**"
+    else:
+        report = report_warnings + report_summary + test_report + traceability_report
 
     if(args.output):
         with open(args.output, 'w') as f:
@@ -134,8 +140,6 @@ def main():
     config["testdata_dir_path"]  =  rel_to_abs(config["testdata_dir_path"])
     config["matrix_path"]        =  rel_to_abs(config["matrix_path"])
     
-    print(config["matrix_path"])
-
     if args.command == "print_reqs":
         cmd_print_reqs(config, args)
     elif args.command == "print_checks":
