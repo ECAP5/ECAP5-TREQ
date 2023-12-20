@@ -73,7 +73,6 @@ class Analysis():
 
         # Compute the test result
         self.test_result = int(self.num_successfull_checks / len(self.checks) * 100.0)
-        self.traceability_result = 0
 
         ###################################################
         #              Traceability analysis              #
@@ -151,6 +150,9 @@ class Analysis():
                 self.non_functional_reqs += [r]
             else:
                 self.other_reqs += [r]
+
+        # Compute traceability result
+        self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
 
         # List req ids
         reqs_ids = []

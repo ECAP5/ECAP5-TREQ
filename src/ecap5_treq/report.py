@@ -331,6 +331,15 @@ def generate_test_result_badge(analysis):
     badge += "\"schemaVersion\": 1, "
     badge += "\"label\": \"Test result\", "
     badge += "\"message\": \"{}%\", ".format(str(analysis.test_result) + "%")
-    badge += "\"color\": \"hsl({}, 60%, 50%)\"".format(str(analysis.test_result))
+    badge += "\"color\": \"hsl({}, 100%, 40%)\"".format(str(analysis.test_result))
+    badge += "}"
+    return badge
+
+def generate_traceability_result_badge(analysis):
+    badge = "{"
+    badge += "\"schemaVersion\": 1, "
+    badge += "\"label\": \"Traceability\", "
+    badge += "\"message\": \"{}%\", ".format(str(analysis.traceability_result) + "%")
+    badge += "\"color\": \"hsl({}, 100%, 40%)\"".format(str(analysis.traceability_result))
     badge += "}"
     return badge

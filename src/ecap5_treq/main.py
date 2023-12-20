@@ -98,8 +98,28 @@ def cmd_gen_test_result_badge(config, args):
     checks = extract_checks(config["test_dir_path"])
     testdata = import_testdata(config["testdata_dir_path"])
     matrix = import_matrix(config["matrix_path"])
-    analysis = analyse_tests(reqs, checks, testdata, matrix)
-    badge = generate_test_result_badge(analysis[0], analysis[5])
+    analysis = Analysis(reqs, checks, testdata, matrix)
+    badge = generate_test_result_badge(analysis)
+    if(args.output):
+        with open(args.output, 'w') as f:
+            f.write(badge)
+    else:
+        print(badge)
+
+def cmd_gen_traceability_result_badge(config, args):
+    check_config(config, [
+        "spec_dir_path",
+        "test_dir_path",
+        "testdata_dir_path",
+        "matrix_path"
+    ])
+
+    reqs = extract_reqs(config["spec_dir_path"])
+    checks = extract_checks(config["test_dir_path"])
+    testdata = import_testdata(config["testdata_dir_path"])
+    matrix = import_matrix(config["matrix_path"])
+    analysis = Analysis(reqs, checks, testdata, matrix)
+    badge = generate_traceability_result_badge(analysis)
     if(args.output):
         with open(args.output, 'w') as f:
             f.write(badge)
@@ -152,6 +172,8 @@ def main():
         cmd_gen_report(config, args)
     elif args.command == "gen_test_result_badge":
         cmd_gen_test_result_badge(config, args)
+    elif args.command == "gen_traceability_result_badge":
+        cmd_gen_traceability_result_badge(config, args)
     else:
         parser.print_help()
 
