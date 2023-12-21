@@ -1,6 +1,27 @@
-from matrix import check_matrix
-from req import ReqStatus
-from log import *
+#           __        _
+#  ________/ /  ___ _(_)__  ___
+# / __/ __/ _ \/ _ `/ / _ \/ -_)
+# \__/\__/_//_/\_,_/_/_//_/\__/
+# 
+# Copyright (C) Clément Chaie
+# This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
+# 
+# ECAP5-TREQ is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# ECAP5-TREQ is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
+
+from ecap5_treq.matrix import Matrix 
+from ecap5_treq.req import ReqStatus
+from ecap5_treq.log import *
 
 class Analysis():
     def __init__(self, reqs, checks, testdata, matrix):
@@ -91,7 +112,7 @@ class Analysis():
         self.checks_covering_reqs = {}
         for c in self.checks:
             if c.id in self.matrix:
-                matrix_entry = self.matrix[c.id]
+                matrix_entry = self.matrix.get(c.id)
                 for rid in matrix_entry:
                     if rid not in self.checks_covering_reqs:
                         self.checks_covering_reqs[rid] = [c]
@@ -99,9 +120,8 @@ class Analysis():
                         self.checks_covering_reqs[rid] += [c]
         # Recover untraceable requirements
         self.ids_reqs_untraceable = []
-        if "__UNTRACEABLE__" in self.matrix:
-            for rid in self.matrix["__UNTRACEABLE__"]:
-                self.ids_reqs_untraceable += [rid]
+        for rid in self.matrix.get("__UNTRACEABLE__"):
+            self.ids_reqs_untraceable += [rid]
         
         # Set the requirement flags
         self.num_covered_reqs = 0
@@ -164,7 +184,7 @@ class Analysis():
         ###################################################
 
         # Checks if the matrix is up to date
-        if not check_matrix(self.matrix, self.checks):
+        if not self.matrix.check(self.checks):
             log_imp("The traceability matrix is not up to date and shall be regenerated")
 
         # Checks if checks are traced to untraceable requirements
@@ -174,7 +194,7 @@ class Analysis():
 
         # Check if requirements used in the matrix exist
         for cid in self.matrix:
-            for rid in self.matrix[cid]:
+            for rid in self.matrix.get(cid):
                 if rid not in reqs_ids:
                     if cid == "__UNTRACEABLE__":
                         log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid, cid))
@@ -184,7 +204,7 @@ class Analysis():
         # Check if the same requirement is traced multiple times to the same check
         for cid in self.matrix:
             reqs_ids_seen = set()
-            duplicate_reqs = [x for x in self.matrix[cid] if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
+            duplicate_reqs = [x for x in self.matrix.get(cid) if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
             if len(duplicate_reqs) > 0:
                 for r in duplicate_reqs:
                     if cid == "__UNTRACEABLE__":

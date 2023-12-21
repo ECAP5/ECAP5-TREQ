@@ -1,6 +1,6 @@
 {
-  "spec_dir_path": "tests/spec/document3",
-  "test_dir_path": "tests/tests/module3",
-  "testdata_dir_path": "tests/data",
-  "matrix_path": "tests/uptodate-matrix.csv"
+  "spec_dir_path": "spec/document3",
+  "test_dir_path": "tests/module3",
+  "testdata_dir_path": "data",
+  "matrix_path": "uptodate-matrix.csv"
 }

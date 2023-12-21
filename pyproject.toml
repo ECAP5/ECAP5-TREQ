@@ -27,9 +27,9 @@ requires = [
 
 [project]
 name = "ECAP5-TREQ"
-version = "1.0"
+version = "0.1.0"
 authors = [
-  { name = "Clément Chaine", email="cc.chaine@free.fr" },
+  { name = "Clément Chaine", email="clement.chaine25@gmail.com" }
 ]
 description = ""
 readme = "README.md"
@@ -41,7 +41,8 @@ classifiers = [
   "Operating System :: OS Independent"
 ]
 dependencies = [
-
+  'Sphinx ~= 7.2.6',
+  'sphinx_rtd_theme ~= 2.0.0'
 ]
 
 [project.urls]
@@ -49,4 +50,4 @@ dependencies = [
 "Bug Tracker" = "https://github.com/cchaine/ecap5-treq/ECAP5-TREQ"
 
 [project.scripts]
-ECAP5-TREQ = "ecap5_treq:main"
+ecap5-treq = "ecap5_treq.main:main"
