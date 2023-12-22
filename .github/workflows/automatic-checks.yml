@@ -24,7 +24,7 @@ jobs:
     - name: Install the dependencies
       run: >-
         mkdir -p ${{github.workspace}}/_deps/bin &&
-        pip install . --target ${{github.workspace}}/_deps --install-option="--install-scripts=${{github.workspace}}/_deps/bin" &&
+        pip install . --prefix ${{github.workspace}}/_pip &&
         echo "${{github.workspace}}/_deps/bin" >> $GITHUB_PATH
 
     - name: Generate documentation
