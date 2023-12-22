@@ -22,7 +22,10 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install the dependencies
-      run: pip install . --target /tmp/
+      run: >-
+        mkdir -p ${{github.workspace}}/_deps/bin &&
+        pip install . --target ${{github.workspace}}/_deps --install-option="--install-scripts=${{github.workspace}}/_deps/bin" &&
+        echo "${{github.workspace}}/_deps/bin" >> $GITHUB_PATH
 
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
@@ -37,4 +40,4 @@ jobs:
       with:
         artifact_name: ecap5-treq_documentation
         preview: true
-     
+     
