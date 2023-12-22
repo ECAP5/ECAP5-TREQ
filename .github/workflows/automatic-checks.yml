@@ -17,19 +17,21 @@ jobs:
       run: pylint ${{github.workspace}}/src/ecap5_treq
   documentation:
     runs-on: self-hosted
+    env:
+      VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install the dependencies
-      env:
-        PIP_PREFIX: ${{github.workspace}}/_pip
+    - name: Setup python virtual environment
       run: >-
-        mkdir -p ${{ env.PIP_PREFIX }} &&
-        pip install . --prefix ${{ env.PIP_PREFIX }} &&
-        echo "${{ env.PIP_PREFIX }}/bin" >> $GITHUB_PATH &&
-        echo "$GITHUB_PATH" >> $GITHUB_STEP_SUMMARY &&
-        echo "${{ env.PIP_PREFIX }}/bin" >> $GITHUB_STEP_SUMMARY
+        cd ${{github.workspace}} &&
+        python3 -m venv ${{ env.VENV_NAME }}
+
+    - name: Install dependencies
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pip install ${{github.workspace}}
 
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
@@ -44,3 +46,8 @@ jobs:
       with:
         artifact_name: ecap5-treq_documentation
         preview: true
+
+    - name: Cleanup python virtual environment
+      run: >-
+        deactivate &&
+        rm -rf ${{ env.VENV_NAME }}
