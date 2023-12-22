@@ -24,7 +24,7 @@ jobs:
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
 
-    - uses: actions/upload-pages-artifact
+    - uses: actions/upload-pages-artifact@v2
       with: 
         name: ecap5-treq-documentation
         path: ${{github.workspace}}/docs/build/html
