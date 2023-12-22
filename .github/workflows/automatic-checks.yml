@@ -15,3 +15,23 @@ jobs:
 
     - name: pylint
       run: pylint ${{github.workspace}}/src/ecap5_treq
+  documentation:
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Generate documentation
+      run: make -C ${{github.workspace}}/docs/ html
+
+    - uses: actions/upload-pages-artifact
+      with: 
+        name: ecap5-treq-documentation
+        path: ${{github.workspace}}/docs/build/html
+    
+    - uses: actions/deploy-pages@v4
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        artifact_name: ecap5-treq_documentation
+        preview: true
+      
