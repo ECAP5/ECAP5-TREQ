@@ -19,14 +19,14 @@
 # You should have received a copy of the GNU General Public License
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os
+# pylint: disable=line-too-long
+
 import re
 import colorsys
 
 from ecap5_treq.analyse import Analysis 
 from ecap5_treq.req import Req, ReqStatus
-from ecap5_treq.log import *
+from ecap5_treq.log import log_error, log_imp, log_warn
 
 def generate_report_warning_section() -> str:
     """Generates a string containing messages logged in this tool during the report generation
@@ -122,62 +122,62 @@ def generate_test_report(analysis: Analysis) -> str:
 
     # Handle checks that belong to testsuites
     failed_test_anchor_placed = False
-    for t in analysis.testsuites:
-        for i, c in enumerate(analysis.testsuites[t]):
-            check_status_icon = "✅" if c.status else "🚫"
+    for tid in analysis.testsuites:
+        for i, check in enumerate(analysis.testsuites[tid]):
+            check_status_icon = "✅" if check.status else "🚫"
             report += "  <tr>\n"
             # Insert the name of the testsuite on the first row
             if i == 0:
-                report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[t]))
-                report += "      <samp>{}</samp>\n".format(t)
+                report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[tid]))
+                report += "      <samp>{}</samp>\n".format(tid)
                 report += "    </td>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(c.shortid)
+            report += "      <samp>{}</samp>\n".format(check.shortid)
             report += "    </td>\n"
             report += "    <td align=\"center\">\n"
             # Insert a specific anchor on the first failed check to easily jump to it
-            if not c.status and not failed_test_anchor_placed:
+            if not check.status and not failed_test_anchor_placed:
                 report += "      <a id=\"first-failed-check\"></a>"
                 failed_test_anchor_placed = True
             report += "      {}\n".format(check_status_icon)
             report += "    </td>\n"
-            report += "    <td>{}</td>\n".format(c.error_msg if c.error_msg else "")
+            report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
             report += "  </tr>\n"
 
     # Handle checks that do not belong to a testsuite
-    for i, c in enumerate(analysis.no_testsuite):
+    for i, check in enumerate(analysis.no_testsuite):
         report += "  <tr>\n"
         # Insert the name of the testsuite on the first row
         if i == 0:
             report += "    <td rowspan=\"{}\"></td>\n".format(len(analysis.no_testsuite))
         report += "    <td>\n"
-        report += "      <samp>{}</samp>\n".format(c.shortid)
+        report += "      <samp>{}</samp>\n".format(check.shortid)
         report += "    </td>\n"
-        report += "    <td align=\"center\">{}</td>\n".format("✅" if c.status else "🚫")
-        report += "    <td>{}</td>\n".format(c.error_msg if c.error_msg else "")
+        report += "    <td align=\"center\">{}</td>\n".format("✅" if check.status else "🚫")
+        report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
         report += "  </tr>\n"
     report += "</table>\n"
 
     # Handle skipped checks if any
-    if(len(analysis.skipped_checks) > 0):
+    if len(analysis.skipped_checks) > 0:
         report += "\n### <a id=\"skipped-checks\"></a> Skipped tests\n"
         report += "<table>\n"
-        for c in analysis.skipped_checks:
+        for check in analysis.skipped_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(c.shortid)
+            report += "      <samp>{}</samp>\n".format(check.shortid)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
 
     # Handle unknown checks if any
-    if(len(analysis.unknown_checks) > 0):
+    if len(analysis.unknown_checks) > 0:
         report += "\n### <a id=\"unknown-checks\"></a> Unknown tests\n"
         report += "<table>\n"
-        for c in analysis.unknown_checks:
+        for check in analysis.unknown_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(c.shortid)
+            report += "      <samp>{}</samp>\n".format(check.shortid)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
@@ -214,7 +214,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
     report += "</table>\n"
 
     # Handle covered requirements if any
-    if(analysis.num_covered_reqs > 0):
+    if analysis.num_covered_reqs > 0:
         # Get lists of covered requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.external_interface_reqs))
@@ -256,7 +256,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "</table>\n"
 
     # Handle untraceable requirements if any
-    if(analysis.num_untraceable_reqs > 0):
+    if analysis.num_untraceable_reqs > 0:
         # Get lists of untraceable requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.external_interface_reqs))
@@ -295,7 +295,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "</table>\n"
 
     # Handle untraceable requirements if any
-    if(analysis.num_uncovered_reqs > 0):
+    if analysis.num_uncovered_reqs > 0:
         # Get lists of uncovered requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.external_interface_reqs))
@@ -400,7 +400,7 @@ def latex_to_html(content: str) -> str:
     :returns: the content string converted to html formatting
     :rtype: str
     """
-    if content == None:
+    if content is None:
         return None
 
     result = content 
@@ -440,23 +440,23 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
     :rtype: str
     """
     result = ""
-    for r in reqs:
+    for req in reqs:
         result += "  <tr>\n"
         result += "    <td valign=\"top\">\n"
-        result += "      <samp><b>{}</b></samp>\n".format(r.id)
+        result += "      <samp><b>{}</b></samp>\n".format(req.id)
         result += "    </td>\n"
-        result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
-        if r.status == ReqStatus.COVERED:
+        result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(req.description))
+        if req.status == ReqStatus.COVERED:
             # Adds the list of covering reqs
-            if r.id in analysis.reqs_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[r.id]]))
+            if req.id in analysis.reqs_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[req.id]]))
             else:
                 result += "    <td></td>\n"
             # Adds the list of covering checks
-            if r.id in analysis.checks_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[r.id]]))
+            if req.id in analysis.checks_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[req.id]]))
                 result += "    <td valign=\"top\" align=\"center\">\n"
-                result += "      {}\n".format(gen_result_badge(r.result))
+                result += "      {}\n".format(gen_result_badge(req.result))
                 result += "    </td>\n"
             else:
                 result += "    <td></td>\n"

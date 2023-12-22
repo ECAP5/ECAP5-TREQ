@@ -23,7 +23,7 @@ import sys
 import json
 import os
 
-from ecap5_treq.log import *
+from ecap5_treq.log import log_error
 
 class Config:
     """A Config stores input parameters such as paths to the specification, 
@@ -52,8 +52,8 @@ class Config:
 
         # Load a dictionary from the json configuration file
         self.data = None
-        with open(path) as f:
-            self.data = json.load(f)
+        with open(path, encoding="utf-8") as file:
+            self.data = json.load(file)
 
         allowed_path_keys = [
             "spec_dir_path",
@@ -143,7 +143,7 @@ def path_to_abs_path(path: str, config_path: str = None) -> str:
         # If the path is relative
         if path[0] != "/":
             parent_dir = None
-            if config_path != None:
+            if config_path is not None:
                 # Get the directory of the configuration file
                 parent_dir = os.path.dirname(config_path)
             else:

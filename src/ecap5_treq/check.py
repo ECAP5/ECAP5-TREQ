@@ -19,12 +19,14 @@
 # You should have received a copy of the GNU General Public License
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=redefined-builtin
+
 import re
 import sys
 import csv
 import glob
 
-from ecap5_treq.log import *
+from ecap5_treq.log import log_warn, log_error
 
 class Check:
     """A Check is a test that can be traced to requirements
@@ -55,7 +57,7 @@ class Check:
 
         self.status = None
         self.error_msg = None
-        if status != None:
+        if status is not None:
             self.status = (status == 1)
             self.error_msg = error_msg
     
@@ -66,7 +68,7 @@ class Check:
         :rtype: str
         """
         status_and_error_msg = ""
-        if(self.status):
+        if self.status:
             status_and_error_msg = ", status={}, error_msg={}".format(self.status, self.error_msg)
 
         return "CHECK(testsuite=\"{}\", id=\"{}\"{})".format(self.testsuite, self.id, status_and_error_msg)
@@ -101,7 +103,7 @@ def import_checks(path) -> list[Check]:
     files = glob.glob(path + "/**/*.cpp", recursive=True)
     for file in files:
         # Get the content of the test source file
-        content = "".join(l[:-1] for l in open(file))
+        content = "".join(l[:-1] for l in open(file, encoding="utf-8"))
         # Find checks in the file
         for i in [m.start() for m in re.finditer(r"CHECK\([^\)]*\)", content)]:
             # The format of the check is
@@ -119,7 +121,7 @@ def import_checks(path) -> list[Check]:
                 log_error("Missing id for test \"{}\" in file \"{}\"".format(content[i:cur], file))
                 # The program is interrupted here as this is a critical error
                 sys.exit(-1)
-            if testsuite != None:
+            if testsuite is not None:
                 if len(testsuite) == 0:
                     log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
                     # The program is interrupted here as this is a critical error
@@ -141,11 +143,11 @@ def import_testdata(path: str) -> list[Check]:
     # Get the list of testdata files
     files = glob.glob(path + "/*.csv")
     for file in files:
-        with open(file, newline='') as csvfile:
-            r = csv.reader(csvfile, delimiter=';', quotechar='|')
-            for row in r:
+        with open(file, newline='', encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile, delimiter=';', quotechar='|')
+            for row in reader:
                 if len(row) < 2:
-                    log_error("Incomplete test data in {}".format(file), file=sys.stderr)
+                    log_error("Incomplete test data in {}".format(file))
                     # The program is interrupted here as this is a critical error
                     sys.exit(-1)
                 # Read the check id from the testdata
@@ -206,7 +208,8 @@ def process_string(cur: int, content: str) -> tuple[int, str]:
     :param content: content string
     :type content: str
 
-    :returns: a tuple containing both an incremented cur pointing to the next char after the quotation mark and the recovered string
+    :returns: a tuple containing both an incremented cur pointing to the next char after the quotation mark and the 
+    recovered string
     :rtype: tuple[int, str]
     """
     result = ""

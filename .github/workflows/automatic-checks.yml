@@ -1,0 +1,17 @@
+name: Automatic checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: pylint
+      run: pylint ${{github.workspace}}/src/ecap5_treq
