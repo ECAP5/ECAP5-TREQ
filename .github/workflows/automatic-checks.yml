@@ -19,7 +19,7 @@ jobs:
     runs-on: self-hosted
     env:
       VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
-      ARTIFACT_NAME: ecap5-treq-documentation-${{env.VENV_NAME}}
+      ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
 
     permissions:
       pages: write
