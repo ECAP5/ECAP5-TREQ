@@ -22,10 +22,13 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install the dependencies
+      env:
+        PIP_PREFIX: ${{github.workspace}}/_pip
       run: >-
-        mkdir -p ${{github.workspace}}/_deps/bin &&
-        pip install . --prefix ${{github.workspace}}/_pip &&
-        echo "${{github.workspace}}/_deps/bin" >> $GITHUB_PATH
+        mkdir -p ${{ env.PIP_PREFIX }} &&
+        pip install . --prefix ${{ env.PIP_PREFIX }} &&
+        echo "${{ env.PIP_PREFIX }}" >> $GITHUB_PATH &&
+        echo "$GITHUB_PATH"
 
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
