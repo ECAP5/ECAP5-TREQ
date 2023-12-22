@@ -27,8 +27,9 @@ jobs:
       run: >-
         mkdir -p ${{ env.PIP_PREFIX }} &&
         pip install . --prefix ${{ env.PIP_PREFIX }} &&
-        echo "${{ env.PIP_PREFIX }}" >> $GITHUB_PATH &&
-        echo "$GITHUB_PATH"
+        echo "${{ env.PIP_PREFIX }}/bin" >> $GITHUB_PATH &&
+        echo "$GITHUB_PATH" >> $GITHUB_STEP_SUMMARY &&
+        echo "${{ env.PIP_PREFIX }}/bin" >> $GITHUB_STEP_SUMMARY
 
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
