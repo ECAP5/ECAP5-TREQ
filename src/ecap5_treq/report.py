@@ -23,64 +23,17 @@ import sys
 import os
 import re
 import colorsys
-from ecap5_treq.req import ReqStatus
+
+from ecap5_treq.analyse import Analysis 
+from ecap5_treq.req import Req, ReqStatus
 from ecap5_treq.log import *
 
-def surround_with_link_if(cond, href, content):
-    res = ""
-    if cond:
-        res = "<a href=\"{}\">{}</a>".format(href, content)
-    else:
-        res = content
-    return res
+def generate_report_warning_section() -> str:
+    """Generates a string containing messages logged in this tool during the report generation
 
-def latex_to_html(text):
-    if text == None:
-        return None
-
-    result = text
-    # Replace \texttt{} with samp
-    result = re.sub(r"\\texttt{([^}]*)}", r"<samp>\1</samp>", result)
-    # Replace \_ with _
-    result = re.sub(r"\\_", "_", result)
-    # Replace \textsuperscript with sup
-    result = re.sub(r"\\textsuperscript{([^}]*)}", r"<sup>\1</sup>", result)
-
-    return result
-
-def gen_result_badge(result):
-    rgb_color = colorsys.hsv_to_rgb(int(result) / 360.0, 1.0, 0.8)
-    hex_color = '{:02x}{:02x}{:02x}'.format(*tuple(int(255*i) for i in rgb_color))
-    badge = "{}%25-{}".format(int(result), hex_color)
-    return badge
-
-def req_list_to_table_rows(analysis, reqs):
-    result = ""
-    for r in reqs:
-        result += "  <tr>\n"
-        result += "    <td valign=\"top\">\n"
-        result += "      <samp><b>{}</b></samp>\n".format(r.id)
-        result += "    </td>\n"
-        result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
-        if r.status == ReqStatus.COVERED:
-            # Adds the list of covering reqs
-            if r.id in analysis.reqs_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[r.id]]))
-            else:
-                result += "    <td></td>\n"
-            # Adds the list of covering checks
-            if r.id in analysis.checks_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[r.id]]))
-                result += "    <td valign=\"top\" align=\"center\">\n"
-                result += "      <img src=\"https://img.shields.io/badge/{}\"/>\n".format(gen_result_badge(r.result))
-                result += "    </td>\n"
-            else:
-                result += "    <td></td>\n"
-                result += "    <td></td>\n"
-        result += "  </tr>\n"
-    return result
-
-def generate_report_warning_section():
+    :returns: a string containing messages logged in this tool during the report generation
+    :rtype: str
+    """
     report = ""
     for msg in log_error.msgs:
         report += "\n> [!CAUTION]\n"
@@ -93,15 +46,16 @@ def generate_report_warning_section():
         report += "> <samp>{}</samp>\n".format(msg)
     return report
 
-def generate_report_summary(analysis):
-    report = ""
+def generate_report_summary(analysis: Analysis) -> str:
+    """Generates a string containing the summary section of the report
 
-    # Adds warnings
-    if analysis.is_matrix_too_old:
-        report += "\n> [!CAUTION]\n"
-        report += "> The traceability matrix is not up to date and shall be regenerated\n"
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
 
-    report += "# Summary\n"
+    :returns: a string containing the summary section of the report
+    :rtype: str
+    """
+    report = "# Summary\n"
 
     test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
     traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
@@ -124,7 +78,15 @@ def generate_report_summary(analysis):
 
     return report
 
-def generate_test_report(analysis):
+def generate_test_report(analysis: Analysis) -> str:
+    """Generates a string containing the test section of the report
+
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
+
+    :returns: a string containing the test section of the report
+    :rtype: str
+    """
     report = "\n## <a id=\"test-report\"></a> Test report\n"
     report += "<table>\n"
     report += "  <thead>\n"
@@ -157,6 +119,8 @@ def generate_test_report(analysis):
     report += "      <th>Log</th>\n"
     report += "    </tr>\n"
     report += "  </thead>\n"
+
+    # Handle checks that belong to testsuites
     failed_test_anchor_placed = False
     for t in analysis.testsuites:
         for i, c in enumerate(analysis.testsuites[t]):
@@ -171,6 +135,7 @@ def generate_test_report(analysis):
             report += "      <samp>{}</samp>\n".format(c.shortid)
             report += "    </td>\n"
             report += "    <td align=\"center\">\n"
+            # Insert a specific anchor on the first failed check to easily jump to it
             if not c.status and not failed_test_anchor_placed:
                 report += "      <a id=\"first-failed-check\"></a>"
                 failed_test_anchor_placed = True
@@ -179,7 +144,7 @@ def generate_test_report(analysis):
             report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
             report += "  </tr>\n"
 
-    # Handle tests that do not belong to a testsuite
+    # Handle checks that do not belong to a testsuite
     for i, c in enumerate(analysis.no_testsuite):
         report += "  <tr>\n"
         # Insert the name of the testsuite on the first row
@@ -193,6 +158,7 @@ def generate_test_report(analysis):
         report += "  </tr>\n"
     report += "</table>\n"
 
+    # Handle skipped checks if any
     if(len(analysis.skipped_checks) > 0):
         report += "\n### <a id=\"skipped-checks\"></a> Skipped tests\n"
         report += "<table>\n"
@@ -204,6 +170,7 @@ def generate_test_report(analysis):
             report += "  </tr>\n"
         report += "</table>\n"
 
+    # Handle unknown checks if any
     if(len(analysis.unknown_checks) > 0):
         report += "\n### <a id=\"unknown-checks\"></a> Unknown tests\n"
         report += "<table>\n"
@@ -217,7 +184,15 @@ def generate_test_report(analysis):
 
     return report
 
-def generate_traceability_report(analysis):
+def generate_traceability_report(analysis: Analysis) -> str:
+    """Generates a string containing the traceability section of the report
+
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
+
+    :returns: a string containing the traceability section of the report
+    :rtype: str
+    """
     report = "\n## <a id=\"traceability-report\"></a> Traceability report\n"
     report += "<table>\n"
     report += "  <thead>\n"
@@ -238,13 +213,16 @@ def generate_traceability_report(analysis):
     report += "  </tr>\n"
     report += "</table>\n"
 
+    # Handle covered requirements if any
     if(analysis.num_covered_reqs > 0):
+        # Get lists of covered requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.functional_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.other_reqs))
+
         report += "\n### Covered requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -256,6 +234,7 @@ def generate_traceability_report(analysis):
         report += "      <th>Test results</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
+        # Add rows for each type of covered requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"5\"><i>User Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_user_reqs)
@@ -276,13 +255,16 @@ def generate_traceability_report(analysis):
             report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
+    # Handle untraceable requirements if any
     if(analysis.num_untraceable_reqs > 0):
+        # Get lists of untraceable requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.functional_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.other_reqs))
+
         report += "\n### <a id=\"untraceable-reqs\"></a> Untraceable requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -291,6 +273,7 @@ def generate_traceability_report(analysis):
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
+        # Add rows for each type of untraceable requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>User Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_user_reqs)
@@ -311,13 +294,16 @@ def generate_traceability_report(analysis):
             report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
+    # Handle untraceable requirements if any
     if(analysis.num_uncovered_reqs > 0):
+        # Get lists of uncovered requirements based on their type
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.functional_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.other_reqs))
+
         report += "\n### <a id=\"uncovered-reqs\"></a> Uncovered requirements\n"
         report += "<table>\n"
         report += "  <thead>\n"
@@ -326,6 +312,7 @@ def generate_traceability_report(analysis):
         report += "      <th>Description</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
+        # Add rows for each type of uncovered requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>User Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_user_reqs)
@@ -348,7 +335,15 @@ def generate_traceability_report(analysis):
 
     return report
 
-def generate_test_result_badge(analysis):
+def generate_test_result_badge(analysis: Analysis) -> str:
+    """Generate badge data indicating the test result, which color changes on the result
+
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
+
+    :returns: a json string containing the badge data
+    :rtype: str
+    """ 
     badge = "{"
     badge += "\"schemaVersion\": 1, "
     badge += "\"label\": \"Test result\", "
@@ -357,7 +352,15 @@ def generate_test_result_badge(analysis):
     badge += "}"
     return badge
 
-def generate_traceability_result_badge(analysis):
+def generate_traceability_result_badge(analysis: Analysis) -> str:
+    """Generate badge data indicating the traceability result, which color changes on the result
+
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
+
+    :returns: a json string containing the badge data
+    :rtype: str
+    """ 
     badge = "{"
     badge += "\"schemaVersion\": 1, "
     badge += "\"label\": \"Traceability\", "
@@ -365,3 +368,98 @@ def generate_traceability_result_badge(analysis):
     badge += "\"color\": \"hsl({}, 100%, 40%)\"".format(analysis.traceability_result)
     badge += "}"
     return badge
+
+def surround_with_link_if(cond: bool, href: str, content: str) -> str:
+    """Returns the content string surrounded by a link to href if cond is true
+
+    :param cond: condition boolean indicating if the content shall be surrounded
+    :type cond: bool
+
+    :param href: path used for the link
+    :type href: str
+
+    :param content: the content to be surrounded
+    :type content: str
+
+    :returns: the content string surrounded by a link to href if cond is true
+    :rtype: str
+    """
+    res = None
+    if cond:
+        res = "<a href=\"{}\">{}</a>".format(href, content)
+    else:
+        res = content
+    return res
+
+def latex_to_html(content: str) -> str:
+    """Converts a latex string to html formating
+
+    :param content: the latex string to convert
+    :type content: str
+
+    :returns: the content string converted to html formatting
+    :rtype: str
+    """
+    if content == None:
+        return None
+
+    result = content 
+    # Replace \texttt{} with samp
+    result = re.sub(r"\\texttt{([^}]*)}", r"<samp>\1</samp>", result)
+    # Replace \_ with _
+    result = re.sub(r"\\_", "_", result)
+    # Replace \textsuperscript with sup
+    result = re.sub(r"\\textsuperscript{([^}]*)}", r"<sup>\1</sup>", result)
+
+    return result
+
+def gen_result_badge(result: float) -> str:
+    """Generates a badge containing the result pourcentage, which color is dependant on the result
+
+    :param result: the result to be included in the badge
+    :type result: float
+
+    :returns: a badge containing the result pourcentage, which color is dependant on the result
+    :rtype: str
+    """
+    rgb_color = colorsys.hsv_to_rgb(int(result) / 360.0, 1.0, 0.8)
+    hex_color = '{:02x}{:02x}{:02x}'.format(*tuple(int(255*i) for i in rgb_color))
+    badge = "<img src=\"https://img.shields.io/badge/{}%25-{}\"/>".format(int(result), hex_color)
+    return badge
+
+def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
+    """Converts a list of reqs into html table rows
+
+    :param analysis: the analysis from which data shall be used
+    :type analysis: Analysis
+
+    :param reqs: the list of reqs to convert
+    :type reqs: list[Req]
+
+    :returns: html table rows containing the list of reqs
+    :rtype: str
+    """
+    result = ""
+    for r in reqs:
+        result += "  <tr>\n"
+        result += "    <td valign=\"top\">\n"
+        result += "      <samp><b>{}</b></samp>\n".format(r.id)
+        result += "    </td>\n"
+        result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(r.description))
+        if r.status == ReqStatus.COVERED:
+            # Adds the list of covering reqs
+            if r.id in analysis.reqs_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[r.id]]))
+            else:
+                result += "    <td></td>\n"
+            # Adds the list of covering checks
+            if r.id in analysis.checks_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[r.id]]))
+                result += "    <td valign=\"top\" align=\"center\">\n"
+                result += "      {}\n".format(gen_result_badge(r.result))
+                result += "    </td>\n"
+            else:
+                result += "    <td></td>\n"
+                result += "    <td></td>\n"
+        result += "  </tr>\n"
+    return result

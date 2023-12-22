@@ -20,39 +20,61 @@
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
 from ecap5_treq.matrix import Matrix 
-from ecap5_treq.req import ReqStatus
+from ecap5_treq.req import Req, ReqStatus
+from ecap5_treq.check import Check
 from ecap5_treq.log import *
 
 class Analysis():
-    def __init__(self, reqs, checks, testdata, matrix):
+    """An Analysis contains data analyzed from a requirements, checks, testdata and the traceability matrix
+    """
+
+    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix):
+        """Constructor of Analysis
+
+        :param reqs: list of requirements from the specification
+        :type reqs: list[Req]
+
+        :param checks: list of checks from the tests
+        :type checks: list[Check]
+
+        :param testdata: list of checks from testdata with results
+        :type testdata: list[Check]
+
+        :param matrix: traceability matrix
+        :type matrix: Matrix
+        """
         self.reqs = reqs
         self.checks = checks
         self.testdata = testdata
         self.matrix = matrix
 
-        self.num_successfull_checks = 0
-        self.num_failed_checks = 0
+        # Data from the test analysis
         self.testsuites = {}
         self.no_testsuite = []
         self.skipped_checks = []
         self.unknown_checks = []
+        self.num_successfull_checks = 0
+        self.num_failed_checks = 0
+        self.test_result = 0
         
+        # Data from the traceability analysis
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
-
-        self.is_matrix_too_old = False
-
-        self.test_result = 0
+        self.traceability_result = 0
 
         self.analyse()
 
-    def analyse(self):
+    def analyse(self) -> None:
+        """Perform the analysis
+        """
+        self.analyse_tests()
+        self.analyse_traceability()
+        self.analyse_consistency()
 
-        ###################################################
-        #                 Tests analysis                  #
-        ###################################################
-
+    def analyse_tests(self) -> None:
+        """Analyse data from the testdata
+        """
         # Count the number of successfull tests
         self.num_successfull_checks = 0
         self.check_status_by_check_id = {}
@@ -95,10 +117,9 @@ class Analysis():
         # Compute the test result
         self.test_result = int(self.num_successfull_checks / len(self.checks) * 100.0)
 
-        ###################################################
-        #              Traceability analysis              #
-        ###################################################
-
+    def analyse_traceability(self) -> None:
+        """Analyse data from the requirements
+        """
         # Checks which requirements are covered by sub-requirements
         self.reqs_covering_reqs = {}
         for r in self.reqs:
@@ -112,8 +133,7 @@ class Analysis():
         self.checks_covering_reqs = {}
         for c in self.checks:
             if c.id in self.matrix:
-                matrix_entry = self.matrix.get(c.id)
-                for rid in matrix_entry:
+                for rid in self.matrix.get(c.id):
                     if rid not in self.checks_covering_reqs:
                         self.checks_covering_reqs[rid] = [c]
                     else:
@@ -142,12 +162,13 @@ class Analysis():
         for r in self.reqs:
             if r.id in self.checks_covering_reqs:
                 checks = self.checks_covering_reqs[r.id]
-                result = 0
+                # Count the number of coverings checks
+                r.result = 0
                 for c in checks:
                     if c.status == 1:
-                        result += 1
-                result = result / len(checks) * 100.0
-                r.result = result
+                        r.result += 1
+                # Compute a pourcentage
+                r.result = r.result / len(checks) * 100.0
 
         # Sort requirements based on type
         self.user_reqs = []
@@ -174,6 +195,9 @@ class Analysis():
         # Compute traceability result
         self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
 
+    def analyse_consistency(self) -> None:
+        """Analyse the consistency of the test and traceability data
+        """
         # List req ids
         reqs_ids = []
         for r in self.reqs:
@@ -246,4 +270,3 @@ class Analysis():
         duplicate_checks = [x for x in checks_ids if x in checks_ids_seen or checks_ids_seen.add(x)]  
         for c in duplicate_checks:
             log_error("Multiple tests share the same id \"{}\"".format(c))
-
