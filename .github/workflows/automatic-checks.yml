@@ -19,6 +19,7 @@ jobs:
     runs-on: self-hosted
     env:
       VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
+      ARTIFACT_NAME: ecap5-treq-documentation-${{env.VENV_NAME}}
 
     permissions:
       pages: write
@@ -47,12 +48,12 @@ jobs:
 
     - uses: actions/upload-pages-artifact@v2
       with: 
-        name: ecap5-treq-documentation
+        name: ${{env.ARTIFACT_NAME}}
         path: ${{github.workspace}}/docs/build/html
     
     - uses: actions/deploy-pages@v2
       id: deployment
       if: ${{ github.ref == 'refs/heads/main' }}
       with:
-        artifact_name: ecap5-treq_documentation
+        artifact_name: ${{env.ARTIFACT_NAME}}
         preview: true
