@@ -1,132 +1,187 @@
+#           __        _
+#  ________/ /  ___ _(_)__  ___
+# / __/ __/ _ \/ _ `/ / _ \/ -_)
+# \__/\__/_//_/\_,_/_/_//_/\__/
+# 
+# Copyright (C) Clément Chaie
+# This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
+# 
+# ECAP5-TREQ is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# ECAP5-TREQ is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
+
 import argparse
 import os
-from req import extract_reqs 
-from check import Check, extract_checks, import_testdata
-from report import *
-from matrix import import_matrix, prepare_matrix, check_matrix
-from config import load_config, check_config
-from analyse import Analysis
 import csv
 import sys
 import glob
-from log import *
 
-def rel_to_abs(path):
-    if len(path) > 0:
-        if path[0] != "/":
-            path = os.path.abspath(os.getcwd()) + "/" + path
-    return path
+from ecap5_treq.analyse import Analysis
+from ecap5_treq.check import Check, import_checks, import_testdata
+from ecap5_treq.config import Config
+from ecap5_treq.log import *
+from ecap5_treq.matrix import Matrix, prepare_matrix
+from ecap5_treq.report import *
+from ecap5_treq.req import import_reqs 
 
-def cmd_print_reqs(config, args):
-    check_config(config, ["spec_dir_path"])
-    reqs = extract_reqs(config["spec_dir_path"])
+def cmd_print_reqs(config: dict[str, str]) -> None:
+    """Handles the print_reqs command.
+
+    The print_reqs command prints a list of the requirements from the specification which path
+    is given in config
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    reqs = import_reqs(config.get("spec_dir_path"))
     for req in reqs:
         print(req)
 
-def cmd_print_checks(config, args):
-    check_config(config, ["test_dir_path"])
-    checks = extract_checks(config["test_dir_path"])
+def cmd_print_checks(config: dict[str, str]) -> None:
+    """Handles the print_checks command.
+
+    The print_checks command prints a list of the checks from the tests which path
+    is given in config
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    checks = import_checks(config.get("test_dir_path"))
     for check in checks:
         print(check)
 
-def cmd_prepare_matrix(config, args):
-    check_config(config, ["test_dir_path"])
+def cmd_print_testdata(config: dict[str, str]) -> None:
+    """Handles the print_testdata command.
 
+    The print_testdata command prints a list of checks including their status from the testdata
+    which path is given in config
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    checks = import_testdata(config.get("testdata_dir_path"))
+    for check in checks:
+        print(check)
+
+def cmd_prepare_matrix(config: dict[str, str]) -> None:
+    """Handles the prepare_matrix command.
+
+    The prepare matrix command generates an updated traceability matrix with an up-to-date list of
+    checks.
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
     # recover the previous matrix if specified
-    previous_matrix = {}
+    previous_matrix = Matrix()
     if "matrix_path" in config:
-        previous_matrix = import_matrix(config["matrix_path"])
+        previous_matrix.read(config.get("matrix_path"))
 
-    checks = extract_checks(config["test_dir_path"])
-    matrix, matrix_str = prepare_matrix(checks, previous_matrix)
+    checks = import_checks(config.get("test_dir_path"))
+    matrix = prepare_matrix(checks, previous_matrix)
 
-    if(args.output):
-        with open(args.output, 'w') as f:
-            f.write(matrix_str)
+    if "output" in config:
+        with open(config.get("output"), 'w') as f:
+            f.write(matrix.to_csv())
     else:
-        print(matrix_str)
+        print(matrix.to_csv())
 
-def cmd_print_testdata(config, args):
-    check_config(config, ["testdata_dir_path"])
+def cmd_gen_report(config: dict[str, str]) -> None:
+    """Handles the gen_report command.
 
-    checks = import_testdata(config["testdata_dir_path"])
-    for check in checks:
-        print(check)
+    The gen_report command generates a markdown test and traceability report.
 
-def cmd_gen_report(config, args):
-    check_config(config, [
-        "spec_dir_path",
-        "test_dir_path",
-        "testdata_dir_path",
-        "matrix_path"
-    ])
-
-    reqs = extract_reqs(config["spec_dir_path"])
-    checks = extract_checks(config["test_dir_path"])
-    testdata = import_testdata(config["testdata_dir_path"])
-    matrix = import_matrix(config["matrix_path"])
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    reqs = import_reqs(config.get("spec_dir_path"))
+    checks = import_checks(config.get("test_dir_path"))
+    testdata = import_testdata(config.get("testdata_dir_path"))
+    matrix = Matrix(config.get("matrix_path"))
+    # Perform the test result and traceability analysis
     analysis = Analysis(reqs, checks, testdata, matrix)
 
-    # Check if the matrix is up to date
-    check_matrix(matrix, checks)
-
+    # Generate report sections
     report_warnings = generate_report_warning_section()
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
     traceability_report = generate_traceability_report(analysis)
+
     # Only output the full report if there are no error messages
     if len(log_error.msgs) > 0:
         report = report_warnings + "\n**Report generation failed.**"
     else:
         report = report_warnings + report_summary + test_report + traceability_report
 
-    if(args.output):
-        with open(args.output, 'w') as f:
+    if "output" in config:
+        with open(config.get("output"), 'w') as f:
             f.write(report)
     else:
         print(report)
 
-def cmd_gen_test_result_badge(config, args):
-    check_config(config, [
-        "spec_dir_path",
-        "test_dir_path",
-        "testdata_dir_path",
-        "matrix_path"
-    ])
+def cmd_gen_test_result_badge(config: dict[str, str]) -> None:
+    """Handles the gen_test_result_badge command.
 
-    reqs = extract_reqs(config["spec_dir_path"])
-    checks = extract_checks(config["test_dir_path"])
-    testdata = import_testdata(config["testdata_dir_path"])
-    matrix = import_matrix(config["matrix_path"])
+    The gen_test_result_badge command generates a json for configuring the generation of
+    an svg badge by img.shields.io for the test results
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    reqs = import_reqs(config.get("spec_dir_path"))
+    checks = import_checks(config.get("test_dir_path"))
+    testdata = import_testdata(config.get("testdata_dir_path"))
+    matrix = Matrix(config.get("matrix_path"))
+    # Perform the test result and traceability analysis
     analysis = Analysis(reqs, checks, testdata, matrix)
+
+    # Generate a test result badge
     badge = generate_test_result_badge(analysis)
-    if(args.output):
-        with open(args.output, 'w') as f:
+
+    if "output" in config:
+        with open(config.get("output"), 'w') as f:
             f.write(badge)
     else:
         print(badge)
 
-def cmd_gen_traceability_result_badge(config, args):
-    check_config(config, [
-        "spec_dir_path",
-        "test_dir_path",
-        "testdata_dir_path",
-        "matrix_path"
-    ])
+def cmd_gen_traceability_result_badge(config: dict[str, str]) -> None:
+    """Handles the gen_traceability_result_badge command.
 
-    reqs = extract_reqs(config["spec_dir_path"])
-    checks = extract_checks(config["test_dir_path"])
-    testdata = import_testdata(config["testdata_dir_path"])
-    matrix = import_matrix(config["matrix_path"])
+    The gen_traceability_result_badge command generates a json for configuring the generation of
+    an svg badge by img.shields.io for the traceability results
+
+    :param config: a configuration dictionnary providing path to input files
+    :type config: dict[str, str]
+    """
+    reqs = import_reqs(config.get("spec_dir_path"))
+    checks = import_checks(config.get("test_dir_path"))
+    testdata = import_testdata(config.get("testdata_dir_path"))
+    matrix = Matrix(config.get("matrix_path"))
+    # Perform the test result and traceability analysis
     analysis = Analysis(reqs, checks, testdata, matrix)
+
+    # Generate a traceability result badge
     badge = generate_traceability_result_badge(analysis)
-    if(args.output):
-        with open(args.output, 'w') as f:
+
+    if "output" in config:
+        with open(config.get("output"), 'w') as f:
             f.write(badge)
     else:
         print(badge)
 
 def main():
+    """Entry point to ECAP5-TREQ
+    """
+    # Configure command line arguments
     parser = argparse.ArgumentParser(
             prog="ECAP5-TREQ",
             description="Requirement and traceability management for ECAP5")
@@ -141,41 +196,40 @@ def main():
 
     args = parser.parse_args()
 
-    config = {}
-    if(args.config):
-        config = load_config(args.config)
+    # Create a config object storing the configuration parameters
+    config = Config(args.config)
+
     # Command line arguments override the configuration
     if args.spec:
-        config["spec_dir_path"] = args.spec
+        config.set_path("spec_dir_path", args.spec)
     if args.tests:
-        config["test_dir_path"] = args.tests
+        config.set_path("test_dir_path", args.tests)
     if args.data:
-        config["testdata_dir_path"] = args.data
+        config.set_path("testdata_dir_path", args.data)
     if args.matrix:
-        config["matrix_path"] = args.matrix
-
-    # convert relative paths to absolute paths
-    config["spec_dir_path"]      =  rel_to_abs(config["spec_dir_path"])
-    config["test_dir_path"]      =  rel_to_abs(config["test_dir_path"])
-    config["testdata_dir_path"]  =  rel_to_abs(config["testdata_dir_path"])
-    config["matrix_path"]        =  rel_to_abs(config["matrix_path"])
+        config.set_path("matrix_path", args.matrix)
     
+    # Add other arguments that are not present in configuration files
+    if args.output:
+        config.set("output", args.output)
+    
+    # Handle the different commands provided
     if args.command == "print_reqs":
-        cmd_print_reqs(config, args)
+        cmd_print_reqs(config)
     elif args.command == "print_checks":
-        cmd_print_checks(config, args)
+        cmd_print_checks(config)
     elif args.command == "prepare_matrix":
-        cmd_prepare_matrix(config, args)
+        cmd_prepare_matrix(config)
     elif args.command == "print_testdata":
-        cmd_print_testdata(config, args)
+        cmd_print_testdata(config)
     elif args.command == "gen_report":
-        cmd_gen_report(config, args)
+        cmd_gen_report(config)
     elif args.command == "gen_test_result_badge":
-        cmd_gen_test_result_badge(config, args)
+        cmd_gen_test_result_badge(config)
     elif args.command == "gen_traceability_result_badge":
-        cmd_gen_traceability_result_badge(config, args)
+        cmd_gen_traceability_result_badge(config)
     else:
         parser.print_help()
 
 if __name__ == "__main__":
-    main()   
+    main()
