@@ -47,7 +47,3 @@ jobs:
       with:
         artifact_name: ecap5-treq_documentation
         preview: true
-
-          #    - name: Cleanup python virtual environment
-          #      run: >-
-          #        rm -rf ${{github.workspace}}/${{ env.VENV_NAME }}
