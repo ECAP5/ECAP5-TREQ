@@ -20,17 +20,18 @@
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import os
-import csv
-import sys
-import glob
 
 from ecap5_treq.analyse import Analysis
-from ecap5_treq.check import Check, import_checks, import_testdata
+from ecap5_treq.check import import_checks, import_testdata
 from ecap5_treq.config import Config
-from ecap5_treq.log import *
+from ecap5_treq.log import log_error
 from ecap5_treq.matrix import Matrix, prepare_matrix
-from ecap5_treq.report import *
+from ecap5_treq.report import generate_report_warning_section,  \
+                              generate_report_summary,          \
+                              generate_test_report,             \
+                              generate_traceability_report,     \
+                              generate_test_result_badge,       \
+                              generate_traceability_result_badge                                                               
 from ecap5_treq.req import import_reqs 
 
 def cmd_print_reqs(config: dict[str, str]) -> None:
@@ -90,8 +91,8 @@ def cmd_prepare_matrix(config: dict[str, str]) -> None:
     matrix = prepare_matrix(checks, previous_matrix)
 
     if "output" in config:
-        with open(config.get("output"), 'w') as f:
-            f.write(matrix.to_csv())
+        with open(config.get("output"), 'w', encoding="utf-8") as file:
+            file.write(matrix.to_csv())
     else:
         print(matrix.to_csv())
 
@@ -123,8 +124,8 @@ def cmd_gen_report(config: dict[str, str]) -> None:
         report = report_warnings + report_summary + test_report + traceability_report
 
     if "output" in config:
-        with open(config.get("output"), 'w') as f:
-            f.write(report)
+        with open(config.get("output"), 'w', encoding="utf-8") as file:
+            file.write(report)
     else:
         print(report)
 
@@ -148,8 +149,8 @@ def cmd_gen_test_result_badge(config: dict[str, str]) -> None:
     badge = generate_test_result_badge(analysis)
 
     if "output" in config:
-        with open(config.get("output"), 'w') as f:
-            f.write(badge)
+        with open(config.get("output"), 'w', encoding="utf-8") as file:
+            file.write(badge)
     else:
         print(badge)
 
@@ -173,8 +174,8 @@ def cmd_gen_traceability_result_badge(config: dict[str, str]) -> None:
     badge = generate_traceability_result_badge(analysis)
 
     if "output" in config:
-        with open(config.get("output"), 'w') as f:
-            f.write(badge)
+        with open(config.get("output"), 'w', encoding="utf-8") as file:
+            file.write(badge)
     else:
         print(badge)
 

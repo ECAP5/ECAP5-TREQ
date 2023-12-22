@@ -85,7 +85,17 @@ disable=raw-checker-failed,
         suppressed-message,
         useless-suppression,
         deprecated-pragma,
-        use-symbolic-message-instead
+        use-symbolic-message-instead,
+        trailing-whitespace,
+        missing-module-docstring,
+        wildcard-import,
+        too-many-instance-attributes,
+        too-many-branches,
+        too-many-statements,
+        consider-using-f-string,
+        consider-using-with,
+        consider-using-dict-items,
+        too-few-public-methods
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -182,7 +192,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=120
 
 # Maximum number of lines in a module.
 max-module-lines=1000
@@ -342,6 +352,7 @@ good-names=i,
            k,
            ex,
            Run,
+           id,
            _
 
 # Good variable names regexes, separated by a comma. If names match any regex,

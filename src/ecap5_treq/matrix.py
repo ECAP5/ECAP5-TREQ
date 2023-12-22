@@ -49,9 +49,9 @@ class Matrix:
         :rtype: Matrix
         """
         self.data = {}
-        with open(path, newline='') as csvfile:
-            r = csv.reader(csvfile, delimiter=';', quotechar='|')
-            for row in r:
+        with open(path, newline='', encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile, delimiter=';', quotechar='|')
+            for row in reader:
                 # keep the content of the row if it was filled in
                 if len(row) > 1:
                     self.data[row[0]] = row[1:]
@@ -73,7 +73,7 @@ class Matrix:
         check_ids.sort()
         matrix_ids.sort()
         
-        return (check_ids == matrix_ids)
+        return check_ids == matrix_ids
     
     def add(self, check_id: str, traced_reqs: list[Req]) -> None:
         """Adds traceability data to the matrix
@@ -118,9 +118,9 @@ class Matrix:
         :rtype: str
         """
         result = io.StringIO()
-        w = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         for check_id in self.data:
-            w.writerow([check_id] + self.data[check_id])
+            writer.writerow([check_id] + self.data[check_id])
         return result.getvalue()
 
     def __repr__(self):
@@ -152,9 +152,9 @@ def prepare_matrix(checks: list[Check], previous_matrix: Matrix) -> Matrix:
     :rtype: Matrix
     """
     matrix = Matrix()
-    for c in checks:
+    for check in checks:
         # write the check and add the previous matrix content if there was any
-        matrix.add(c.id, previous_matrix.get(c.id))
+        matrix.add(check.id, previous_matrix.get(check.id))
     # add a row at the end for requirements that cannot be traced
     matrix.add("__UNTRACEABLE__", previous_matrix.get("__UNTRACEABLE__"))
     return matrix

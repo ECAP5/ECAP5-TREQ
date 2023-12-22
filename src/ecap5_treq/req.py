@@ -19,13 +19,17 @@
 # You should have received a copy of the GNU General Public License
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=redefined-builtin
+
 import sys
 import re
 import glob
 
-from ecap5_treq.log import *
+from ecap5_treq.log import log_error
 
 class ReqStatus:
+    """A ReqStatus details the traceability status of requirements
+    """
     UNCOVERED = 0
     COVERED = 1
     UNTRACEABLE = 2
@@ -48,17 +52,18 @@ class Req:
         """
         self.id = id.replace("\\", "")
         self.description = description
-        self.derivedFrom = None
+        self.derived_from = None
         self.status = ReqStatus.UNCOVERED
         self.result = 0
 
         # Validate the requirement options
         if options:
             if "derivedfrom" in options:
-                self.derivedFrom = options["derivedfrom"]
-                if len(self.derivedFrom) > 1:
-                    log_error("Multiple values for option parameter \"derivedfrom\" of the \"{}\" are not allowed.".format(self.id))
-                self.derivedFrom = self.derivedFrom[0].replace("\\", "")
+                self.derived_from = options["derivedfrom"]
+                if len(self.derived_from) > 1:
+                    log_error("Multiple values for option parameter \"derivedfrom\" of the \"{}\" are not allowed." \
+                                .format(self.id))
+                self.derived_from = self.derived_from[0].replace("\\", "")
 
     def to_str(self) -> str:
         """Convert the req to a string
@@ -66,7 +71,8 @@ class Req:
         :returns: a string representing the req 
         :rtype: str
         """
-        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")".format(self.id, self.description, self.derivedFrom)
+        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")" \
+                    .format(self.id, self.description, self.derived_from)
 
     def __repr__(self):
         """Override of the __repr__ function used to output a string from an object
@@ -98,7 +104,7 @@ def import_reqs(path: str) -> list[Req]:
     files = glob.glob(path + "/**/*.tex", recursive=True)
     for file in files:
         # Get the content of the specification source file
-        content = "".join(l[:-1] for l in open(file))
+        content = "".join(l[:-1] for l in open(file, encoding="utf-8"))
         # Find reqs in the file
         for i in [m.start() for m in re.finditer(r"\\req", content)]:
             # The format of the reqs is
@@ -157,7 +163,8 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     :param closing_token: closing token used for the token matching
     :type closing_token: str
 
-    :returns: a tuple containing both an incremented cur pointing to the next char fater the closing token and the recovered string
+    :returns: a tuple containing both an incremented cur pointing to the next char fater the closing token and the 
+    recovered string
     :rtype: tuple[int, str]
     """
     # Skip spaces
@@ -165,7 +172,7 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
         cur += 1
 
     # Return if the opening_token is not found
-    if(content[cur] != opening_token):
+    if content[cur] != opening_token:
         return (cur, None)
 
     result = ""
@@ -198,18 +205,18 @@ def process_options(options: str) -> dict[str, list[str]]:
     unjoined_options = options.split(",")
     joined_options = []
     current = []
-    for op in unjoined_options:
-        current += [op.strip()]
+    for option in unjoined_options:
+        current += [option.strip()]
         # If we haven't seen any { yet
         if len(current) == 1:
             # If there is no remaining opening curly bracket
-            if op.count('{') == op.count('}'):
+            if option.count('{') == option.count('}'):
                 # Consider the option joined
                 joined_options += current
                 current = []
         else:
             # If there more closing curly brackets than opening
-            if op.count('{') < op.count('}'):
+            if option.count('{') < option.count('}'):
                 # Consider the option joined
                 joined_options += [", ".join(current)]
                 current = []
@@ -217,7 +224,7 @@ def process_options(options: str) -> dict[str, list[str]]:
     for option in joined_options:
         # Split the option key and the option content
         option = option.split("=")
-        if(len(option) == 1):
+        if len(option) == 1:
             log_error("Syntax error while processing requirement \"{}\"".format(id))
                 # The program is interrupted here as this is a critical error
             sys.exit(-1)

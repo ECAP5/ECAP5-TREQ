@@ -22,7 +22,7 @@
 from ecap5_treq.matrix import Matrix 
 from ecap5_treq.req import Req, ReqStatus
 from ecap5_treq.check import Check
-from ecap5_treq.log import *
+from ecap5_treq.log import log_imp, log_warn, log_error
 
 class Analysis():
     """An Analysis contains data analyzed from a requirements, checks, testdata and the traceability matrix
@@ -55,12 +55,22 @@ class Analysis():
         self.unknown_checks = []
         self.num_successfull_checks = 0
         self.num_failed_checks = 0
+        self.check_status_by_check_id = {}
         self.test_result = 0
         
         # Data from the traceability analysis
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
+        self.reqs_covering_reqs = {}
+        self.checks_covering_reqs = {}
+        self.ids_reqs_untraceable = []
+        self.user_reqs = []
+        self.external_interface_reqs = []
+        self.functional_reqs = []
+        self.design_reqs = []
+        self.non_functional_reqs = []
+        self.other_reqs = []
         self.traceability_result = 0
 
         self.analyse()
@@ -86,9 +96,9 @@ class Analysis():
             self.check_status_by_check_id[check.id] = check.status
 
         # Fill the check status to all checks
-        for c in self.checks:
-            if c.id in self.check_status_by_check_id:
-                c.status = self.check_status_by_check_id[c.id]
+        for check in self.checks:
+            if check.id in self.check_status_by_check_id:
+                check.status = self.check_status_by_check_id[check.id]
 
         # Sort tests in testsuites
         self.testsuites = {}
@@ -122,22 +132,22 @@ class Analysis():
         """
         # Checks which requirements are covered by sub-requirements
         self.reqs_covering_reqs = {}
-        for r in self.reqs:
-            if r.derivedFrom:
-                if r.derivedFrom not in self.reqs_covering_reqs:
-                    self.reqs_covering_reqs[r.derivedFrom] = [r]
+        for req in self.reqs:
+            if req.derived_from:
+                if req.derived_from not in self.reqs_covering_reqs:
+                    self.reqs_covering_reqs[req.derived_from] = [req]
                 else:
-                    self.reqs_covering_reqs[r.derivedFrom] += [r]
+                    self.reqs_covering_reqs[req.derived_from] += [req]
 
         # Checks which requirements are covered by a test from the matrix
         self.checks_covering_reqs = {}
-        for c in self.checks:
-            if c.id in self.matrix:
-                for rid in self.matrix.get(c.id):
+        for check in self.checks:
+            if check.id in self.matrix:
+                for rid in self.matrix.get(check.id):
                     if rid not in self.checks_covering_reqs:
-                        self.checks_covering_reqs[rid] = [c]
+                        self.checks_covering_reqs[rid] = [check]
                     else:
-                        self.checks_covering_reqs[rid] += [c]
+                        self.checks_covering_reqs[rid] += [check]
         # Recover untraceable requirements
         self.ids_reqs_untraceable = []
         for rid in self.matrix.get("__UNTRACEABLE__"):
@@ -147,28 +157,28 @@ class Analysis():
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
-        for r in self.reqs:
-            if (r.id in self.reqs_covering_reqs) or (r.id in self.checks_covering_reqs):
-                r.status = ReqStatus.COVERED
+        for req in self.reqs:
+            if (req.id in self.reqs_covering_reqs) or (req.id in self.checks_covering_reqs):
+                req.status = ReqStatus.COVERED
                 self.num_covered_reqs += 1
-            elif (r.id in self.ids_reqs_untraceable):
-                r.status = ReqStatus.UNTRACEABLE
+            elif req.id in self.ids_reqs_untraceable:
+                req.status = ReqStatus.UNTRACEABLE
                 self.num_untraceable_reqs += 1
             else:
-                r.status = ReqStatus.UNCOVERED
+                req.status = ReqStatus.UNCOVERED
                 self.num_uncovered_reqs += 1
 
         # Compute the requirement test result
-        for r in self.reqs:
-            if r.id in self.checks_covering_reqs:
-                checks = self.checks_covering_reqs[r.id]
+        for req in self.reqs:
+            if req.id in self.checks_covering_reqs:
+                checks = self.checks_covering_reqs[req.id]
                 # Count the number of coverings checks
-                r.result = 0
-                for c in checks:
-                    if c.status:
-                        r.result += 1
+                req.result = 0
+                for check in checks:
+                    if check.status:
+                        req.result += 1
                 # Compute a pourcentage
-                r.result = r.result / len(checks) * 100.0
+                req.result = req.result / len(checks) * 100.0
 
         # Sort requirements based on type
         self.user_reqs = []
@@ -177,20 +187,20 @@ class Analysis():
         self.design_reqs = []
         self.non_functional_reqs = []
         self.other_reqs = []
-        for r in self.reqs:
-            prefix = r.id.split("_")[0]
+        for req in self.reqs:
+            prefix = req.id.split("_")[0]
             if prefix == "U":
-                self.user_reqs += [r]
+                self.user_reqs += [req]
             elif prefix == "I":
-                self.external_interface_reqs += [r]
+                self.external_interface_reqs += [req]
             elif prefix == "F":
-                self.functional_reqs += [r]
+                self.functional_reqs += [req]
             elif prefix == "D":
-                self.design_reqs += [r]
+                self.design_reqs += [req]
             elif prefix == "N":
-                self.non_functional_reqs += [r]
+                self.non_functional_reqs += [req]
             else:
-                self.other_reqs += [r]
+                self.other_reqs += [req]
 
         # Compute traceability result
         self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
@@ -200,8 +210,8 @@ class Analysis():
         """
         # List req ids
         reqs_ids = []
-        for r in self.reqs:
-            reqs_ids += [r.id]
+        for req in self.reqs:
+            reqs_ids += [req.id]
 
         ###################################################
         #              Check matrix                       #
@@ -214,14 +224,15 @@ class Analysis():
         # Checks if checks are traced to untraceable requirements
         for rid in self.ids_reqs_untraceable:
             if rid in self.checks_covering_reqs:
-                log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}".format(rid, ", ".join([c.id for c in self.checks_covering_reqs[rid]])))
+                log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}"\
+                            .format(rid, ", ".join([c.id for c in self.checks_covering_reqs[rid]])))
 
         # Check if requirements used in the matrix exist
         for cid in self.matrix.data:
             for rid in self.matrix.get(cid):
                 if rid not in reqs_ids:
                     if cid == "__UNTRACEABLE__":
-                        log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid, cid))
+                        log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid))
                     else:
                         log_warn("Missing requirement \"{}\" traced to check \"{}\" in the matrix".format(rid, cid))
 
@@ -230,11 +241,11 @@ class Analysis():
             reqs_ids_seen = set()
             duplicate_reqs = [x for x in self.matrix.get(cid) if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
             if len(duplicate_reqs) > 0:
-                for r in duplicate_reqs:
+                for rid in duplicate_reqs:
                     if cid == "__UNTRACEABLE__":
-                        log_warn("Requirement \"{}\" is marked untraceable multiple times".format(r, cid))
+                        log_warn("Requirement \"{}\" is marked untraceable multiple times".format(rid))
                     else:
-                        log_warn("Requirement \"{}\" is traced multiple times to the same test \"{}\"".format(r, cid))
+                        log_warn("Requirement \"{}\" is traced multiple times to the same test \"{}\"".format(rid, cid))
 
         ###################################################
         #              Check reqs                         #
@@ -243,20 +254,21 @@ class Analysis():
         # Checks if there are any duplicate requirement ids
         reqs_ids_seen = set()
         duplicate_reqs = [x for x in reqs_ids if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
-        for r in duplicate_reqs:
-            log_error("Multiple requirements share the same id \"{}\"".format(r))
+        for rid in duplicate_reqs:
+            log_error("Multiple requirements share the same id \"{}\"".format(rid))
 
         # Checks if derivedfrom requirements exist
-        for r in self.reqs:
-            if r.derivedFrom:
-                if r.derivedFrom not in reqs_ids:
-                    log_warn("Requirement \"{}\" is derived from missing requirement \"{}\"".format(r.id, r.derivedFrom))
+        for req in self.reqs:
+            if req.derived_from:
+                if req.derived_from not in reqs_ids:
+                    log_warn("Requirement \"{}\" is derived from missing requirement \"{}\""\
+                                .format(req.id, req.derived_from))
 
         # Checks if derivedfrom is different than current
-        for r in self.reqs:
-            if r.derivedFrom:
-                if r.derivedFrom == r.id:
-                    log_warn("Requirement \"{}\" is derived from itself".format(r.id))
+        for req in self.reqs:
+            if req.derived_from:
+                if req.derived_from == req.id:
+                    log_warn("Requirement \"{}\" is derived from itself".format(req.id))
 
         ###################################################
         #              Check checks                       #
@@ -264,9 +276,9 @@ class Analysis():
 
         # Checks if there are any duplicate check ids
         checks_ids = []
-        for c in self.checks:
-            checks_ids += [c.id]
+        for check in self.checks:
+            checks_ids += [check.id]
         checks_ids_seen = set()
         duplicate_checks = [x for x in checks_ids if x in checks_ids_seen or checks_ids_seen.add(x)]  
-        for c in duplicate_checks:
-            log_error("Multiple tests share the same id \"{}\"".format(c))
+        for cid in duplicate_checks:
+            log_error("Multiple tests share the same id \"{}\"".format(cid))
