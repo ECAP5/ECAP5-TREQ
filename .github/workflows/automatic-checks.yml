@@ -19,6 +19,31 @@ jobs:
     - name: pylint
       run: pylint ${{github.workspace}}/src/ecap5_treq
 
+  tests:
+    runs-on: self-hosted
+
+    env:
+      VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup python virtual environment
+      run: >-
+        cd ${{github.workspace}} &&
+        python3 -m venv ${{ env.VENV_NAME }}
+
+    - name: Install dependencies
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pip install ${{github.workspace}} &&
+        echo "${{github.workspace}}/${{ env.VENV_NAME }}/bin" >> $GITHUB_PATH
+
+    - name: Run unit tests
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pytest --pyargs ${{github.workspace}}/src/ecap5_treq
+
   documentation:
     runs-on: self-hosted
 
