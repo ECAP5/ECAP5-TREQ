@@ -22,6 +22,8 @@ jobs:
   tests:
     runs-on: self-hosted
 
+    needs: lint
+
     env:
       VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
 
