@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  DOCUMENTATION_ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
+
 jobs:
   lint:
     runs-on: self-hosted
@@ -15,19 +18,12 @@ jobs:
 
     - name: pylint
       run: pylint ${{github.workspace}}/src/ecap5_treq
+
   documentation:
     runs-on: self-hosted
+
     env:
       VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
-      ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     - uses: actions/checkout@v3
@@ -48,12 +44,26 @@ jobs:
 
     - uses: actions/upload-pages-artifact@v2
       with: 
-        name: ${{env.ARTIFACT_NAME}}
+        name: ${{env.DOCUMENTATION_ARTIFACT_NAME}}
         path: ${{github.workspace}}/docs/build/html
-    
+
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: self-hosted
+
+    needs: documentation
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
     - uses: actions/deploy-pages@v2
       id: deployment
-      if: ${{ github.ref == 'refs/heads/main' }}
       with:
-        artifact_name: ${{env.ARTIFACT_NAME}}
+        artifact_name: ${{env.DOCUMENTATION_ARTIFACT_NAME}}
         preview: true
