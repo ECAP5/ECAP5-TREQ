@@ -141,7 +141,7 @@ def generate_test_report(analysis: Analysis) -> str:
                 failed_test_anchor_placed = True
             report += "      {}\n".format(check_status_icon)
             report += "    </td>\n"
-            report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
+            report += "    <td>{}</td>\n".format(c.error_msg if c.error_msg else "")
             report += "  </tr>\n"
 
     # Handle checks that do not belong to a testsuite
@@ -154,7 +154,7 @@ def generate_test_report(analysis: Analysis) -> str:
         report += "      <samp>{}</samp>\n".format(c.shortid)
         report += "    </td>\n"
         report += "    <td align=\"center\">{}</td>\n".format("✅" if c.status else "🚫")
-        report += "    <td>{}</td>\n".format(c.errormsg if c.errormsg else "")
+        report += "    <td>{}</td>\n".format(c.error_msg if c.error_msg else "")
         report += "  </tr>\n"
     report += "</table>\n"
 

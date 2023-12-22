@@ -45,17 +45,6 @@ class Check:
         :param error_msg: message associated to a failed check
         :type error_msg: str, optional
         """
-        # Validate the testsuite and id
-        if len(id) == 0:
-            log_error("Missing id for test: \"{}\"".format(content[i:cur]))
-            # The program is interrupted here as this is a critical error
-            sys.exit(-1)
-        if testsuite != None:
-            if len(testsuite) == 0:
-                log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
-                # The program is interrupted here as this is a critical error
-                sys.exit(-1)
-
         if testsuite:
             self.id = testsuite + "." + id
         else:
@@ -64,6 +53,8 @@ class Check:
         self.testsuite = testsuite
         self.shortid = id
 
+        self.status = None
+        self.error_msg = None
         if status != None:
             self.status = (status == 1)
             self.error_msg = error_msg
@@ -110,7 +101,7 @@ def import_checks(path) -> list[Check]:
     files = glob.glob(path + "/**/*.cpp", recursive=True)
     for file in files:
         # Get the content of the test source file
-        content = "".join(l[:-1] for l in open(filepath))
+        content = "".join(l[:-1] for l in open(file))
         # Find checks in the file
         for i in [m.start() for m in re.finditer(r"CHECK\([^\)]*\)", content)]:
             # The format of the check is
@@ -122,6 +113,17 @@ def import_checks(path) -> list[Check]:
 
             # Recover the testsuite from the id
             testsuite, id = process_check_id(id)
+
+            # Validate the testsuite and id
+            if len(id) == 0:
+                log_error("Missing id for test \"{}\" in file \"{}\"".format(content[i:cur], file))
+                # The program is interrupted here as this is a critical error
+                sys.exit(-1)
+            if testsuite != None:
+                if len(testsuite) == 0:
+                    log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
+                    # The program is interrupted here as this is a critical error
+                    sys.exit(-1)
 
             checks += [Check(testsuite, id)]
     return checks 
@@ -149,7 +151,7 @@ def import_testdata(path: str) -> list[Check]:
                 # Read the check id from the testdata
                 testsuite, id = process_check_id(row[0])
                 # Add the check to the list providing both the status and error_msg parameters
-                checks += [Check(testsuite, id, row[1], (row[2] if len(row) >= 3 else None))]
+                checks += [Check(testsuite, id, int(row[1]), (row[2] if len(row) >= 3 else None))]
     return checks
 
 def process_check_id(raw_check_id: str) -> tuple[str, str]:
@@ -168,7 +170,7 @@ def process_check_id(raw_check_id: str) -> tuple[str, str]:
     testsuite = None
     id = None
     if len(raw_check_id) == 1:
-        log_warn("Test \"{}\" doesn't have any parent testsuite".format(s))
+        log_warn("Test \"{}\" doesn't have any parent testsuite".format(raw_check_id))
         id = raw_check_id[0]
     else:
         testsuite = raw_check_id[0]
@@ -189,6 +191,8 @@ def process_keyword(cur: int, content: str) -> int:
     """
     while content[cur] != "(":
         cur += 1
+    # Skip the (
+    cur += 1
     return cur
 
 def process_string(cur: int, content: str) -> tuple[int, str]:

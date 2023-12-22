@@ -109,7 +109,7 @@ class Matrix:
         :returns: a boolean indicating if id of the check belongs to the traceability matrix
         :rtype: bool
         """
-        return key in self.data
+        return check_id in self.data
     
     def to_csv(self) -> str:
         """Converts this object to a csv string

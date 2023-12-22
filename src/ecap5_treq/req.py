@@ -98,7 +98,7 @@ def import_reqs(path: str) -> list[Req]:
     files = glob.glob(path + "/**/*.tex", recursive=True)
     for file in files:
         # Get the content of the specification source file
-        content = "".join(l[:-1] for l in open(filepath))
+        content = "".join(l[:-1] for l in open(file))
         # Find reqs in the file
         for i in [m.start() for m in re.finditer(r"\\req", content)]:
             # The format of the reqs is
@@ -116,8 +116,6 @@ def import_reqs(path: str) -> list[Req]:
                 sys.exit(-1)
             if not description or len(description) == 0:
                 log_error("Missing description for requirement: \"{}\"".format(content[i:cur]))
-                # The program is interrupted here as this is a critical error
-                sys.exit(-1)
 
             # convert the options string to a dictionary
             options_dict = None
@@ -234,5 +232,5 @@ def process_options(options: str) -> dict[str, list[str]]:
             option_content_list = option_content[1:-1].split(", ")
         else:
             option_content_list = [option_content]
-        options_dict[option[0].strip()] = op_content_list
+        options_dict[option[0].strip()] = option_content_list
     return options_dict

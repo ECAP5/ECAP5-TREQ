@@ -79,7 +79,7 @@ class Analysis():
         self.num_successfull_checks = 0
         self.check_status_by_check_id = {}
         for check in self.testdata:
-            if check.status == 1:
+            if check.status:
                 self.num_successfull_checks += 1
             else:
                 self.num_failed_checks += 1
@@ -165,7 +165,7 @@ class Analysis():
                 # Count the number of coverings checks
                 r.result = 0
                 for c in checks:
-                    if c.status == 1:
+                    if c.status:
                         r.result += 1
                 # Compute a pourcentage
                 r.result = r.result / len(checks) * 100.0
@@ -217,7 +217,7 @@ class Analysis():
                 log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}".format(rid, ", ".join([c.id for c in self.checks_covering_reqs[rid]])))
 
         # Check if requirements used in the matrix exist
-        for cid in self.matrix:
+        for cid in self.matrix.data:
             for rid in self.matrix.get(cid):
                 if rid not in reqs_ids:
                     if cid == "__UNTRACEABLE__":
@@ -226,7 +226,7 @@ class Analysis():
                         log_warn("Missing requirement \"{}\" traced to check \"{}\" in the matrix".format(rid, cid))
 
         # Check if the same requirement is traced multiple times to the same check
-        for cid in self.matrix:
+        for cid in self.matrix.data:
             reqs_ids_seen = set()
             duplicate_reqs = [x for x in self.matrix.get(cid) if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
             if len(duplicate_reqs) > 0:
