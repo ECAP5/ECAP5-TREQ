@@ -31,7 +31,8 @@ jobs:
     - name: Install dependencies
       run: >-
         source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
-        pip install ${{github.workspace}}
+        pip install ${{github.workspace}} &&
+        echo "${{github.workspace}}/${{ env.VENV_NAME }}/bin" >> $GITHUB_PATH
 
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html
@@ -47,7 +48,6 @@ jobs:
         artifact_name: ecap5-treq_documentation
         preview: true
 
-    - name: Cleanup python virtual environment
-      run: >-
-        deactivate &&
-        rm -rf ${{ env.VENV_NAME }}
+          #    - name: Cleanup python virtual environment
+          #      run: >-
+          #        rm -rf ${{github.workspace}}/${{ env.VENV_NAME }}
