@@ -53,7 +53,11 @@ class Config:
         # Load a dictionary from the json configuration file
         self.data = None
         with open(path, encoding="utf-8") as file:
-            self.data = json.load(file)
+            try:
+                self.data = json.load(file)
+            except json.decoder.JSONDecodeError as e:
+                log_error("Syntax error in configuration file:\n{}".format(str(e)))
+                sys.exit(-1)
 
         allowed_path_keys = [
             "spec_dir_path",

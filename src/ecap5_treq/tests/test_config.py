@@ -19,14 +19,126 @@
 # You should have received a copy of the GNU General Public License
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-function-docstring
-
 import os
+from mock import patch, Mock, mock_open, call
+import pytest
 
-from ecap5_treq.config import path_to_abs_path
+from ecap5_treq.config import Config, path_to_abs_path
+from ecap5_treq.log import log_error, log_clear
 
-def test_Config_load_config():
+#
+# Fixture definitions
+#
+
+@pytest.fixture(autouse=True)
+def reset():
+    log_clear()
+
+@pytest.fixture()
+def stub_path_to_abs_path():
+    def stubbed_path_to_abs_path(path, config_path = None):
+        return path
+
+    patcher = patch("ecap5_treq.config.path_to_abs_path", side_effect=stubbed_path_to_abs_path)
+    stub = patcher.start()
+    yield stub
+    patcher.stop()
+
+#
+# Tests targetting Config class
+#
+
+def test_Config_constructor():
+    with patch.object(Config, "load_config") as stub_load_config:
+        config = Config()
+        stub_load_config.assert_not_called()
+
+        config = Config("path")
+        stub_load_config.assert_called_once_with("path")
+
+def test_Config_load_config_01():
+    empty_configuration = """{}"""
+    with patch("builtins.open", mock_open(read_data=empty_configuration)):
+        config = Config()
+        config.load_config("path")
+    assert len(config.data.keys()) == 0
+
+def test_Config_load_config_02():
+    unknown_key_configuration = "{ \"spec_dir_path\": \"spec_dir_path\", \"unknown_key\": \"unknown_key\" }"
+    with patch("builtins.open", mock_open(read_data=unknown_key_configuration)):
+        config = Config()
+        config.load_config("path")
+        # An error log shall have been called
+        assert len(log_error.msgs) == 1
+
+def test_Config_load_config_03():
+    syntax_error_configuration = """{ \"spec_dir_path: \"spec_dir_path\" }"""
+    with patch("builtins.open", mock_open(read_data=syntax_error_configuration)):
+        config = Config()
+        with pytest.raises(SystemExit) as e:
+            config.load_config("path")
+        # An error log shall have been called
+        assert len(log_error.msgs) == 1
+
+def test_Config_load_config_04(stub_path_to_abs_path):
+    valid_configuration_with_path = "{ \"spec_dir_path\": \"spec_dir_path_content\", \"test_dir_path\": \"test_dir_path_content\" }"
+    with patch("builtins.open", mock_open(read_data=valid_configuration_with_path)):
+        config = Config()
+        config.load_config("path")
+    assert "spec_dir_path" in config.data
+    assert "test_dir_path" in config.data
+    # Check that the path_to_abs_path function has been called for the paths provided in the configuration
+    stub_path_to_abs_path.assert_has_calls([call("spec_dir_path_content", "path"), call("test_dir_path_content", "path")])
+    # The path_to_abs_path is stubbed to return the path untouched
+    assert config.data["spec_dir_path"] == "spec_dir_path_content"
+    assert config.data["test_dir_path"] == "test_dir_path_content"
+
+def test_Config_get(stub_path_to_abs_path):
+    configuration = "{ \"spec_dir_path\": \"spec_dir_path_content\", \"test_dir_path\": \"test_dir_path_content\" }"
+    with patch("builtins.open", mock_open(read_data=configuration)):
+        config = Config()
+        config.load_config("path")
+
+    # Get elements
+    assert config.get("spec_dir_path") == "spec_dir_path_content"
+    assert config.get("test_dir_path") == "test_dir_path_content"
+
+    # Get a missing element
+    with pytest.raises(SystemExit) as e:
+        config.get("unknown")
+    # An error log shall have been called
+    assert len(log_error.msgs) == 1
+
+def test_Config_set():
     config = Config()
+    config.set("element1", "content1")
+    config.set("element2", "content2")
+
+    assert config.data["element1"] == "content1"
+    assert config.data["element2"] == "content2"
+
+def test_Config_set_path(stub_path_to_abs_path):
+    config = Config()
+    config.set_path("element1", "content1")
+    config.set_path("element2", "content2")
+
+    assert config.data["element1"] == "content1"
+    assert config.data["element2"] == "content2"
+
+    stub_path_to_abs_path.assert_has_calls([call("content1"), call("content2")])
+
+def test_Config___contains__():
+    config = Config()
+    config.data["element1"] = "content1"
+    config.data["element2"] = "content2"
+
+    assert ("element1" in config) == True
+    assert ("element2" in config) == True
+    assert ("unknown" in config) == False
+
+#
+# Tests targetting functions in config module
+#
 
 def test_path_to_abs_path():
     assert path_to_abs_path("") == ""

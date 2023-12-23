@@ -21,7 +21,21 @@
 
 # pylint: disable=missing-function-docstring
 
-from ecap5_treq.log import log_imp, log_warn, log_error
+import pytest
+
+from ecap5_treq.log import log_imp, log_warn, log_error, log_clear
+
+#
+# Fixture definitions
+#
+
+@pytest.fixture(autouse=True)
+def reset():
+    log_clear()
+
+#
+# Tests targetting functions in log module
+#
 
 def test_log_imp():
     # The log shall be empty at startup 

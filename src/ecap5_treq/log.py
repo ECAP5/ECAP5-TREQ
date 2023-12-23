@@ -59,3 +59,10 @@ def log_error(msg: str) -> None:
     log_error.msgs += [msg]
 # Initialize the log table
 log_error.msgs = []
+
+def log_clear():
+    """Clears logged messages
+    """
+    log_imp.msgs = []
+    log_warn.msgs = []
+    log_error.msgs = []
