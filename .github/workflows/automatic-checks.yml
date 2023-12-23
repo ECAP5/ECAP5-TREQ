@@ -31,7 +31,7 @@ jobs:
     - name: pylint
       run: >-
         source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
-        pylint ${{github.workspace}}/src/ecap5_treq
+        pylint ${{github.workspace}}/src/ecap5_treq --rcfile="${{github.workspace}}/.pylintrc"
 
   tests:
     runs-on: self-hosted
