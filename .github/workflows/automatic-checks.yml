@@ -8,6 +8,7 @@ on:
 
 env:
   DOCUMENTATION_ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
+  VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
 
 jobs:
   lint:
@@ -36,9 +37,6 @@ jobs:
     runs-on: self-hosted
 
     needs: lint
-
-    env:
-      VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
 
     steps:
     - uses: actions/checkout@v3
