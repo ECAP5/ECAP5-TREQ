@@ -146,8 +146,12 @@ def import_testdata(path: str) -> list[Check]:
         with open(file, newline='', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar='|')
             for row in reader:
+                # Skip empty lines or lines with only spaces
+                if len(row) == 0 or (len(row) == 1 and len(row[0].strip()) == 0):
+                    continue
+
                 if len(row) < 2:
-                    log_error("Incomplete test data in {}".format(file))
+                    log_error("Incomplete test data in {} for row \"{}\"".format(file, row))
                     # The program is interrupted here as this is a critical error
                     sys.exit(-1)
                 # Read the check id from the testdata
@@ -191,10 +195,8 @@ def process_keyword(cur: int, content: str) -> int:
     :returns: the incremented cur pointing to the char following the next parenthesis in content
     :rtype: int
     """
-    while content[cur] != "(":
+    while content[cur] != "\"":
         cur += 1
-    # Skip the (
-    cur += 1
     return cur
 
 def process_string(cur: int, content: str) -> tuple[int, str]:

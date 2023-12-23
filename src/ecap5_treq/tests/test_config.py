@@ -107,6 +107,7 @@ def test_Config_load_config_04(stub_path_to_abs_path):
     with patch("builtins.open", mock_open(read_data=valid_configuration_with_path)):
         config = Config()
         config.load_config("path")
+
     assert "spec_dir_path" in config.data
     assert "test_dir_path" in config.data
     # Check that the path_to_abs_path function has been called for the paths provided in the configuration

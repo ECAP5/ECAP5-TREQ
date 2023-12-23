@@ -62,6 +62,7 @@ def test_Matrix_read_01():
     with patch("builtins.open", mock_open(read_data=empty_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     assert len(matrix.data.keys()) == 0
 
 def test_Matrix_read_02():
@@ -73,6 +74,7 @@ def test_Matrix_read_02():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     assert len(matrix.data.keys()) == 2
     assert "element1" in matrix.data
     assert "element2" in matrix.data
@@ -88,6 +90,7 @@ def test_Matrix_read_03():
     with patch("builtins.open", mock_open(read_data=empty_element_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     assert len(matrix.data.keys()) == 2
     assert "element1" in matrix.data
     assert "element2" in matrix.data
@@ -103,6 +106,7 @@ def test_Matrix_check_01():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     checks = [Check(None, "element1"), Check(None, "element2")]
     assert matrix.check(checks) == True
 
@@ -115,6 +119,7 @@ def test_Matrix_check_02():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     checks = [Check(None, "element1")]
     assert matrix.check(checks) == False
 
@@ -127,6 +132,7 @@ def test_Matrix_check_03():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     checks = [Check(None, "element1"), Check(None, "element2")]
     assert matrix.check(checks) == False
 
@@ -137,8 +143,14 @@ def test_Matrix_add():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
+    # Check that the element was not present before
     assert "added_element" not in matrix.data
+
+    # Add the element
     matrix.add("added_element", ["content1", "content2"])
+
+    # Check that the element was properly added
     assert "added_element" in matrix.data
     assert matrix.data["added_element"] == ["content1", "content2"]
 
@@ -153,6 +165,7 @@ def test_Matrix_get():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     assert matrix.get("element1") == ["content1"]
     assert matrix.get("unknown") == []
     
@@ -167,6 +180,7 @@ def test_Matrix___contains__():
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
+
     assert "element1" in matrix.data
     assert "unknown" not in matrix.data
 
@@ -178,9 +192,13 @@ def test_Matrix_to_csv():
         base_matrix = Matrix()
         base_matrix.read("path")
     base_matrix_csv_str = base_matrix.to_csv()
+
+    # Generate a matrix from the string
     with patch("builtins.open", mock_open(read_data=base_matrix_csv_str)):
         new_matrix = Matrix()
         new_matrix.read("path")
+
+    # Compare the two matrices
     assert base_matrix.data == new_matrix.data
 
 def test_Matrix___repr__():
@@ -191,9 +209,13 @@ def test_Matrix___repr__():
         base_matrix = Matrix()
         base_matrix.read("path")
     base_matrix_csv_str = repr(base_matrix)
+
+    # Generate a matrix from the string
     with patch("builtins.open", mock_open(read_data=base_matrix_csv_str)):
         new_matrix = Matrix()
         new_matrix.read("path")
+
+    # Compare the two matrices
     assert base_matrix.data == new_matrix.data
 
 def test_Matrix___str__():
@@ -204,9 +226,13 @@ def test_Matrix___str__():
         base_matrix = Matrix()
         base_matrix.read("path")
     base_matrix_csv_str = str(base_matrix)
+
+    # Generate a matrix from the string
     with patch("builtins.open", mock_open(read_data=base_matrix_csv_str)):
         new_matrix = Matrix()
         new_matrix.read("path")
+
+    # Compare the two matrices
     assert base_matrix.data == new_matrix.data
 
 #
@@ -220,6 +246,7 @@ def test_prepare_matrix_01():
     """
     checks = [Check(None, "check1"), Check(None, "check2")]
     matrix = prepare_matrix(checks, None)
+
     assert len(matrix.data) == 3
     assert "check1" in matrix.data
     assert "check2" in matrix.data
@@ -236,6 +263,7 @@ def test_prepare_matrix_02():
     checks = [Check(None, "check1"), Check(None, "check2")]
     previous_matrix = Matrix()
     matrix = prepare_matrix(checks, previous_matrix)
+
     assert len(matrix.data) == 3
     assert "check1" in matrix.data
     assert "check2" in matrix.data
@@ -255,6 +283,7 @@ def test_prepare_matrix_03():
         previous_matrix = Matrix()
         previous_matrix.read("path")
     matrix = prepare_matrix(checks, previous_matrix)
+
     assert len(matrix.data) == 3
     assert "check1" in matrix.data
     assert "check2" in matrix.data
