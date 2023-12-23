@@ -3,7 +3,7 @@
 # / __/ __/ _ \/ _ `/ / _ \/ -_)
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
-# Copyright (C) Clément Chanie
+# Copyright (C) Clément Chaine
 # This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
