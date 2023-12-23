@@ -40,6 +40,12 @@ def reset():
 #
 
 def test_Matrix_constructor():
+    """Unit test for the constructor of the Matrix class
+
+    The covered behaviors are:
+        * Constructor without a path
+        * Constructor with a path
+    """
     with patch.object(Matrix, "read") as stub_read:
         matrix = Matrix()
         stub_read.assert_not_called()
@@ -48,6 +54,10 @@ def test_Matrix_constructor():
         stub_read.assert_called_once_with("path")
 
 def test_Matrix_read_01():
+    """Unit test for the read method of the Matrix class
+
+    The covered behavior is an empty matrix
+    """
     empty_matrix = ""
     with patch("builtins.open", mock_open(read_data=empty_matrix)):
         matrix = Matrix()
@@ -55,6 +65,10 @@ def test_Matrix_read_01():
     assert len(matrix.data.keys()) == 0
 
 def test_Matrix_read_02():
+    """Unit test for the read method of the Matrix class
+
+    The covered behavior is an valid matrix
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -66,6 +80,10 @@ def test_Matrix_read_02():
     assert matrix.data["element2"] == ["content2", "content3"]
 
 def test_Matrix_read_03():
+    """Unit test for the read method of the Matrix class
+
+    The covered behavior is an valid matrix containing an empty element
+    """
     empty_element_matrix = "element1;content1\nelement2"
     with patch("builtins.open", mock_open(read_data=empty_element_matrix)):
         matrix = Matrix()
@@ -77,6 +95,10 @@ def test_Matrix_read_03():
     assert matrix.data["element2"] == []
 
 def test_Matrix_check_01():
+    """Unit test for the check method of the Matrix class
+
+    The covered behavior is a check equal to true
+    """
     valid_matrix = "element2;content1\nelement1;content2;content3\n__UNTRACEABLE__\n"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -85,6 +107,10 @@ def test_Matrix_check_01():
     assert matrix.check(checks) == True
 
 def test_Matrix_check_02():
+    """Unit test for the check method of the Matrix class
+
+    The covered behavior is a check equal to false due to the list of checks missing an element
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3\n__UNTRACEABLE__\n"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -93,6 +119,10 @@ def test_Matrix_check_02():
     assert matrix.check(checks) == False
 
 def test_Matrix_check_03():
+    """Unit test for the check method of the Matrix class
+
+    The covered behavior is a check equal to false due to the matrix missing the __UNTRACEABLE__ entry
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -101,6 +131,8 @@ def test_Matrix_check_03():
     assert matrix.check(checks) == False
 
 def test_Matrix_add():
+    """Unit test for the add method of the Matrix class
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -111,6 +143,12 @@ def test_Matrix_add():
     assert matrix.data["added_element"] == ["content1", "content2"]
 
 def test_Matrix_get():
+    """Unit test for the get method of the Matrix class
+
+    The covered behaviors are:
+        * get with an existing element
+        * get with a missing element
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -119,6 +157,12 @@ def test_Matrix_get():
     assert matrix.get("unknown") == []
     
 def test_Matrix___contains__():
+    """Unit test for the __contains__ method of the Matrix class
+
+    The covered behaviors are:
+        * check with an existing element
+        * check with a missing element
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
@@ -127,6 +171,8 @@ def test_Matrix___contains__():
     assert "unknown" not in matrix.data
 
 def test_Matrix_to_csv():
+    """Unit test for the to_csv method of the Matrix class
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3\n__UNTRACEABLE__"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         base_matrix = Matrix()
@@ -138,6 +184,8 @@ def test_Matrix_to_csv():
     assert base_matrix.data == new_matrix.data
 
 def test_Matrix___repr__():
+    """Unit test for the __repr__ method of the Matrix class
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3\n__UNTRACEABLE__"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         base_matrix = Matrix()
@@ -149,6 +197,8 @@ def test_Matrix___repr__():
     assert base_matrix.data == new_matrix.data
 
 def test_Matrix___str__():
+    """Unit test for the __str__ method of the Matrix class
+    """
     valid_matrix = "element1;content1\nelement2;content2;content3\n__UNTRACEABLE__"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         base_matrix = Matrix()
@@ -164,6 +214,10 @@ def test_Matrix___str__():
 #
 
 def test_prepare_matrix_01():
+    """Unit test for the prepare_matrix function
+
+    The covered behavior is with the previous matrix being None
+    """
     checks = [Check(None, "check1"), Check(None, "check2")]
     matrix = prepare_matrix(checks, None)
     assert len(matrix.data) == 3
@@ -175,6 +229,10 @@ def test_prepare_matrix_01():
     assert matrix.data["__UNTRACEABLE__"] == []
 
 def test_prepare_matrix_02():
+    """Unit test for the prepare_matrix function
+
+    The covered behavior is with an empty previous matrix
+    """
     checks = [Check(None, "check1"), Check(None, "check2")]
     previous_matrix = Matrix()
     matrix = prepare_matrix(checks, previous_matrix)
@@ -187,6 +245,10 @@ def test_prepare_matrix_02():
     assert matrix.data["__UNTRACEABLE__"] == []
 
 def test_prepare_matrix_03():
+    """Unit test for the prepare_matrix function
+
+    The covered behavior is with a previous matrix containing one of the check and having an untraceable element
+    """
     checks = [Check(None, "check1"), Check(None, "check2")]
     valid_matrix = "element1;content1\ncheck2;content2;content3\n__UNTRACEABLE__;content4"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):

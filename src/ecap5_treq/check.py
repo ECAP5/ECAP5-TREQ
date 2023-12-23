@@ -209,7 +209,7 @@ def process_string(cur: int, content: str) -> tuple[int, str]:
     :type content: str
 
     :returns: a tuple containing both an incremented cur pointing to the next char after the quotation mark and the 
-    recovered string
+        recovered string
     :rtype: tuple[int, str]
     """
     result = ""

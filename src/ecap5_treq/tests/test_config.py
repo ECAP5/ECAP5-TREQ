@@ -49,6 +49,12 @@ def stub_path_to_abs_path():
 #
 
 def test_Config_constructor():
+    """Unit test for the constructor of the Config class
+
+    The covered behaviors are:
+        * Constructor without a path
+        * Constructor with a path
+    """
     with patch.object(Config, "load_config") as stub_load_config:
         config = Config()
         stub_load_config.assert_not_called()
@@ -57,6 +63,10 @@ def test_Config_constructor():
         stub_load_config.assert_called_once_with("path")
 
 def test_Config_load_config_01():
+    """Unit test for the load_config method of the Config class
+
+    The covered behavior is load_config with an empty configuration
+    """
     empty_configuration = """{}"""
     with patch("builtins.open", mock_open(read_data=empty_configuration)):
         config = Config()
@@ -64,6 +74,10 @@ def test_Config_load_config_01():
     assert len(config.data.keys()) == 0
 
 def test_Config_load_config_02():
+    """Unit test for the load_config method of the Config class
+
+    The covered behavior is load_config with a configuration containing an unknown key
+    """
     unknown_key_configuration = "{ \"spec_dir_path\": \"spec_dir_path\", \"unknown_key\": \"unknown_key\" }"
     with patch("builtins.open", mock_open(read_data=unknown_key_configuration)):
         config = Config()
@@ -72,6 +86,10 @@ def test_Config_load_config_02():
         assert len(log_error.msgs) == 1
 
 def test_Config_load_config_03():
+    """Unit test for the load_config method of the Config class
+
+    The covered behavior is load_config with a configuration containing a syntax error
+    """
     syntax_error_configuration = """{ \"spec_dir_path: \"spec_dir_path\" }"""
     with patch("builtins.open", mock_open(read_data=syntax_error_configuration)):
         config = Config()
@@ -81,6 +99,10 @@ def test_Config_load_config_03():
         assert len(log_error.msgs) == 1
 
 def test_Config_load_config_04(stub_path_to_abs_path):
+    """Unit test for the load_config method of the Config class
+
+    The covered behavior is load_config with a valid configuration
+    """
     valid_configuration_with_path = "{ \"spec_dir_path\": \"spec_dir_path_content\", \"test_dir_path\": \"test_dir_path_content\" }"
     with patch("builtins.open", mock_open(read_data=valid_configuration_with_path)):
         config = Config()
@@ -94,6 +116,12 @@ def test_Config_load_config_04(stub_path_to_abs_path):
     assert config.data["test_dir_path"] == "test_dir_path_content"
 
 def test_Config_get(stub_path_to_abs_path):
+    """Unit test for the get method of the Config class
+
+    The covered behavior are :
+        * get an existing element
+        * get a missing element
+    """
     configuration = "{ \"spec_dir_path\": \"spec_dir_path_content\", \"test_dir_path\": \"test_dir_path_content\" }"
     with patch("builtins.open", mock_open(read_data=configuration)):
         config = Config()
@@ -110,6 +138,8 @@ def test_Config_get(stub_path_to_abs_path):
     assert len(log_error.msgs) == 1
 
 def test_Config_set():
+    """Unit test for the set method of the Config class
+    """
     config = Config()
     config.set("element1", "content1")
     config.set("element2", "content2")
@@ -118,6 +148,8 @@ def test_Config_set():
     assert config.data["element2"] == "content2"
 
 def test_Config_set_path(stub_path_to_abs_path):
+    """Unit test for the set_path method of the Config class
+    """
     config = Config()
     config.set_path("element1", "content1")
     config.set_path("element2", "content2")
@@ -128,6 +160,12 @@ def test_Config_set_path(stub_path_to_abs_path):
     stub_path_to_abs_path.assert_has_calls([call("content1"), call("content2")])
 
 def test_Config___contains__():
+    """Unit test for the __contains__ method of the Config class
+
+    The covered behavior are :
+        * check an existing element
+        * check a missing element
+    """
     config = Config()
     config.data["element1"] = "content1"
     config.data["element2"] = "content2"
@@ -141,6 +179,13 @@ def test_Config___contains__():
 #
 
 def test_path_to_abs_path():
+    """Unit test for the test_path_to_abs_path function
+
+    The covered behavior are :
+        * an empty path
+        * a relative path from the current directory
+        * a relative path from the configuration's directory
+    """
     assert path_to_abs_path("") == ""
     # Relative path from the current directory
     assert path_to_abs_path("relative/path") == os.path.join(os.getcwd(), "relative/path")

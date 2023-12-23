@@ -164,7 +164,7 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     :type closing_token: str
 
     :returns: a tuple containing both an incremented cur pointing to the next char fater the closing token and the 
-    recovered string
+        recovered string
     :rtype: tuple[int, str]
     """
     # Skip spaces

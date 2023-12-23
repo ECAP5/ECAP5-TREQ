@@ -38,6 +38,8 @@ def reset():
 #
 
 def test_log_imp():
+    """Unit test for log_imp
+    """
     # The log shall be empty at startup 
     assert len(log_imp.msgs) == 0
 
@@ -51,6 +53,8 @@ def test_log_imp():
         assert log_imp.msgs[i] == "{}".format(i)
 
 def test_log_warn():
+    """Unit test for log_imp
+    """
     # The log shall be empty at startup 
     assert len(log_warn.msgs) == 0
 
@@ -64,6 +68,8 @@ def test_log_warn():
         assert log_warn.msgs[i] == "{}".format(i)
 
 def test_log_error():
+    """Unit test for log_imp
+    """
     # The log shall be empty at startup 
     assert len(log_error.msgs) == 0
 
