@@ -151,6 +151,9 @@ def prepare_matrix(checks: list[Check], previous_matrix: Matrix) -> Matrix:
     :returns: the updated traceability matrix
     :rtype: Matrix
     """
+    if previous_matrix is None:
+        previous_matrix = Matrix()
+
     matrix = Matrix()
     for check in checks:
         # write the check and add the previous matrix content if there was any
