@@ -47,13 +47,14 @@ class Check:
         :param error_msg: message associated to a failed check
         :type error_msg: str, optional
         """
+        self.testsuite = None
         if testsuite:
-            self.id = testsuite + "." + id
+            self.testsuite = testsuite.strip()
+            self.id = testsuite.strip() + "." + id.strip()
         else:
-            self.id = id
+            self.id = id.strip()
 
-        self.testsuite = testsuite
-        self.shortid = id
+        self.shortid = self.id
 
         self.status = None
         self.error_msg = None
@@ -117,12 +118,15 @@ def import_checks(path) -> list[Check]:
             testsuite, id = process_check_id(id)
 
             # Validate the testsuite and id
-            if len(id) == 0:
+            if len(id.strip()) == 0:
                 log_error("Missing id for test \"{}\" in file \"{}\"".format(content[i:cur], file))
                 # The program is interrupted here as this is a critical error
                 sys.exit(-1)
-            if testsuite is not None:
-                if len(testsuite) == 0:
+
+            # If no testsuite was provided or the provided testsuite is empty
+            if testsuite is None:
+                log_warn("Test \"{}\" doesn't have any parent testsuite".format(content[i:cur]))
+            elif len(testsuite) == 0:
                     log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
                     # The program is interrupted here as this is a critical error
                     sys.exit(-1)
@@ -150,7 +154,8 @@ def import_testdata(path: str) -> list[Check]:
                 if len(row) == 0 or (len(row) == 1 and len(row[0].strip()) == 0):
                     continue
 
-                if len(row) < 2:
+                # The data is incomplete if no status is provided
+                if len(row) < 2 or len(row[1].strip()) == 0:
                     log_error("Incomplete test data in {} for row \"{}\"".format(file, row))
                     # The program is interrupted here as this is a critical error
                     sys.exit(-1)
@@ -176,7 +181,6 @@ def process_check_id(raw_check_id: str) -> tuple[str, str]:
     testsuite = None
     id = None
     if len(raw_check_id) == 1:
-        log_warn("Test \"{}\" doesn't have any parent testsuite".format(raw_check_id))
         id = raw_check_id[0]
     else:
         testsuite = raw_check_id[0]
@@ -195,8 +199,29 @@ def process_keyword(cur: int, content: str) -> int:
     :returns: the incremented cur pointing to the char following the next parenthesis in content
     :rtype: int
     """
-    while content[cur] != "\"":
+    cur_start = cur
+    valid = True
+
+    # Process the keyword
+    keyword = "CHECK"
+    for c in keyword:
+        valid = valid & (content[cur] == c) 
         cur += 1
+    # Process spaces
+    while content[cur] == " ":
+        cur += 1
+    # Process the parenthesis
+    valid = valid & (content[cur] == '(')
+    cur += 1
+    # Process spaces
+    while content[cur] == " ":
+        cur += 1
+    valid = valid & (content[cur] == '\"')
+    
+    if not valid:
+        log_error("Syntax error while processing keyword \"{}\"".format(content[cur_start:cur]))
+        sys.exit(-1)
+
     return cur
 
 def process_string(cur: int, content: str) -> tuple[int, str]:
@@ -214,11 +239,22 @@ def process_string(cur: int, content: str) -> tuple[int, str]:
         recovered string
     :rtype: tuple[int, str]
     """
+    cur_start = cur
     result = ""
-    if content[cur] == "\"":
+    if content[cur] != "\"":
+        log_error("Syntax error while running process_string. Missing starting \\\" while processing string \"{}\"".format(content[cur:-1].replace("\"", "\\\"") + "..."))
+        sys.exit(-1)
+
+    cur += 1
+    # We go up to the closing "
+    while cur < len(content) and content[cur] != "\"":
+        result += content[cur]
         cur += 1
-        # We go up to the closing "
-        while content[cur] != "\"":
-            result += content[cur]
-            cur += 1
+    if cur == len(content):
+        log_error("Syntax error while running process_string. Missing closing \" while processing string \"{}\"".format(content[cur:-1].replace("\"", "\\\"") + "..."))
+        sys.exit(-1)
+
+    # Skip the closing \"
+    cur += 1
+
     return cur, result

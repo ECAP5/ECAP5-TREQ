@@ -25,7 +25,7 @@ from mock import patch, Mock, mock_open, call
 import pytest
 import io
 
-from ecap5_treq.check import Check, import_checks, import_testdata
+from ecap5_treq.check import Check, import_checks, import_testdata, process_check_id, process_keyword, process_string
 from ecap5_treq.log import log_error, log_warn, log_clear
 
 #
@@ -172,7 +172,7 @@ def test_import_checks_03(stub_glob, stub_open):
     assert checks[2].id == "check3"
     assert checks[3].testsuite == "testsuite2"
     assert checks[3].id == "testsuite2.check4"
-    # Two warning message are generated for the missing testsuites
+    # Two warning messages shall be generated for the empty testsuites
     assert len(log_warn.msgs) == 2
 
 @patch("glob.glob", side_effect=stubbed_glob)
@@ -228,7 +228,7 @@ def test_import_checks_05(stub_glob, stub_open):
 @patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
 def test_import_testdata_01(stub_glob, stub_open):
-    """Unit test for the import_check function
+    """Unit test for the import_testdata function
 
     The covered behavior is no testdata files
     """
@@ -238,7 +238,7 @@ def test_import_testdata_01(stub_glob, stub_open):
 @patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
 def test_import_testdata_02(stub_glob, stub_open):
-    """Unit test for the import_check function
+    """Unit test for the import_testdata function
 
     The covered behavior is complete testdata in multiple files
     """
@@ -252,4 +252,133 @@ def test_import_testdata_02(stub_glob, stub_open):
         check4;0;error_msg2
     """
     checks = import_testdata("path")
+
     assert len(checks) == 4
+    assert checks[0].testsuite == None
+    assert checks[0].id == "check1"
+    assert checks[0].status == True
+    assert checks[0].error_msg == None
+
+    assert checks[1].testsuite == None
+    assert checks[1].id == "check2"
+    assert checks[1].status == False
+    assert checks[1].error_msg == "error_msg1"
+
+    assert checks[2].testsuite == None
+    assert checks[2].id == "check3"
+    assert checks[2].status == False
+    assert checks[2].error_msg == None
+
+    assert checks[3].testsuite == None
+    assert checks[3].id == "check4"
+    assert checks[3].status == False
+    assert checks[3].error_msg == "error_msg2"
+
+@patch("glob.glob", side_effect=stubbed_glob)
+@patch("builtins.open", side_effect=stubbed_open)
+def test_import_testdata_03(stub_glob, stub_open):
+    """Unit test for the import_testdata function
+
+    The covered behavior is incomplete testdata
+    """
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+        check1
+    """
+    with pytest.raises(SystemExit) as e:
+        checks = import_testdata("path")
+        assert len(log_error.msgs) == 1
+
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+        check1;
+    """
+    with pytest.raises(SystemExit) as e:
+        checks = import_testdata("path")
+        assert len(log_error.msgs) == 1
+
+def test_process_check_id():
+    """Unit test for the process_check_id function
+
+    The covered behaviors are:
+        * missing testsuite and empty id
+        * empty testsuite and valid id
+        * valid testsuite and empty id
+        * valid testsuite and valid id
+    """
+    testsuite, id = process_check_id("")
+    assert testsuite == None
+    assert id == ""
+
+    testsuite, id = process_check_id(".check1")
+    assert testsuite == ""
+    assert id == "check1"
+
+    testsuite, id = process_check_id("testsuite.")
+    assert testsuite == "testsuite"
+    assert id == ""
+
+    testsuite, id = process_check_id("testsuite.check1")
+    assert testsuite == "testsuite"
+    assert id == "check1"
+
+def test_process_keyword_01():
+    """Unit test for the process_keyword function
+
+    The covered behaviors are :
+        * Cur equal zero
+        * Cur greater than zero
+        * Keyword without spaces
+        * Keyword with spaces
+    """
+    cur = process_keyword(0, "CHECK(\"id\")")
+    assert cur == 6
+
+    cur = process_keyword(5, "     CHECK (  \"id\")")
+    assert cur == 14
+
+def test_process_keyword_02():
+    """Unit test for the process_keyword function
+
+    The covered behavior is syntax error in keyword
+    """
+    with pytest.raises(SystemExit) as e:
+        cur = process_keyword(0, "CHECK(id\")")
+        # A syntax error shall be raised
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        # A syntax error shall be raised
+        cur = process_keyword(0, "CHECK(id)")
+        assert len(log_error.msgs) == 1
+
+def test_process_string_01():
+    """Unit test for the process_string function
+
+    The covered behaviors are:
+        * Cur equal zero
+        * Cur greater than zero
+        * Valid string
+    """
+    cur, result = process_string(0, "\"string content\"")
+    assert cur == 16
+    assert result == "string content"
+
+    cur, result = process_string(5, "     \"string content\"")
+    assert cur == 21
+    assert result == "string content"
+
+def test_process_string_02():
+    """Unit test for the process_string function
+
+    The covered behaviors are:
+        * Missing starting \"
+        * Missing closing \"
+    """
+    with pytest.raises(SystemExit) as e:
+        cur, result = process_string(0, "string content\"")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        cur, result = process_string(0, "\"string content")
+        assert len(log_error.msgs) == 2
