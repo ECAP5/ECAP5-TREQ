@@ -127,9 +127,9 @@ def import_checks(path) -> list[Check]:
             if testsuite is None:
                 log_warn("Test \"{}\" doesn't have any parent testsuite".format(content[i:cur]))
             elif len(testsuite) == 0:
-                    log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
-                    # The program is interrupted here as this is a critical error
-                    sys.exit(-1)
+                log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
+                # The program is interrupted here as this is a critical error
+                sys.exit(-1)
 
             checks += [Check(testsuite, id)]
     return checks 
@@ -242,7 +242,8 @@ def process_string(cur: int, content: str) -> tuple[int, str]:
     cur_start = cur
     result = ""
     if content[cur] != "\"":
-        log_error("Syntax error while running process_string. Missing starting \\\" while processing string \"{}\"".format(content[cur:-1].replace("\"", "\\\"") + "..."))
+        log_error("Syntax error while running process_string. Missing starting \\\" while processing string \"{}\"" \
+                    .format(content[cur_start:-1].replace("\"", "\\\"") + "..."))
         sys.exit(-1)
 
     cur += 1
@@ -251,7 +252,8 @@ def process_string(cur: int, content: str) -> tuple[int, str]:
         result += content[cur]
         cur += 1
     if cur == len(content):
-        log_error("Syntax error while running process_string. Missing closing \" while processing string \"{}\"".format(content[cur:-1].replace("\"", "\\\"") + "..."))
+        log_error("Syntax error while running process_string. Missing closing \" while processing string \"{}\"" \
+                    .format(content[cur_start:-1].replace("\"", "\\\"") + "..."))
         sys.exit(-1)
 
     # Skip the closing \"
