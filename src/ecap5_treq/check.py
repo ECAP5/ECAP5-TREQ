@@ -204,8 +204,8 @@ def process_keyword(cur: int, content: str) -> int:
 
     # Process the keyword
     keyword = "CHECK"
-    for c in keyword:
-        valid = valid & (content[cur] == c) 
+    for char in keyword:
+        valid = valid & (content[cur] == char) 
         cur += 1
     # Process spaces
     while content[cur] == " ":

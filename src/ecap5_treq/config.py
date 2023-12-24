@@ -55,8 +55,8 @@ class Config:
         with open(path, encoding="utf-8") as file:
             try:
                 self.data = json.load(file)
-            except json.decoder.JSONDecodeError as e:
-                log_error("Syntax error in configuration file:\n{}".format(str(e)))
+            except json.decoder.JSONDecodeError as excp:
+                log_error("Syntax error in configuration file:\n{}".format(str(excp)))
                 sys.exit(-1)
 
         allowed_path_keys = [

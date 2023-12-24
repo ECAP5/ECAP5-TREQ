@@ -25,7 +25,7 @@ import sys
 import re
 import glob
 
-from ecap5_treq.log import log_error
+from ecap5_treq.log import log_error, log_warn
 
 class ReqStatus:
     """A ReqStatus details the traceability status of requirements
@@ -121,7 +121,7 @@ def import_reqs(path: str) -> list[Req]:
                 # The program is interrupted here as this is a critical error
                 sys.exit(-1)
             if not description or len(description) == 0:
-                log_error("Missing description for requirement: \"{}\"".format(content[i:cur]))
+                log_warn("Missing description for requirement: \"{}\"".format(content[i:cur]))
 
             # convert the options string to a dictionary
             options_dict = None
@@ -143,9 +143,15 @@ def process_keyword(cur: int, content: str) -> int:
     :returns: the incremented cur pointing to the char following the next curly bracket in content
     :rtype: int
     """
+    cur_start = cur
     # Go to the next {
-    while content[cur] != "{":
+    while cur < len(content) and content[cur] != "{":
         cur += 1
+
+    if cur == len(content):
+        log_error("Syntax error while processing keyword \"{}\"".format(content[cur_start:cur]))
+        sys.exit(-1)
+
     return cur
 
 def process_matching_token(cur: int, content: str, opening_token: str, closing_token: str) -> tuple[int, str]:
@@ -167,9 +173,7 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
         recovered string
     :rtype: tuple[int, str]
     """
-    # Skip spaces
-    while content[cur] == " ":
-        cur += 1
+    cur_start = cur
 
     # Return if the opening_token is not found
     if content[cur] != opening_token:
@@ -179,13 +183,19 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     cur += 1
     # indent is used to keep track of the opened tokens waiting for their closing token
     ident = 1
-    while ident > 0:
+    while cur < len(content) and ident > 0:
         if content[cur] == opening_token:
             ident += 1
         if content[cur] == closing_token:
             ident -= 1
         result += content[cur]
         cur += 1
+    
+    if cur == len(content) and ident > 0:
+        log_error("Syntax error while processing matching tokens \"{}\"".format(content[cur_start:cur]))
+        sys.exit(-1)
+
+    # Remove the closing token
     result = result[:-1]
     return (cur, result.strip())
 
@@ -199,6 +209,9 @@ def process_options(options: str) -> dict[str, list[str]]:
     :rtype: dict[str, list[str]]
     """
     options_dict = {}
+
+    if len(options) == 0:
+        return options_dict
 
     # Options can have a comma within their content if surrounded by curly brackets
     # Join options when curly brackets are used within the option
