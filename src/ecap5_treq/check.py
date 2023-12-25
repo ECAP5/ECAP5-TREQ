@@ -89,6 +89,18 @@ class Check:
         :rtype: str
         """
         return self.to_str()
+    
+    def __eq__(self, other) -> bool:
+        """Override of the __eq__ function used to compare two Check object
+
+        :returns: a boolean indicating if the objects are equal
+        :rtype: bool
+        """
+        return (self.testsuite == other.testsuite and \
+                self.id == other.id and \
+                self.status == other.status and \
+                self.error_msg == other.error_msg)
+
 
 def import_checks(path) -> list[Check]:
     """Imports checks from test source files

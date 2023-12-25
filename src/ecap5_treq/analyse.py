@@ -87,6 +87,7 @@ class Analysis():
         """
         # Count the number of successfull tests
         self.num_successfull_checks = 0
+        self.num_failed_checks = 0
         self.check_status_by_check_id = {}
         for check in self.testdata:
             if check.status:
@@ -125,7 +126,10 @@ class Analysis():
                 self.unknown_checks += [check]
 
         # Compute the test result
-        self.test_result = int(self.num_successfull_checks / len(self.checks) * 100.0)
+        if len(self.checks) > 0:
+            self.test_result = int(self.num_successfull_checks / len(self.checks) * 100.0)
+        else:
+            self.test_result = 0
 
     def analyse_traceability(self) -> None:
         """Analyse data from the requirements
@@ -203,7 +207,10 @@ class Analysis():
                 self.other_reqs += [req]
 
         # Compute traceability result
-        self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
+        if len(self.reqs) > 0:
+            self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
+        else:
+            self.traceability_result = 0
 
     def analyse_consistency(self) -> None:
         """Analyse the consistency of the test and traceability data

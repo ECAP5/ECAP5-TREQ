@@ -113,6 +113,29 @@ def test_Check___repr__():
     check = Check("testsuite", "check1", 0, "msg")
     str(check)
 
+def test_Check___eq__():
+    """Unit test for the __eq__ method of the Check class
+    """
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = Check("testsuite1", "check1", 1, "msg1")
+    assert check == other
+
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = Check("testsuite1", "check1", 1, "msg2")
+    assert check != other
+
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = Check("testsuite1", "check1", 0, "msg1")
+    assert check != other
+
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = Check("testsuite1", "check2", 1, "msg1")
+    assert check != other
+
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = Check("testsuite2", "check1", 1, "msg1")
+    assert check != other
+
 #
 # Tests targetting functions from the check module
 #
