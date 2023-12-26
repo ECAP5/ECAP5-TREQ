@@ -55,7 +55,7 @@ jobs:
     - name: Run unit tests
       run: >-
         source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
-        pytest --pyargs ${{github.workspace}}/src/ecap5_treq
+        pytest --pyargs ${{github.workspace}}/src/ecap5_treq -vv
 
   documentation:
     runs-on: self-hosted

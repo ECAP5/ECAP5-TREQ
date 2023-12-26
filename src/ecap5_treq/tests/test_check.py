@@ -136,6 +136,10 @@ def test_Check___eq__():
     other = Check("testsuite2", "check1", 1, "msg1")
     assert check != other
 
+    check = Check("testsuite1", "check1", 1, "msg1")
+    other = "foo"
+    assert check != other
+
 #
 # Tests targetting functions from the check module
 #

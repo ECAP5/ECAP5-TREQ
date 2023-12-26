@@ -62,8 +62,8 @@ class Analysis():
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
-        self.reqs_covering_reqs = {}
-        self.checks_covering_reqs = {}
+        self.ids_reqs_covering_reqs = {}
+        self.ids_checks_covering_reqs = {}
         self.ids_reqs_untraceable = []
         self.user_reqs = []
         self.external_interface_reqs = []
@@ -135,23 +135,23 @@ class Analysis():
         """Analyse data from the requirements
         """
         # Checks which requirements are covered by sub-requirements
-        self.reqs_covering_reqs = {}
+        self.ids_reqs_covering_reqs = {}
         for req in self.reqs:
             if req.derived_from:
-                if req.derived_from not in self.reqs_covering_reqs:
-                    self.reqs_covering_reqs[req.derived_from] = [req]
+                if req.derived_from not in self.ids_reqs_covering_reqs:
+                    self.ids_reqs_covering_reqs[req.derived_from] = [req.id]
                 else:
-                    self.reqs_covering_reqs[req.derived_from] += [req]
+                    self.ids_reqs_covering_reqs[req.derived_from] += [req.id]
 
         # Checks which requirements are covered by a test from the matrix
-        self.checks_covering_reqs = {}
+        self.ids_checks_covering_reqs = {}
         for check in self.checks:
             if check.id in self.matrix:
                 for rid in self.matrix.get(check.id):
-                    if rid not in self.checks_covering_reqs:
-                        self.checks_covering_reqs[rid] = [check]
+                    if rid not in self.ids_checks_covering_reqs:
+                        self.ids_checks_covering_reqs[rid] = [check.id]
                     else:
-                        self.checks_covering_reqs[rid] += [check]
+                        self.ids_checks_covering_reqs[rid] += [check.id]
         # Recover untraceable requirements
         self.ids_reqs_untraceable = []
         for rid in self.matrix.get("__UNTRACEABLE__"):
@@ -162,7 +162,7 @@ class Analysis():
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
         for req in self.reqs:
-            if (req.id in self.reqs_covering_reqs) or (req.id in self.checks_covering_reqs):
+            if (req.id in self.ids_reqs_covering_reqs) or (req.id in self.ids_checks_covering_reqs):
                 req.status = ReqStatus.COVERED
                 self.num_covered_reqs += 1
             elif req.id in self.ids_reqs_untraceable:
@@ -174,15 +174,19 @@ class Analysis():
 
         # Compute the requirement test result
         for req in self.reqs:
-            if req.id in self.checks_covering_reqs:
-                checks = self.checks_covering_reqs[req.id]
-                # Count the number of coverings checks
+            if req.id in self.ids_checks_covering_reqs:
+                # Get the covering check ids
+                covering_checks_ids = self.ids_checks_covering_reqs[req.id]
+                # Filter the testdata to only have covering checks
+                covering_checks = filter(lambda check: check.id in covering_checks_ids, self.testdata)
                 req.result = 0
-                for check in checks:
+                for check in covering_checks:
                     if check.status:
                         req.result += 1
-                # Compute a pourcentage
-                req.result = req.result / len(checks) * 100.0
+                # Compute a pourcentage based on the covering_checks_ids as
+                # covering_checks might be smaller than the number of covering checks
+                # eg. if a test was skipped
+                req.result = int(req.result / len(covering_checks_ids) * 100.0)
 
         # Sort requirements based on type
         self.user_reqs = []
@@ -230,9 +234,9 @@ class Analysis():
 
         # Checks if checks are traced to untraceable requirements
         for rid in self.ids_reqs_untraceable:
-            if rid in self.checks_covering_reqs:
+            if rid in self.ids_checks_covering_reqs:
                 log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}"\
-                            .format(rid, ", ".join([c.id for c in self.checks_covering_reqs[rid]])))
+                            .format(rid, ", ".join([cid for cid in self.ids_checks_covering_reqs[rid]])))
 
         # Check if requirements used in the matrix exist
         for cid in self.matrix.data:
@@ -246,7 +250,8 @@ class Analysis():
         # Check if the same requirement is traced multiple times to the same check
         for cid in self.matrix.data:
             reqs_ids_seen = set()
-            duplicate_reqs = [x for x in self.matrix.get(cid) if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
+            duplicate_reqs = set([x for x in self.matrix.get(cid) if x in reqs_ids_seen or reqs_ids_seen.add(x)])
+
             if len(duplicate_reqs) > 0:
                 for rid in duplicate_reqs:
                     if cid == "__UNTRACEABLE__":
@@ -260,7 +265,7 @@ class Analysis():
 
         # Checks if there are any duplicate requirement ids
         reqs_ids_seen = set()
-        duplicate_reqs = [x for x in reqs_ids if x in reqs_ids_seen or reqs_ids_seen.add(x)]  
+        duplicate_reqs = set([x for x in reqs_ids if x in reqs_ids_seen or reqs_ids_seen.add(x)])
         for rid in duplicate_reqs:
             log_error("Multiple requirements share the same id \"{}\"".format(rid))
 
@@ -286,6 +291,6 @@ class Analysis():
         for check in self.checks:
             checks_ids += [check.id]
         checks_ids_seen = set()
-        duplicate_checks = [x for x in checks_ids if x in checks_ids_seen or checks_ids_seen.add(x)]  
+        duplicate_checks = set([x for x in checks_ids if x in checks_ids_seen or checks_ids_seen.add(x)])
         for cid in duplicate_checks:
             log_error("Multiple tests share the same id \"{}\"".format(cid))

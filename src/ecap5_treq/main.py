@@ -219,10 +219,10 @@ def main():
         cmd_print_reqs(config)
     elif args.command == "print_checks":
         cmd_print_checks(config)
-    elif args.command == "prepare_matrix":
-        cmd_prepare_matrix(config)
     elif args.command == "print_testdata":
         cmd_print_testdata(config)
+    elif args.command == "prepare_matrix":
+        cmd_prepare_matrix(config)
     elif args.command == "gen_report":
         cmd_gen_report(config)
     elif args.command == "gen_test_result_badge":

@@ -30,15 +30,15 @@ from ecap5_treq.log import log_error, log_warn
 class ReqStatus:
     """A ReqStatus details the traceability status of requirements
     """
-    UNCOVERED = 0
-    COVERED = 1
-    UNTRACEABLE = 2
+    UNCOVERED = "UNCOVERED"
+    COVERED = "COVERED"
+    UNTRACEABLE = "UNTRACEABLE"
 
 class Req:
     """A Req represents a requirement
     """
 
-    def __init__(self, id: str, description: str, options: dict[str, list[str]]):
+    def __init__(self, id: str, description: str, options: dict[str, list[str]], status: ReqStatus = ReqStatus.UNCOVERED, result: int = 0):
         """Constructor of Req 
 
         :param id: identifier of the requirement
@@ -53,8 +53,8 @@ class Req:
         self.id = id.replace("\\", "")
         self.description = description
         self.derived_from = None
-        self.status = ReqStatus.UNCOVERED
-        self.result = 0
+        self.status = status
+        self.result = result
 
         # Validate the requirement options
         if options:
@@ -71,8 +71,8 @@ class Req:
         :returns: a string representing the req 
         :rtype: str
         """
-        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")" \
-                    .format(self.id, self.description, self.derived_from)
+        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\", status={}, result={})" \
+                    .format(self.id, self.description, self.derived_from, self.status, self.result)
 
     def __repr__(self):
         """Override of the __repr__ function used to output a string from an object
@@ -89,6 +89,19 @@ class Req:
         :rtype: str
         """
         return self.to_str()
+
+    def __eq__(self, other) -> bool:
+        """Override of the __eq__ function used to compare two Req objects
+
+        :returns: a boolean indicating if the objects are equal
+        :rtype: bool
+        """
+        return (isinstance(other, Req) and \
+                self.id == other.id and \
+                self.description == other.description and \
+                self.derived_from == other.derived_from and \
+                self.status == other.status and \
+                self.result == other.result)
 
 def import_reqs(path: str) -> list[Req]:
     """Imports reqs from the specification source files

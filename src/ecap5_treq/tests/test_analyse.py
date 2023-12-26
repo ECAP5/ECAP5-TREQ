@@ -26,9 +26,10 @@ import pytest
 import io
 
 from ecap5_treq.check import Check
+from ecap5_treq.req import Req, ReqStatus
 from ecap5_treq.analyse import Analysis
 from ecap5_treq.matrix import Matrix
-from ecap5_treq.log import log_error, log_warn, log_clear
+from ecap5_treq.log import log_error, log_warn, log_clear, log_imp
 
 #
 # Fixture definitions
@@ -39,7 +40,7 @@ def reset():
     log_clear()
 
 #
-# Tests targetting Check class
+# Tests targetting Analysis class
 #
 
 @patch.object(Analysis, "analyse")
@@ -179,8 +180,8 @@ def test_Analysis_analyse_traceability_01(stub_analyse):
     analysis = Analysis(reqs, [], [], matrix)
     analysis.analyse_traceability()
 
-    assert analysis.reqs_covering_reqs == {}
-    assert analysis.checks_covering_reqs == {}
+    assert analysis.ids_reqs_covering_reqs == {}
+    assert analysis.ids_checks_covering_reqs == {}
     assert analysis.ids_reqs_untraceable == []
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
@@ -201,12 +202,432 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
 
     The analyse method is stubbed so the analyse_traceability is called on its own.
     """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {}), \
+        Req("N_req5", "description5", {}), \
+        Req("req6", "description6", {}) \
+    ]
+    matrix = Matrix()
+    analysis = Analysis(reqs, [], [], matrix)
+    analysis.analyse_traceability()
+
+    assert analysis.ids_reqs_covering_reqs == {}
+    assert analysis.ids_checks_covering_reqs == {}
+    assert analysis.ids_reqs_untraceable == []
+    assert analysis.num_covered_reqs == 0
+    assert analysis.num_untraceable_reqs == 0
+    assert analysis.num_uncovered_reqs == 6
+    assert analysis.user_reqs == [ \
+        Req("U_req1", "description1", {}) \
+    ]
+    assert analysis.external_interface_reqs == [ \
+        Req("I_req2", "description2", {}) \
+    ]
+    assert analysis.functional_reqs == [ \
+        Req("F_req3", "description3", {}) \
+    ]
+    assert analysis.design_reqs == [ \
+        Req("D_req4", "description4", {}) \
+    ]
+    assert analysis.non_functional_reqs == [ \
+        Req("N_req5", "description5", {}) \
+    ]
+    assert analysis.other_reqs == [ \
+        Req("req6", "description6", {}) \
+    ]
+    assert analysis.traceability_result == 0
 
 @patch.object(Analysis, "analyse")
 def test_Analysis_analyse_traceability_03(stub_analyse):
     """Unit test for the analyse_traceability method of the Analysis class
 
-    The covered behavior is reqs with derivedfrom.
+    The covered behavior is reqs with derivedfrom and checks covering reqs
 
     The analyse method is stubbed so the analyse_traceability is called on its own.
     """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis.analyse_traceability()
+
+    assert analysis.ids_reqs_covering_reqs == { \
+        "U_req1": [ "I_req2" ], \
+        "I_req2": [ "D_req4", "N_req5" ] \
+    }
+    assert analysis.ids_checks_covering_reqs == { \
+        "F_req3": [ "check1" ], \
+        "D_req4": [ "check2" ], \
+        "req6": [ "check2" ] \
+    }
+    assert analysis.ids_reqs_untraceable == [ \
+        "req7" \
+    ]
+    assert analysis.num_covered_reqs == 5
+    assert analysis.num_untraceable_reqs == 1
+    assert analysis.num_uncovered_reqs == 1
+    assert analysis.user_reqs == [ \
+        Req("U_req1", "description1", {}, ReqStatus.COVERED) \
+    ]
+    assert analysis.external_interface_reqs == [ \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}, ReqStatus.COVERED) \
+    ]
+    assert analysis.functional_reqs == [ \
+        Req("F_req3", "description3", {}, ReqStatus.COVERED) \
+    ]
+    assert analysis.design_reqs == [ \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}, ReqStatus.COVERED, 100) \
+    ]
+    assert analysis.non_functional_reqs == [ \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}, ReqStatus.UNCOVERED) \
+    ]
+    assert analysis.other_reqs == [ \
+        Req("req6", "description6", {}, ReqStatus.COVERED, 100), \
+        Req("req7", "description7", {}, ReqStatus.UNTRACEABLE) \
+    ]
+    assert analysis.traceability_result == 85
+
+def test_Analysis_analyse_consistency_01():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Matrix up to date
+        * All requirements used in the matrix exist
+        * No check is traced to an untraceable requirement
+        * No requirement is traced multiple times to the same check
+        * No duplicate requirement id
+        * All requirements specified in the derivedfrom option exist
+        * No requirement has itself in its derivedfrom option
+        * No duplicate check id
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 0
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_02():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Matrix is NOT up to date
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2"), \
+        Check(None, "check3") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 1
+    assert len(log_warn.msgs) == 0
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_03():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Multiple requirements used in the matrix do NOT exist
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3", "unknown1", "unknown2"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 2
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_04():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Multiple checks are traced to an untraceable requirement
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3", "req7"])
+    matrix.add("check2", ["D_req4", "req6", "req7"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 1
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_05():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * One check is traced multiple times to the same requirement
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3", "D_req4", "D_req4", "D_req4"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 1
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_06():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Two duplicate requirement ids
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req6", "description6", {}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}), \
+        Req("req7", "description8", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 0
+    assert len(log_error.msgs) == 2
+
+def test_Analysis_analyse_consistency_07():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Two requirement specified in derivedfrom options do NOT exist 
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["unknown1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["unknown2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 2
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_08():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Two requirements have themselves listed as derivedfrom
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["I_req2"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["N_req5"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 2
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_09():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Two duplicate check ids
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check1"), \
+        Check(None, "check1"), \
+        Check(None, "check2"), \
+        Check(None, "check2"), \
+        Check(None, "check3") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("check3", [])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    # A matrix shall be regenerated message is raised here
+    assert len(log_imp.msgs) == 1
+    assert len(log_warn.msgs) == 0
+    assert len(log_error.msgs) == 2
