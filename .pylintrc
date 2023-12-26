@@ -98,7 +98,9 @@ disable=raw-checker-failed,
         consider-using-dict-items,
         too-few-public-methods,
         superfluous-parens,
-        unnecessary-comprehension
+        unnecessary-comprehension,
+        consider-using-set-comprehension,
+        too-many-arguments
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

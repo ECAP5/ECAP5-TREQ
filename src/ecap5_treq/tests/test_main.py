@@ -25,7 +25,7 @@ from mock import patch, Mock, mock_open, call
 import pytest
 import io
 
-from ecap5_treq.main import cmd_print_reqs, cmd_print_checks, cmd_print_testdata
+from ecap5_treq.main import cmd_print_reqs, cmd_print_checks, cmd_print_testdata, cmd_prepare_matrix
 from ecap5_treq.config import Config
 from ecap5_treq.check import Check
 from ecap5_treq.req import Req, ReqStatus
@@ -113,8 +113,30 @@ def test_cmd_print_testdata(stub_import_testdata):
     cmd_print_testdata(config)
     stub_import_testdata.assert_called_once_with("path")
 
-def test_cmd_prepare_matrix():
-    pass
+@patch.object(Matrix, "read")
+def test_cmd_prepare_matrix_01(stub_Matrix_read):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is without a specified path for the previous matrix and without output
+    """
+    config = Config()
+    config.set("test_dir_path", "path")
+    
+    cmd_prepare_matrix(config)
+    stub_Matrix_read.assert_not_called()
+
+@patch.object(Matrix, "read")
+def test_cmd_prepare_matrix_02(stub_Matrix_read):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is with a specified path for the previous matrix and with an output
+    """
+    config = Config()
+    config.set("test_dir_path", "path1")
+    config.set("matrix_path", "path2")
+    
+    cmd_prepare_matrix(config)
+    stub_Matrix_read.assert_called_once()
 
 def test_cmd_gen_report():
     pass

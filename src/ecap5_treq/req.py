@@ -38,7 +38,12 @@ class Req:
     """A Req represents a requirement
     """
 
-    def __init__(self, id: str, description: str, options: dict[str, list[str]], status: ReqStatus = ReqStatus.UNCOVERED, result: int = 0):
+    def __init__(self,                                    \
+                 id: str,                                 \
+                 description: str,                        \
+                 options: dict[str, list[str]],           \
+                 status: ReqStatus = ReqStatus.UNCOVERED, \
+                 result: int = 0):
         """Constructor of Req 
 
         :param id: identifier of the requirement

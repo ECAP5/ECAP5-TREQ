@@ -178,7 +178,11 @@ class Analysis():
                 # Get the covering check ids
                 covering_checks_ids = self.ids_checks_covering_reqs[req.id]
                 # Filter the testdata to only have covering checks
-                covering_checks = filter(lambda check: check.id in covering_checks_ids, self.testdata)
+                covering_checks = []
+                for check in self.testdata:
+                    if check.id in covering_checks_ids:
+                        covering_checks += [check]
+
                 req.result = 0
                 for check in covering_checks:
                     if check.status:
