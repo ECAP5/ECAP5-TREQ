@@ -144,8 +144,8 @@ def test_Check___eq__():
 # Tests targetting functions from the check module
 #
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_01(stub_glob, stub_open):
     """Unit test for the import_check function
 
@@ -154,8 +154,8 @@ def test_import_checks_01(stub_glob, stub_open):
     checks = import_checks("path")
     assert len(checks) == 0
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_02(stub_glob, stub_open):
     """Unit test for the import_check function
 
@@ -168,8 +168,8 @@ def test_import_checks_02(stub_glob, stub_open):
     checks = import_checks("path")
     assert len(checks) == 0
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_03(stub_glob, stub_open):
     """Unit test for the import_check function
 
@@ -202,8 +202,8 @@ def test_import_checks_03(stub_glob, stub_open):
     # Two warning messages shall be generated for the empty testsuites
     assert len(log_warn.msgs) == 2
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_04(stub_glob, stub_open):
     """Unit test for the import_check function
 
@@ -227,8 +227,8 @@ def test_import_checks_04(stub_glob, stub_open):
         assert len(checks) == 0
         assert len(log_error.msgs) == 2
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_05(stub_glob, stub_open):
     """Unit test for the import_check function
 
@@ -252,8 +252,8 @@ def test_import_checks_05(stub_glob, stub_open):
         assert len(checks) == 0
         assert len(log_error.msgs) == 2
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_testdata_01(stub_glob, stub_open):
     """Unit test for the import_testdata function
 
@@ -262,8 +262,8 @@ def test_import_testdata_01(stub_glob, stub_open):
     checks = import_testdata("path")
     assert len(checks) == 0
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_testdata_02(stub_glob, stub_open):
     """Unit test for the import_testdata function
 
@@ -301,8 +301,8 @@ def test_import_testdata_02(stub_glob, stub_open):
     assert checks[3].status == False
     assert checks[3].error_msg == "error_msg2"
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_testdata_03(stub_glob, stub_open):
     """Unit test for the import_testdata function
 

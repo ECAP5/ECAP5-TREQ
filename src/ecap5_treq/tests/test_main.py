@@ -41,6 +41,8 @@ from ecap5_treq.log import log_error, log_warn, log_clear, log_imp
 def reset():
     log_clear()
     stubbed_import_reqs.reqs = []
+    stubbed_import_checks.checks = []
+    stubbed_import_testdata.testdata = []
 
 #
 # Stub side_effect definitions
@@ -53,6 +55,9 @@ def stubbed_import_checks(path):
 
 def stubbed_import_testdata(path):
     return stubbed_import_testdata.testdata
+
+def stubbed_prepare_matrix(checks, previous_matrix):
+    return stubbed_prepare_matrix.matrix
 
 #
 # Tests targetting the functions of the main module
@@ -113,30 +118,31 @@ def test_cmd_print_testdata(stub_import_testdata):
     cmd_print_testdata(config)
     stub_import_testdata.assert_called_once_with("path")
 
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch.object(Matrix, "read")
-def test_cmd_prepare_matrix_01(stub_Matrix_read):
+def test_cmd_prepare_matrix_01(stub_Matrix_read, stub_import_checks, stub_prepare_matrix):
     """Unit test for the cmd_prepare_matrix function
 
     The covered behavior is without a specified path for the previous matrix and without output
     """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "check1"), \
+        Check("testsuite2", "check2"), \
+        Check(None, "check3"), \
+        Check(None, "check4") \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("check1", ["req1", "req2"])
+
     config = Config()
     config.set("test_dir_path", "path")
     
     cmd_prepare_matrix(config)
+
     stub_Matrix_read.assert_not_called()
-
-@patch.object(Matrix, "read")
-def test_cmd_prepare_matrix_02(stub_Matrix_read):
-    """Unit test for the cmd_prepare_matrix function
-
-    The covered behavior is with a specified path for the previous matrix and with an output
-    """
-    config = Config()
-    config.set("test_dir_path", "path1")
-    config.set("matrix_path", "path2")
-    
-    cmd_prepare_matrix(config)
-    stub_Matrix_read.assert_called_once()
+    stub_import_checks.assert_called_once_with("path")
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, Matrix())
 
 def test_cmd_gen_report():
     pass

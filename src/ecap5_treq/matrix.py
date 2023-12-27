@@ -138,6 +138,16 @@ class Matrix:
         :rtype: str
         """
         return self.to_csv()
+    
+    def __eq__(self, other):
+        """Override of the __eq__ function used to compare two Matrix objects
+
+        :returns: a boolean indicating if the objects are equal
+        :rtype: bool
+        """
+        return (isinstance(other, Matrix) and \
+                self.data == other.data)
+
 
 def prepare_matrix(checks: list[Check], previous_matrix: Matrix) -> Matrix:
     """Generates an updated traceability matrix with an up-to-date list of checks.

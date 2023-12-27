@@ -50,9 +50,9 @@ def test_Analysis_constructor(stub_Analysis_analyse):
     analysis = Analysis([], [], [], None)
     stub_Analysis_analyse.assert_called_once()
 
-@patch.object(Analysis, "analyse_tests")
-@patch.object(Analysis, "analyse_traceability")
 @patch.object(Analysis, "analyse_consistency")
+@patch.object(Analysis, "analyse_traceability")
+@patch.object(Analysis, "analyse_tests")
 def test_Analysis_analyse(stub_Analysis_analyse_tests, stub_Analysis_analyse_traceability, stub_Analysis_analyse_consistency):
     """Unit test for the analyse method of the Analysis class
     """

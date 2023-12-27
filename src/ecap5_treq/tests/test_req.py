@@ -189,8 +189,8 @@ def test_Req___eq__():
 # Tests targetting functions in req module
 #
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_01(stub_glob, stub_open):
     """Unit test for the import_reqs function
 
@@ -199,8 +199,8 @@ def test_import_reqs_01(stub_glob, stub_open):
     reqs = import_reqs("path")
     assert len(reqs) == 0
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_02(stub_glob, stub_open):
     """Unit test for the import_reqs function
 
@@ -213,8 +213,8 @@ def test_import_reqs_02(stub_glob, stub_open):
     reqs = import_reqs("path")
     assert len(reqs) == 0
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_03(stub_glob, stub_open):
     """Unit test for the import_reqs function
 
@@ -257,8 +257,8 @@ def test_import_reqs_03(stub_glob, stub_open):
     assert reqs[3].description == "description4"
     assert reqs[3].derived_from == None
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_04(stub_glob, stub_open):
     """Unit test for the import_reqs function
 
@@ -272,8 +272,8 @@ def test_import_reqs_04(stub_glob, stub_open):
         reqs = import_reqs("path")
         assert len(log_error.msgs) == 1
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_05(stub_glob, stub_open):
     """Unit test for the import_reqs function
 
@@ -286,8 +286,8 @@ def test_import_reqs_05(stub_glob, stub_open):
     reqs = import_reqs("path")
     assert len(log_warn.msgs) == 1
 
-@patch("glob.glob", side_effect=stubbed_glob)
 @patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
 def test_import_reqs_06(stub_glob, stub_open):
     """Unit test for the import_reqs function
 

@@ -184,6 +184,24 @@ def test_Matrix___contains__():
     assert "element1" in matrix.data
     assert "unknown" not in matrix.data
 
+def test_Matrix___eq__():
+    """Unit test for the __eq__ method of the Matrix class
+    """
+    matrix = Matrix()
+    matrix.add("key1", "content1")
+    matrix.add("key2", "content2")
+    matrix.add("key3", "content3")
+
+    other = Matrix()
+    other.add("key1", "content1")
+    other.add("key2", "content2")
+    other.add("key3", "content3")
+
+    assert matrix == other
+
+    other.add("key4", "content4")
+    assert matrix != other
+
 def test_Matrix_to_csv():
     """Unit test for the to_csv method of the Matrix class
     """
