@@ -115,7 +115,7 @@ jobs:
       run: echo "${{github.workspace}}/venv/bin" >> $GITHUB_PATH
 
     - name: Restore cached coverage data
-      id: cache-dependencies-restore
+      id: cache-coverage-data-restore
       uses: actions/cache/restore@v3
       with:
         path: ${{ github.workspace }}/.coverage
