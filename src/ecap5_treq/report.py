@@ -3,7 +3,7 @@
 # / __/ __/ _ \/ _ `/ / _ \/ -_)
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
-# Copyright (C) Clément Chaie
+# Copyright (C) Clément Chaine
 # This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
@@ -448,13 +448,13 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
         result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(req.description))
         if req.status == ReqStatus.COVERED:
             # Adds the list of covering reqs
-            if req.id in analysis.reqs_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.reqs_covering_reqs[req.id]]))
+            if req.id in analysis.ids_reqs_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([rid for rid in analysis.ids_reqs_covering_reqs[req.id]]))
             else:
                 result += "    <td></td>\n"
             # Adds the list of covering checks
-            if req.id in analysis.checks_covering_reqs:
-                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([e.id for e in analysis.checks_covering_reqs[req.id]]))
+            if req.id in analysis.ids_checks_covering_reqs:
+                result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([cid for cid in analysis.ids_checks_covering_reqs[req.id]]))
                 result += "    <td valign=\"top\" align=\"center\">\n"
                 result += "      {}\n".format(gen_result_badge(req.result))
                 result += "    </td>\n"

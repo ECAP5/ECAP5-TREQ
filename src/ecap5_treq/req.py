@@ -3,7 +3,7 @@
 # / __/ __/ _ \/ _ `/ / _ \/ -_)
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
-# Copyright (C) Clément Chaie
+# Copyright (C) Clément Chaine
 # This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
@@ -25,20 +25,25 @@ import sys
 import re
 import glob
 
-from ecap5_treq.log import log_error
+from ecap5_treq.log import log_error, log_warn
 
 class ReqStatus:
     """A ReqStatus details the traceability status of requirements
     """
-    UNCOVERED = 0
-    COVERED = 1
-    UNTRACEABLE = 2
+    UNCOVERED = "UNCOVERED"
+    COVERED = "COVERED"
+    UNTRACEABLE = "UNTRACEABLE"
 
 class Req:
     """A Req represents a requirement
     """
 
-    def __init__(self, id: str, description: str, options: dict[str, list[str]]):
+    def __init__(self,                                    \
+                 id: str,                                 \
+                 description: str,                        \
+                 options: dict[str, list[str]],           \
+                 status: ReqStatus = ReqStatus.UNCOVERED, \
+                 result: int = 0):
         """Constructor of Req 
 
         :param id: identifier of the requirement
@@ -53,8 +58,8 @@ class Req:
         self.id = id.replace("\\", "")
         self.description = description
         self.derived_from = None
-        self.status = ReqStatus.UNCOVERED
-        self.result = 0
+        self.status = status
+        self.result = result
 
         # Validate the requirement options
         if options:
@@ -71,8 +76,8 @@ class Req:
         :returns: a string representing the req 
         :rtype: str
         """
-        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\")" \
-                    .format(self.id, self.description, self.derived_from)
+        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\", status={}, result={})" \
+                    .format(self.id, self.description, self.derived_from, self.status, self.result)
 
     def __repr__(self):
         """Override of the __repr__ function used to output a string from an object
@@ -89,6 +94,19 @@ class Req:
         :rtype: str
         """
         return self.to_str()
+
+    def __eq__(self, other) -> bool:
+        """Override of the __eq__ function used to compare two Req objects
+
+        :returns: a boolean indicating if the objects are equal
+        :rtype: bool
+        """
+        return (isinstance(other, Req) and \
+                self.id == other.id and \
+                self.description == other.description and \
+                self.derived_from == other.derived_from and \
+                self.status == other.status and \
+                self.result == other.result)
 
 def import_reqs(path: str) -> list[Req]:
     """Imports reqs from the specification source files
@@ -121,7 +139,7 @@ def import_reqs(path: str) -> list[Req]:
                 # The program is interrupted here as this is a critical error
                 sys.exit(-1)
             if not description or len(description) == 0:
-                log_error("Missing description for requirement: \"{}\"".format(content[i:cur]))
+                log_warn("Missing description for requirement: \"{}\"".format(content[i:cur]))
 
             # convert the options string to a dictionary
             options_dict = None
@@ -143,9 +161,15 @@ def process_keyword(cur: int, content: str) -> int:
     :returns: the incremented cur pointing to the char following the next curly bracket in content
     :rtype: int
     """
+    cur_start = cur
     # Go to the next {
-    while content[cur] != "{":
+    while cur < len(content) and content[cur] != "{":
         cur += 1
+
+    if cur == len(content):
+        log_error("Syntax error while processing keyword \"{}\"".format(content[cur_start:cur]))
+        sys.exit(-1)
+
     return cur
 
 def process_matching_token(cur: int, content: str, opening_token: str, closing_token: str) -> tuple[int, str]:
@@ -164,12 +188,10 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     :type closing_token: str
 
     :returns: a tuple containing both an incremented cur pointing to the next char fater the closing token and the 
-    recovered string
+        recovered string
     :rtype: tuple[int, str]
     """
-    # Skip spaces
-    while content[cur] == " ":
-        cur += 1
+    cur_start = cur
 
     # Return if the opening_token is not found
     if content[cur] != opening_token:
@@ -179,13 +201,19 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     cur += 1
     # indent is used to keep track of the opened tokens waiting for their closing token
     ident = 1
-    while ident > 0:
+    while cur < len(content) and ident > 0:
         if content[cur] == opening_token:
             ident += 1
         if content[cur] == closing_token:
             ident -= 1
         result += content[cur]
         cur += 1
+    
+    if cur == len(content) and ident > 0:
+        log_error("Syntax error while processing matching tokens \"{}\"".format(content[cur_start:cur]))
+        sys.exit(-1)
+
+    # Remove the closing token
     result = result[:-1]
     return (cur, result.strip())
 
@@ -199,6 +227,9 @@ def process_options(options: str) -> dict[str, list[str]]:
     :rtype: dict[str, list[str]]
     """
     options_dict = {}
+
+    if len(options) == 0:
+        return options_dict
 
     # Options can have a comma within their content if surrounded by curly brackets
     # Join options when curly brackets are used within the option

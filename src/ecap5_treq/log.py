@@ -3,7 +3,7 @@
 # / __/ __/ _ \/ _ `/ / _ \/ -_)
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
-# Copyright (C) Clément Chaie
+# Copyright (C) Clément Chaine
 # This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
@@ -59,3 +59,10 @@ def log_error(msg: str) -> None:
     log_error.msgs += [msg]
 # Initialize the log table
 log_error.msgs = []
+
+def log_clear():
+    """Clears logged messages
+    """
+    log_imp.msgs = []
+    log_warn.msgs = []
+    log_error.msgs = []

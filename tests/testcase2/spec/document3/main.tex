@@ -1,0 +1,51 @@
+\req{REQ\_1}{
+  Desc
+}
+
+\req{REQ\_2}{
+  REQ\_2 Description
+}
+
+\req{REQ\_10}{
+  REQ\_2 Description with \texttt{latex clauses}
+}
+
+\req{REQ\_3}{
+  REQ\_3 Description
+}[
+  derivedfrom=REQ\_1
+]
+
+\req{REQ\_4}{
+  REQ\_4 Description
+}[
+  derivedfrom=REQ\_1,
+  rationale=This is the rationale
+]
+
+\req{REQ\_5}{
+  REQ\_5 Description
+}[
+  derivedfrom=REQ\_3,
+  rationale=This is the rationale with \texttt{latex clause}
+]
+
+\req{REQ\_6}{
+  REQ\_6 Description
+}[
+  derivedfrom=REQ\_4,
+  rationale={This is the rationale with \texttt{latex clause} surrounded}
+]
+
+\req{REQ\_11}{
+  REQ\_6 Description
+}[
+  derivedfrom=REQ\_4,
+  rationale={This is the rationale with \texttt{latex clause} surrounded and added an = to check}
+]
+
+\req{REQ\_7}{
+  REQ\_7 Description
+}[
+  derivedfrom=REQ\_15
+]

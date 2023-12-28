@@ -42,7 +42,10 @@ classifiers = [
 ]
 dependencies = [
   'Sphinx ~= 7.2.6',
-  'sphinx_rtd_theme ~= 2.0.0'
+  'sphinx_rtd_theme ~= 2.0.0',
+  'pylint ~= 3.0.3',
+  'pytest ~= 7.4.3',
+  'mock ~= 5.1.0'
 ]
 
 [project.urls]

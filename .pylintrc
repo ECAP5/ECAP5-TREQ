@@ -20,7 +20,8 @@ fail-on=
 fail-under=10.0
 
 # Files or directories to be skipped. They should be base names, not paths.
-ignore=CVS
+ignore=CVS,
+       tests
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
@@ -95,7 +96,11 @@ disable=raw-checker-failed,
         consider-using-f-string,
         consider-using-with,
         consider-using-dict-items,
-        too-few-public-methods
+        too-few-public-methods,
+        superfluous-parens,
+        unnecessary-comprehension,
+        consider-using-set-comprehension,
+        too-many-arguments
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -575,5 +580,5 @@ preferred-modules=
 
 # Exceptions that will emit a warning when being caught. Defaults to
 # "BaseException, Exception".
-overgeneral-exceptions=BaseException,
-                       Exception
+overgeneral-exceptions=builtins.BaseException,
+                       builtins.Exception

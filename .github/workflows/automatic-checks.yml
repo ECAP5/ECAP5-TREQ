@@ -8,6 +8,7 @@ on:
 
 env:
   DOCUMENTATION_ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
+  VENV_NAME: ${{github.run_number}}-${{github.run_attempt}}
 
 jobs:
   lint:
@@ -16,8 +17,45 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup python virtual environment
+      run: >-
+        cd ${{github.workspace}} &&
+        python3 -m venv ${{ env.VENV_NAME }}
+
+    - name: Install dependencies
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pip install ${{github.workspace}} &&
+        echo "${{github.workspace}}/${{ env.VENV_NAME }}/bin" >> $GITHUB_PATH
+
     - name: pylint
-      run: pylint ${{github.workspace}}/src/ecap5_treq
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pylint ${{github.workspace}}/src/ecap5_treq --rcfile="${{github.workspace}}/.pylintrc"
+
+  tests:
+    runs-on: self-hosted
+
+    needs: lint
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup python virtual environment
+      run: >-
+        cd ${{github.workspace}} &&
+        python3 -m venv ${{ env.VENV_NAME }}
+
+    - name: Install dependencies
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pip install ${{github.workspace}} &&
+        echo "${{github.workspace}}/${{ env.VENV_NAME }}/bin" >> $GITHUB_PATH
+
+    - name: Run unit tests
+      run: >-
+        source ${{github.workspace}}/${{ env.VENV_NAME }}/bin/activate &&
+        pytest --pyargs ${{github.workspace}}/src/ecap5_treq -vv
 
   documentation:
     runs-on: self-hosted

@@ -3,7 +3,7 @@
 # / __/ __/ _ \/ _ `/ / _ \/ -_)
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
-# Copyright (C) Clément Chaie
+# Copyright (C) Clément Chaine
 # This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
@@ -53,7 +53,11 @@ class Config:
         # Load a dictionary from the json configuration file
         self.data = None
         with open(path, encoding="utf-8") as file:
-            self.data = json.load(file)
+            try:
+                self.data = json.load(file)
+            except json.decoder.JSONDecodeError as excp:
+                log_error("Syntax error in configuration file:\n{}".format(str(excp)))
+                sys.exit(-1)
 
         allowed_path_keys = [
             "spec_dir_path",
