@@ -1,6 +1,0 @@
-{
-  "spec_dir_path": "spec/document3",
-  "test_dir_path": "tests/module3",
-  "testdata_dir_path": "data",
-  "matrix_path": "uptodate-matrix.csv"
-}

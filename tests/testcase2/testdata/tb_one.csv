@@ -1,6 +1,0 @@
-tb_regm.read_port_a;1
-tb_regm.write_x0;0;This is the ko message
-tb_regm.write;1
-tb_regm.parallel_read_01;1
-tb_regm.read_before_write_01;0;This is another ko message
-not_a_test;1
