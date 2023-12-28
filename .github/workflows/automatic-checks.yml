@@ -8,6 +8,7 @@ on:
 
 env:
   DOCUMENTATION_ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}
+  COVERAGE_REPORT_ARTIFACT_NAME: ecap5-treq-coverage-${{github.run_number}}-${{github.run_attempt}}
 
 jobs:
   prepare:
@@ -87,7 +88,49 @@ jobs:
     - name: Run unit tests
       run: >-
         source ${{github.workspace}}/venv/bin/activate &&
-        pytest --pyargs ${{github.workspace}}/src/ecap5_treq -vv
+        pytest --pyargs ${{github.workspace}}/src/ecap5_treq -vv --cov=src/ecap5_treq
+
+    - name: Save coverage data in cache
+      id: cache-coverage-data-save
+      uses: actions/cache/save@v3
+      with:
+        path: ${{ github.workspace }}/.coverage
+        key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
+
+  coverage:
+    runs-on: self-hosted
+    needs: tests
+    - uses: actions/checkout@v3
+
+    - name: Restore cache
+      id: cache-dependencies-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ${{ github.workspace }}/venv
+        key: venv-${{ hashFiles('pyproject.toml') }}
+
+    - name: Add dependencies to PATH
+      run: echo "${{github.workspace}}/venv/bin" >> $GITHUB_PATH
+
+    - name: Restore cached coverage data
+      id: cache-dependencies-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ${{ github.workspace }}/.coverage
+        key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
+
+    - name: Code coverage
+      id: code-coverage
+      run: >-
+        source ${{github.workspace}}/venv/bin/activate &&
+        coverage html --fail-under=100
+
+    - name: Upload coverage report
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{env.COVERAGE_REPORT_ARTIFACT_NAME}}
+        path: ${{github.workspace}}/htmlcov
 
   documentation:
     runs-on: self-hosted

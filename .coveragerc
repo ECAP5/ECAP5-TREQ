@@ -1,0 +1,3 @@
+[run]
+omit = src/ecap5_treq/tests/*
+branch = True
