@@ -125,7 +125,13 @@ jobs:
       id: code-coverage
       run: >-
         source ${{github.workspace}}/venv/bin/activate &&
-        coverage html --fail-under=100
+        coverage report --fail-under=100
+
+    - name: Generate coverage report
+      if: ${{ always() }}
+      run: >-
+        source ${{github.workspace}}/venv/bin/activate &&
+        coverage html
 
     - name: Upload coverage report
       if: ${{ always() }}
