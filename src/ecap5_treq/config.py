@@ -73,7 +73,8 @@ class Config:
                 log_error("Unknown key \"{}\" while reading config at {}".format(key, path))
             else:
                 # If the key is a path, convert the path to an absolute path
-                if key in allowed_path_keys:
+                if key in allowed_path_keys: # pragma: no cover
+                    # coverage is disabled on the branch above as for now there are only path options in config
                     self.data[key] = path_to_abs_path(self.data[key], self.path)
 
     def get(self, key: str) -> str:

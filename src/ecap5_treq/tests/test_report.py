@@ -92,8 +92,14 @@ def test_generate_report_summary():
 
     generate_report_summary(analysis)
 
-def test_generate_test_report():
+def test_generate_test_report_01():
     """Unit test for the generate_test_report function
+
+    The covered behaviors are:
+        * Checks with testsuite
+        * Checks without testsuites
+        * No Skipped checks
+        * No Unknown checks
 
     The function is run but no checks are performed on the output
     """
@@ -108,23 +114,33 @@ def test_generate_test_report():
     ]
     checks = [ \
         Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "check2"), \
+        Check("testsuite1", "check3"), \
+        Check(None, "check4") \
     ]
     testdata = [ \
         Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "check2", 1, "msg1"), \
+        Check("testsuite1", "check3", 0, "msg1"), \
+        Check(None, "check4", 1), \
     ]
     matrix = Matrix()
     matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.check3", ["D_req4", "req6"])
+    matrix.add("check4", [])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
     generate_test_report(analysis)
 
-def test_generate_traceability_report():
-    """Unit test for the generate_traceability_report function
+def test_generate_test_report_02():
+    """Unit test for the generate_test_report function
+
+    The covered behaviors are:
+        * Skipped checks
+        * Unknown checks
 
     The function is run but no checks are performed on the output
     """
@@ -139,6 +155,49 @@ def test_generate_traceability_report():
     ]
     checks = [ \
         Check(None, "check1"), \
+        Check("testsuite1", "unknown") \
+    ]
+    testdata = [ \
+        Check(None, "unknown1", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("testsuite1.check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    generate_test_report(analysis)
+
+def test_generate_traceability_report_01():
+    """Unit test for the generate_traceability_report function
+
+    The covered behaviors are :
+        * Covered requirements of all types but other
+        * Untraceable requirements of all types but other
+        * Uncovered requirements of all types but other
+
+    The function is run but no checks are performed on the output
+    """
+    reqs = [ \
+        Req("U_cov1", "description1", {}), \
+        Req("I_cov2", "description2", {"derivedfrom": ["U_cov1"]}), \
+        Req("F_cov3", "description3", {}), \
+        Req("D_cov4", "description4", {"derivedfrom": ["I_cov2"]}), \
+        Req("N_cov5", "description5", {"derivedfrom": ["I_cov2"]}), \
+        Req("U_untra1", "description1", {}), \
+        Req("I_untra2", "description2", {}),
+        Req("F_untra3", "description3", {}), \
+        Req("D_untra4", "description4", {}),
+        Req("N_untra5", "description5", {}),
+        Req("U_uncov1", "description1", {}), \
+        Req("I_uncov2", "description2", {}), \
+        Req("F_uncov3", "description3", {}), \
+        Req("D_uncov4", "description4", {}), \
+        Req("N_uncov5", "description5", {}), \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
         Check(None, "check2") \
     ]
     testdata = [ \
@@ -146,9 +205,66 @@ def test_generate_traceability_report():
         Check(None, "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add("check1", ["F_cov3"])
+    matrix.add("check2", ["D_cov4", "N_cov5"])
+    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    generate_traceability_report(analysis)
+
+def test_generate_traceability_report_02():
+    """Unit test for the generate_traceability_report function
+
+    The covered behavior is no requirements
+
+    The function is run but no checks are performed on the output
+    """
+    reqs = []
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_cov3"])
+    matrix.add("check2", ["D_cov4", "cov6", "N_cov5"])
+    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5", "untra6"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    generate_traceability_report(analysis)
+
+def test_generate_traceability_report_03():
+    """Unit test for the generate_traceability_report function
+
+    The covered behaviors are :
+        * One covered requirement with other type
+        * One untraceable requirement with other type
+        * One uncovered requirement with other type
+
+    The function is run but no checks are performed on the output
+    """
+    reqs = [ \
+        Req("cov1", "description1", {}), \
+        Req("untra2", "description2", {}), \
+        Req("uncov3", "description3", {}), \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["cov1"])
+    matrix.add("check2", [])
+    matrix.add("__UNTRACEABLE__", ["untra2"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -231,6 +347,7 @@ def test_surround_with_link_if():
 def test_latex_to_html():
     """Unit test for the latex_to_html function
     """
+    assert latex_to_html(None) == None
     assert latex_to_html("content") == "content"
     assert latex_to_html("content \\texttt{val} end") == "content <samp>val</samp> end"
     assert latex_to_html("content ID\\_01") == "content ID_01"
