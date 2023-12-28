@@ -16,23 +16,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Check if cache key exists
-      id: check-if-cache
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        KEY=venv-${{ hashFiles('pyproject.toml') }}
-        CACHE_HIT=$(gh actions-cache list --key $KEY | grep -q $KEY && echo -n 'true' || echo -n 'false')
-        echo "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT
+    - name: Restore cache
+      id: cache-dependencies-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ${{ github.workspace }}/venv
+        key: venv-${{ hashFiles('pyproject.toml') }}
+        lookup-only: true
 
     - name: Setup python virtual environment
-      if: ${{ steps.check-if-cache.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-dependencies-restore.outputs.cache-hit != 'true' }}
       run: >-
         cd ${{github.workspace}} &&
         python3 -m venv venv
 
     - name: Install dependencies
-      if: ${{ steps.check-if-cache.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-dependencies-restore.outputs.cache-hit != 'true' }}
       run: >-
         source ${{github.workspace}}/venv/bin/activate &&
         pip install ${{github.workspace}} &&
@@ -40,7 +39,7 @@ jobs:
 
     - name: Save cache
       id: cache-dependencies-save
-      if: ${{ steps.check-if-cache.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-dependencies-restore.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v3
       with:
         path: ${{ github.workspace }}/venv
