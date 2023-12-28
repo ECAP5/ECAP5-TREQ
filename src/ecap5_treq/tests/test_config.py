@@ -192,3 +192,5 @@ def test_path_to_abs_path():
     assert path_to_abs_path("relative/path") == os.path.join(os.getcwd(), "relative/path")
     # Relative path from the config's directory
     assert path_to_abs_path("relative/path", "config/path") == os.path.join(os.path.abspath("config"), "relative/path")
+    # Absolute path from the config's directory
+    assert path_to_abs_path("/absolute/path") == "/absolute/path"

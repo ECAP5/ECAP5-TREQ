@@ -411,12 +411,12 @@ def test_Analysis_analyse_consistency_03():
     matrix = Matrix()
     matrix.add("check1", ["F_req3", "unknown1", "unknown2"])
     matrix.add("check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add("__UNTRACEABLE__", ["req7", "unknown3"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
     assert len(log_imp.msgs) == 0
-    assert len(log_warn.msgs) == 2
+    assert len(log_warn.msgs) == 3
     assert len(log_error.msgs) == 0
 
 def test_Analysis_analyse_consistency_04():
@@ -479,12 +479,12 @@ def test_Analysis_analyse_consistency_05():
     matrix = Matrix()
     matrix.add("check1", ["F_req3", "D_req4", "D_req4", "D_req4"])
     matrix.add("check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add("__UNTRACEABLE__", ["req7", "req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
     assert len(log_imp.msgs) == 0
-    assert len(log_warn.msgs) == 1
+    assert len(log_warn.msgs) == 2
     assert len(log_error.msgs) == 0
 
 def test_Analysis_analyse_consistency_06():

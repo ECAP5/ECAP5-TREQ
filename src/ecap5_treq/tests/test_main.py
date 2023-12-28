@@ -66,8 +66,9 @@ def stubbed_prepare_matrix(checks, previous_matrix):
 # Tests targetting the functions of the main module
 #
 
+@patch("builtins.print")
 @patch("ecap5_treq.main.import_reqs", side_effect=stubbed_import_reqs)
-def test_cmd_print_reqs(stub_import_reqs):
+def test_cmd_print_reqs(stub_import_reqs, stub_print):
     """Unit test for the cmd_print_reqs function
     """
     stubbed_import_reqs.reqs = [ \
@@ -84,9 +85,11 @@ def test_cmd_print_reqs(stub_import_reqs):
 
     cmd_print_reqs(config)
     stub_import_reqs.assert_called_once_with("path")
+    stub_print.assert_has_calls([call(r) for r in stubbed_import_reqs.reqs])
 
+@patch("builtins.print")
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
-def test_cmd_print_checks(stub_import_checks):
+def test_cmd_print_checks(stub_import_checks, stub_print):
     """Unit test for the cmd_print_checks function
     """
     stubbed_import_checks.checks = [ \
@@ -102,9 +105,11 @@ def test_cmd_print_checks(stub_import_checks):
 
     cmd_print_checks(config)
     stub_import_checks.assert_called_once_with("path")
+    stub_print.assert_has_calls([call(c) for c in stubbed_import_checks.checks])
 
+@patch("builtins.print")
 @patch("ecap5_treq.main.import_testdata", side_effect=stubbed_import_testdata)
-def test_cmd_print_testdata(stub_import_testdata):
+def test_cmd_print_testdata(stub_import_testdata, stub_print):
     """Unit test for the cmd_print_testdata function
     """
     stubbed_import_testdata.testdata = [ \
@@ -120,11 +125,14 @@ def test_cmd_print_testdata(stub_import_testdata):
 
     cmd_print_testdata(config)
     stub_import_testdata.assert_called_once_with("path")
+    stub_print.assert_has_calls([call(c) for c in stubbed_import_testdata.testdata])
 
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
 @patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch.object(Matrix, "read")
-def test_cmd_prepare_matrix_01(stub_Matrix_read, stub_import_checks, stub_prepare_matrix):
+def test_cmd_prepare_matrix_01(stub_Matrix_read, stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
     """Unit test for the cmd_prepare_matrix function
 
     The covered behavior is without a specified path for the previous matrix and without output
@@ -146,11 +154,15 @@ def test_cmd_prepare_matrix_01(stub_Matrix_read, stub_import_checks, stub_prepar
     stub_Matrix_read.assert_not_called()
     stub_import_checks.assert_called_once_with("path")
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, Matrix())
+    stub_print.assert_called_once_with("check1;req1;req2\r\n")
+    stub_open.assert_not_called()
 
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
 @patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch.object(Matrix, "read")
-def test_cmd_prepare_matrix_02(stub_Matrix_read, stub_import_checks, stub_prepare_matrix):
+def test_cmd_prepare_matrix_02(stub_Matrix_read, stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
     """Unit test for the cmd_prepare_matrix function
 
     The covered behavior is with a specified path for the previous matrix and with an output
@@ -167,12 +179,16 @@ def test_cmd_prepare_matrix_02(stub_Matrix_read, stub_import_checks, stub_prepar
     config = Config()
     config.set("matrix_path", "path1")
     config.set("test_dir_path", "path2")
+    config.set("output", "path3")
     
     cmd_prepare_matrix(config)
 
     stub_Matrix_read.assert_called_once_with("path1")
     stub_import_checks.assert_called_once_with("path2")
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, Matrix())
+    stub_print.assert_not_called()
+    stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
+    stub_open.return_value.write.assert_called_once_with("check1;req1;req2\r\n")
 
 @patch("builtins.open", new_callable=mock_open)
 @patch("builtins.print")

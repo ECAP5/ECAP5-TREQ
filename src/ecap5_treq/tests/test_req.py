@@ -74,6 +74,13 @@ def test_Req_constructor_01():
     assert req.derived_from == None
     assert req.result == 0
 
+    req = Req("req1\\_foo", "description", {"other": ["content1"]})
+    assert req.id == "req1_foo"
+    assert req.description == "description"
+    assert req.status == ReqStatus.UNCOVERED
+    assert req.derived_from == None
+    assert req.result == 0
+
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     assert req.id == "req1_foo"
     assert req.description == "description"
@@ -236,7 +243,7 @@ def test_import_reqs_03(stub_glob, stub_open):
 
         \\req{req4}{
             description4
-        }
+        }[option1=content1, derivedfrom=req1]
     """
     reqs = import_reqs("path")
 
@@ -255,7 +262,7 @@ def test_import_reqs_03(stub_glob, stub_open):
 
     assert reqs[3].id == "req4"
     assert reqs[3].description == "description4"
-    assert reqs[3].derived_from == None
+    assert reqs[3].derived_from == "req1"
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)

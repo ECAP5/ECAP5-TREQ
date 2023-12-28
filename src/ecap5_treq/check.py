@@ -69,7 +69,7 @@ class Check:
         :rtype: str
         """
         status_and_error_msg = ""
-        if self.status:
+        if self.status is not None:
             status_and_error_msg = ", status={}, error_msg={}".format(self.status, self.error_msg)
 
         return "CHECK(testsuite=\"{}\", id=\"{}\"{})".format(self.testsuite, self.id, status_and_error_msg)
