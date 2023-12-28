@@ -25,7 +25,7 @@ from mock import patch, Mock, mock_open, call
 import pytest
 import io
 
-from ecap5_treq.main import cmd_print_reqs, cmd_print_checks, cmd_print_testdata, cmd_prepare_matrix
+from ecap5_treq.main import cmd_print_reqs, cmd_print_checks, cmd_print_testdata, cmd_prepare_matrix, cmd_gen_report
 from ecap5_treq.config import Config
 from ecap5_treq.check import Check
 from ecap5_treq.req import Req, ReqStatus
@@ -43,6 +43,7 @@ def reset():
     stubbed_import_reqs.reqs = []
     stubbed_import_checks.checks = []
     stubbed_import_testdata.testdata = []
+    stubbed_prepare_matrix.matrix = None
 
 #
 # Stub side_effect definitions
@@ -144,8 +145,76 @@ def test_cmd_prepare_matrix_01(stub_Matrix_read, stub_import_checks, stub_prepar
     stub_import_checks.assert_called_once_with("path")
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, Matrix())
 
-def test_cmd_gen_report():
-    pass
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+@patch.object(Matrix, "read")
+def test_cmd_prepare_matrix_02(stub_Matrix_read, stub_import_checks, stub_prepare_matrix):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is with a specified path for the previous matrix and with an output
+    """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "check1"), \
+        Check("testsuite2", "check2"), \
+        Check(None, "check3"), \
+        Check(None, "check4") \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("check1", ["req1", "req2"])
+
+    config = Config()
+    config.set("matrix_path", "path1")
+    config.set("test_dir_path", "path2")
+    
+    cmd_prepare_matrix(config)
+
+    stub_Matrix_read.assert_called_once_with("path1")
+    stub_import_checks.assert_called_once_with("path2")
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, Matrix())
+
+@patch.object(Analysis, "__init__")
+@patch.object(Matrix, "read")
+@patch("ecap5_treq.main.import_testdata", side_effect=stubbed_import_testdata)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+@patch("ecap5_treq.main.import_reqs", side_effect=stubbed_import_reqs)
+def test_cmd_gen_report(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_Matrix_read, stub_Analysis___init__):
+    """Unit test for the cmd_gen_report function
+    """
+    stubbed_import_reqs.reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {}), \
+        Req("N_req5", "description5", {}), \
+        Req("req6", "description6", {}) \
+    ]
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "check1"), \
+        Check("testsuite2", "check2"), \
+        Check("testsuite2", "check3"), \
+        Check(None, "check4"), \
+        Check(None, "check5") \
+    ]
+    stubbed_import_testdata.testdata = [ \
+        Check("testsuite1", "check1", 0, "message1"), \
+        Check("testsuite2", "check2", 1, None), \
+        Check("testsuite2", "check3", 0, "message2"), \
+        Check(None, "check4", 1, None), \
+        Check("testsuite3", "check6", 1, None) \
+    ]
+
+    config = Config()
+    config.set("spec_dir_path", "path1")
+    config.set("test_dir_path", "path2")
+    config.set("testdata_dir_path", "path3")
+    config.set("matrix_path", "path4")
+
+    cmd_gen_report(config)
+
+    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_checks.assert_called_once_with("path2")
+    stub_import_testdata.assert_called_once_with("path3")
+    stub_Matrix_read.assert_called_once_with("path4")
 
 def test_cmd_gen_test_result_badge():
     pass
