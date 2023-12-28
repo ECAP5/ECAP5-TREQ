@@ -1,6 +1,0 @@
-{
-  "spec_dir_path": "spec",
-  "test_dir_path": "tests",
-  "testdata_dir_path": "data",
-  "matrix_path": "sample-matrix.csv"
-}
