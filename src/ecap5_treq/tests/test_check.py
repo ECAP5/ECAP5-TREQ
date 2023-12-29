@@ -4,7 +4,7 @@
 # \__/\__/_//_/\_,_/_/_//_/\__/
 # 
 # Copyright (C) Clément Chaine
-# This file is part of ECAP5-TREQ <https://github.com/cchaine/ECAP5-TREQ>
+# This file is part of ECAP5-TREQ <https://github.com/ECAP5/ECAP5-TREQ>
 # 
 # ECAP5-TREQ is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
