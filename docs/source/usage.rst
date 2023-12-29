@@ -24,11 +24,23 @@ Commands
 
 .. option:: prepare_matrix
 
-   Generate a matrix with checks extracted from the source files of the tests.
+   Generates a matrix with checks extracted from the source files of the tests.
    
    .. note::
 
       If a path to the previous matrix was provided, the generated matrix will be filled with the previous traceability data.
+
+.. option:: gen_report
+
+   Generates a test and traceability report markdown report.
+
+.. option:: gen_test_result_badge
+
+   Generates a JSON file for configuring the generation of a test result svg badge by img.shields.io.
+
+.. option:: gen_traceability_result_badge
+
+   Generates a JSON file for configuring the generation of a traceability result svg badge by img.shields.io.
 
 Options
 -------
@@ -74,4 +86,7 @@ The following command-line options can be provided to ECAP5-TREQ.
 .. option:: -o <output_path>, --output <output_path>
 
    Path to the output file where the result will be written.
+
+   .. note::
+      The result is outputed to ``stdout`` if no output is provided.
 

@@ -14,8 +14,8 @@ For example:
       "matrix_path": "/absolute/path2.csv"
    }
 
-Options
--------
+Configuration options
+---------------------
 
 The following options are allowed in the configuration of ECAP5-TREQ.
 
