@@ -27,7 +27,7 @@ import io
 
 from ecap5_treq.check import Check
 from ecap5_treq.req import Req, ReqStatus
-from ecap5_treq.analyse import Analysis
+from ecap5_treq.analysis import Analysis
 from ecap5_treq.matrix import Matrix
 from ecap5_treq.log import log_error, log_warn, log_clear, log_imp
 
