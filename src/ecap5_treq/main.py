@@ -21,7 +21,7 @@
 
 import argparse
 
-from ecap5_treq.analyse import Analysis
+from ecap5_treq.analysis import Analysis
 from ecap5_treq.check import import_checks, import_testdata
 from ecap5_treq.config import Config
 from ecap5_treq.log import log_error

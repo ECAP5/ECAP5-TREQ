@@ -24,7 +24,7 @@
 import re
 import colorsys
 
-from ecap5_treq.analyse import Analysis 
+from ecap5_treq.analysis import Analysis 
 from ecap5_treq.req import Req, ReqStatus
 from ecap5_treq.log import log_error, log_imp, log_warn
 
