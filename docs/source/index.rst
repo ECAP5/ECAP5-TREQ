@@ -1,21 +1,21 @@
-.. ecap5-treq documentation master file, created by
-   sphinx-quickstart on Thu Dec 21 13:37:34 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+ECAP5-TREQ
+============
 
-Welcome to test's documentation!
-================================
+TODO: Include readme here
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :hidden:
+   :maxdepth: 4
+   :caption: User Guide
 
-   modules
-   ecap5_treq.tests
+   install
+   usage
+   configuration
+   traceability_matrix
 
-Indices and tables
-==================
+.. toctree::
+   :hidden:
+   :maxdepth: 4
+   :caption: Documentation 
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   documentation
