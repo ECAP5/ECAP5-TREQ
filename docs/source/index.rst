@@ -10,6 +10,9 @@ Welcome to test's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   modules
+   ecap5_treq.tests
+
 Indices and tables
 ==================
 

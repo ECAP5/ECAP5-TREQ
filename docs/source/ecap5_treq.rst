@@ -4,10 +4,10 @@ ecap5\_treq package
 Submodules
 ----------
 
-ecap5\_treq.analyse module
---------------------------
+ecap5\_treq.analysis module
+---------------------------
 
-.. automodule:: ecap5_treq.analyse
+.. automodule:: ecap5_treq.analysis
    :members:
    :undoc-members:
    :show-inheritance:
