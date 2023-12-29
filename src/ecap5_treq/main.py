@@ -185,7 +185,23 @@ def main():
     # Configure command line arguments
     parser = argparse.ArgumentParser(
             prog="ECAP5-TREQ",
-            description="Requirement and traceability management for ECAP5")
+            description="Requirement and traceability management for ECAP5",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog="""
+The command option expects one of the following:
+    print_reqs                       Prints a list of requirements extracted from the source files of the 
+                                     specification.
+    print_checks                     Prints a list of checks extracted from the source files of the tests.
+    print_testdata                   Prints a list of checks extracted from the testdata. These checks include test 
+                                     results and potential error messages.
+    prepare_matrix                   Generates a matrix with checks extracted from the source files of the tests.
+    gen_report                       Generates a test and traceability report markdown report.
+    gen_test_result_badge            Generates a JSON file for configuring the generation of a test result svg 
+                                     badge by img.shields.io.
+    gen_traceability_result_badge    Generates a JSON file for configuring the generation of a traceability result 
+                                     svg badge by img.shields.io
+
+The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.html""")
     parser.add_argument('command')
     parser.add_argument('-c', '--config')
     parser.add_argument("-f", "--format", default="html")
