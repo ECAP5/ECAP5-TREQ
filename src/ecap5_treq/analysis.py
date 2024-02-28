@@ -296,7 +296,8 @@ class Analysis():
                 duplicate_reqs = set([x for x in req.derived_from if x in reqs_ids_seen or reqs_ids_seen.add(x)])
                 if len(duplicate_reqs) > 0:
                     for rid in duplicate_reqs:
-                        log_warn("Requirement \"{}\" is marked multiple times as derivedfrom of \"{}\"".format(rid, req.id))
+                        log_warn("Requirement \"{}\" is marked multiple times as derivedfrom of \"{}\""
+                                    .format(rid, req.id))
 
         ###################################################
         #              Check checks                       #
