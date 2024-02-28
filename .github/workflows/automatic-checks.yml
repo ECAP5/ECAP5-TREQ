@@ -2,9 +2,9 @@ name: Automatic checks
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "release/**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "release/**" ]
 
 env:
   DOCUMENTATION_ARTIFACT_NAME: ecap5-treq-documentation-${{github.run_number}}-${{github.run_attempt}}

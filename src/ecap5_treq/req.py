@@ -64,11 +64,7 @@ class Req:
         # Validate the requirement options
         if options:
             if "derivedfrom" in options:
-                self.derived_from = options["derivedfrom"]
-                if len(self.derived_from) > 1:
-                    log_error("Multiple values for option parameter \"derivedfrom\" of the \"{}\" are not allowed." \
-                                .format(self.id))
-                self.derived_from = self.derived_from[0].replace("\\", "")
+                self.derived_from = [x.replace("\\", "") for x in options["derivedfrom"]]
 
     def to_str(self) -> str:
         """Convert the req to a string

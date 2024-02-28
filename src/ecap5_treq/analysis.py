@@ -138,10 +138,11 @@ class Analysis():
         self.ids_reqs_covering_reqs = {}
         for req in self.reqs:
             if req.derived_from:
-                if req.derived_from not in self.ids_reqs_covering_reqs:
-                    self.ids_reqs_covering_reqs[req.derived_from] = [req.id]
-                else:
-                    self.ids_reqs_covering_reqs[req.derived_from] += [req.id]
+                for derived_from in req.derived_from:
+                    if derived_from not in self.ids_reqs_covering_reqs:
+                        self.ids_reqs_covering_reqs[derived_from] = [req.id]
+                    else:
+                        self.ids_reqs_covering_reqs[derived_from] += [req.id]
 
         # Checks which requirements are covered by a test from the matrix
         self.ids_checks_covering_reqs = {}
@@ -276,15 +277,27 @@ class Analysis():
         # Checks if derivedfrom requirements exist
         for req in self.reqs:
             if req.derived_from:
-                if req.derived_from not in reqs_ids:
-                    log_warn("Requirement \"{}\" is derived from missing requirement \"{}\""\
-                                .format(req.id, req.derived_from))
+                for derived_from in req.derived_from:
+                    if derived_from not in reqs_ids:
+                        log_warn("Requirement \"{}\" is derived from missing requirement \"{}\""\
+                                    .format(req.id, derived_from))
 
         # Checks if derivedfrom is different than current
         for req in self.reqs:
             if req.derived_from:
-                if req.derived_from == req.id:
-                    log_warn("Requirement \"{}\" is derived from itself".format(req.id))
+                for derived_from in req.derived_from:
+                    if derived_from == req.id:
+                        log_warn("Requirement \"{}\" is derived from itself".format(req.id))
+
+        # Checks if derivedfrom doesn't have duplicates
+        for req in self.reqs:
+            if req.derived_from:
+                reqs_ids_seen = set()
+                duplicate_reqs = set([x for x in req.derived_from if x in reqs_ids_seen or reqs_ids_seen.add(x)])
+                if len(duplicate_reqs) > 0:
+                    for rid in duplicate_reqs:
+                        log_warn("Requirement \"{}\" is marked multiple times as derivedfrom of \"{}\""
+                                    .format(rid, req.id))
 
         ###################################################
         #              Check checks                       #
