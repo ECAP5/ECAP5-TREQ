@@ -252,10 +252,11 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("U_req1", "description1", {}), \
         Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
         Req("F_req3", "description3", {}), \
-        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}), \
         Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
         Req("req6", "description6", {}), \
-        Req("req7", "description7", {}) \
+        Req("req7", "description7", {}), \
+        Req("req8", "description8", {}) \
     ]
     checks = [ \
         Check(None, "check1"), \
@@ -275,7 +276,8 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
 
     assert analysis.ids_reqs_covering_reqs == { \
         "U_req1": [ "I_req2" ], \
-        "I_req2": [ "D_req4", "N_req5" ] \
+        "I_req2": [ "D_req4", "N_req5" ], \
+        "req8": [ "D_req4" ] \
     }
     assert analysis.ids_checks_covering_reqs == { \
         "F_req3": [ "check1" ], \
@@ -285,7 +287,7 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     assert analysis.ids_reqs_untraceable == [ \
         "req7" \
     ]
-    assert analysis.num_covered_reqs == 5
+    assert analysis.num_covered_reqs == 6
     assert analysis.num_untraceable_reqs == 1
     assert analysis.num_uncovered_reqs == 1
     assert analysis.user_reqs == [ \
@@ -298,16 +300,17 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("F_req3", "description3", {}, ReqStatus.COVERED) \
     ]
     assert analysis.design_reqs == [ \
-        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}, ReqStatus.COVERED, 100) \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}, ReqStatus.COVERED, 100) \
     ]
     assert analysis.non_functional_reqs == [ \
         Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}, ReqStatus.UNCOVERED) \
     ]
     assert analysis.other_reqs == [ \
         Req("req6", "description6", {}, ReqStatus.COVERED, 100), \
-        Req("req7", "description7", {}, ReqStatus.UNTRACEABLE) \
+        Req("req7", "description7", {}, ReqStatus.UNTRACEABLE), \
+        Req("req8", "description8", {}, ReqStatus.COVERED), \
     ]
-    assert analysis.traceability_result == 85
+    assert analysis.traceability_result == 87
 
 def test_Analysis_analyse_consistency_01():
     """Unit test for the analyse_consistency method of the Analysis class
@@ -535,7 +538,7 @@ def test_Analysis_analyse_consistency_07():
         Req("I_req2", "description2", {"derivedfrom": ["unknown1"]}), \
         Req("F_req3", "description3", {}), \
         Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
-        Req("N_req5", "description5", {"derivedfrom": ["unknown2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2", "unknown2"]}), \
         Req("req6", "description6", {}), \
         Req("req7", "description7", {}) \
     ]
@@ -569,7 +572,7 @@ def test_Analysis_analyse_consistency_08():
         Req("I_req2", "description2", {"derivedfrom": ["I_req2"]}), \
         Req("F_req3", "description3", {}), \
         Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
-        Req("N_req5", "description5", {"derivedfrom": ["N_req5"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2", "N_req5"]}), \
         Req("req6", "description6", {}), \
         Req("req7", "description7", {}) \
     ]
@@ -631,3 +634,37 @@ def test_Analysis_analyse_consistency_09():
     assert len(log_imp.msgs) == 1
     assert len(log_warn.msgs) == 0
     assert len(log_error.msgs) == 2
+
+def test_Analysis_analyse_consistency_10():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Duplicate derivedfrom requirements
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2", "F_req3", "I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2", "I_req2", "F_req3", "F_req3", "U_req1"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check(None, "check1"), \
+        Check(None, "check2") \
+    ]
+    testdata = [ \
+        Check(None, "check1", 0, "msg1"), \
+        Check(None, "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 3
+    assert len(log_error.msgs) == 0
