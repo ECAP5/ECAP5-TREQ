@@ -239,6 +239,8 @@ def test_import_reqs_03(stub_glob, stub_open):
         \\req{req2}{
             description2
         }
+
+        \\reqponpon{req}{des}
     """
     stubbed_open.file_contents["file2"] = """
         \\req{req3}{description3}
