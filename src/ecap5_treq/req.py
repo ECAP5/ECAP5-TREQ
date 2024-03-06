@@ -120,7 +120,7 @@ def import_reqs(path: str) -> list[Req]:
         # Get the content of the specification source file
         content = "".join(l[:-1] for l in open(file, encoding="utf-8"))
         # Find reqs in the file
-        for i in [m.start() for m in re.finditer(r"\\req", content)]:
+        for i in [m.start() for m in re.finditer(r"\\req[\s]*{", content)]:
             # The format of the reqs is
             #
             #     \req{<id>}{<description>}[<options>]
