@@ -109,12 +109,13 @@ def generate_test_report(analysis: Analysis) -> str:
     report += "  </tr>\n"
     report += "</table>\n"
 
-    report += "\n### Run tests\n"
+    report += "\n### Run tests\n\n"
     report += "<table>\n"
     report += "  <thead>\n"
     report += "    <tr>\n"
     report += "      <th>Testsuite</th>\n"
-    report += "      <th>Test check</th>\n"
+    report += "      <th>Testcase</th>\n"
+    report += "      <th>Check ID</th>\n"
     report += "      <th>Status</th>\n"
     report += "      <th>Log</th>\n"
     report += "    </tr>\n"
@@ -127,16 +128,18 @@ def generate_test_report(analysis: Analysis) -> str:
             for j, check in enumerate(analysis.testsuites[testsuite][testcase]):
                 check_status_icon = "✅" if check.status else "🚫"
                 report += "  <tr>\n"
-                # Insert the name of the testsuite on the first row
+                # Insert the name of the testsuite on the first row of each test suite
                 if i == 0 and j == 0:
                     report += "    <td rowspan=\"{}\">\n".format(analysis.num_checks_in_testsuites[testsuite])
                     report += "      <samp>{}</samp>\n".format(testsuite)
                     report += "    </td>\n"
+                # Insert the name of the testcase on the first row of each testcase
+                if j == 0:
                     report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[testsuite][testcase]))
                     report += "      <samp>{}</samp>\n".format(testcase)
                     report += "    </td>\n"
                 report += "    <td>\n"
-                report += "      <samp>{}</samp>\n".format(check.shortid)
+                report += "      <samp>{}</samp>\n".format(check.id)
                 report += "    </td>\n"
                 report += "    <td align=\"center\">\n"
                 # Insert a specific anchor on the first failed check to easily jump to it
@@ -147,15 +150,16 @@ def generate_test_report(analysis: Analysis) -> str:
                 report += "    </td>\n"
                 report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
                 report += "  </tr>\n"
+    report += "</table>\n"
 
     # Handle skipped checks if any
     if len(analysis.skipped_checks) > 0:
-        report += "\n### <a id=\"skipped-checks\"></a> Skipped tests\n"
+        report += "\n### <a id=\"skipped-checks\"></a> Skipped tests\n\n"
         report += "<table>\n"
         for check in analysis.skipped_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(check.shortid)
+            report += "      <samp>{}</samp>\n".format(check.id)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
@@ -167,7 +171,7 @@ def generate_test_report(analysis: Analysis) -> str:
         for check in analysis.unknown_checks:
             report += "  <tr>\n"
             report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(check.shortid)
+            report += "      <samp>{}</samp>\n".format(check.id)
             report += "    </td>\n"
             report += "  </tr>\n"
         report += "</table>\n"
