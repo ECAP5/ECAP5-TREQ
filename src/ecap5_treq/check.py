@@ -69,7 +69,8 @@ class Check:
         if self.status is not None:
             status_and_error_msg = ", status={}, error_msg={}".format(self.status, self.error_msg)
 
-        return "CHECK(testsuite=\"{}\", testcase=\"{}\", shortid=\"{}\"{})".format(self.testsuite, self.testcase, self.id, status_and_error_msg)
+        return "CHECK(testsuite=\"{}\", testcase=\"{}\", shortid=\"{}\"{})" \
+                    .format(self.testsuite, self.testcase, self.id, status_and_error_msg)
 
     def __repr__(self) -> str:
         """Override of the __repr__ function used to output a string from an object
