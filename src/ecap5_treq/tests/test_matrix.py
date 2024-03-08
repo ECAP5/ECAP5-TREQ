@@ -102,12 +102,12 @@ def test_Matrix_check_01():
 
     The covered behavior is a check equal to true
     """
-    valid_matrix = "element2;content1\nelement1;content2;content3\n__UNTRACEABLE__\n"
+    valid_matrix = "testsuite1.testcase1.element2;content1\ntestsuite1.testcase1.element1;content2;content3\n__UNTRACEABLE__\n"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
 
-    checks = [Check(None, "element1"), Check(None, "element2")]
+    checks = [Check("testsuite1", "testcase1", "element1"), Check("testsuite1", "testcase1", "element2")]
     assert matrix.check(checks) == True
 
 def test_Matrix_check_02():
@@ -115,12 +115,12 @@ def test_Matrix_check_02():
 
     The covered behavior is a check equal to false due to the list of checks missing an element
     """
-    valid_matrix = "element1;content1\nelement2;content2;content3\n__UNTRACEABLE__\n"
+    valid_matrix = "testsuite1.testcase1.element1;content1\ntestsuite1.testcase1.element2;content2;content3\n__UNTRACEABLE__\n"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
 
-    checks = [Check(None, "element1")]
+    checks = [Check("testsuite1", "testcase1", "element1")]
     assert matrix.check(checks) == False
 
 def test_Matrix_check_03():
@@ -128,12 +128,12 @@ def test_Matrix_check_03():
 
     The covered behavior is a check equal to false due to the matrix missing the __UNTRACEABLE__ entry
     """
-    valid_matrix = "element1;content1\nelement2;content2;content3"
+    valid_matrix = "testsuite1.testcase1.element1;content1\ntestsuite1.testcase1.element2;content2;content3\n"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         matrix = Matrix()
         matrix.read("path")
 
-    checks = [Check(None, "element1"), Check(None, "element2")]
+    checks = [Check("testsuite1", "testcase1", "element1"), Check("testsuite1", "testcase1", "element2")]
     assert matrix.check(checks) == False
 
 def test_Matrix_add():
@@ -262,15 +262,15 @@ def test_prepare_matrix_01():
 
     The covered behavior is with the previous matrix being None
     """
-    checks = [Check(None, "check1"), Check(None, "check2")]
+    checks = [Check("testsuite1", "testcase1", "check1"), Check("testsuite1", "testcase1", "check2")]
     matrix = prepare_matrix(checks, None)
 
     assert len(matrix.data) == 3
-    assert "check1" in matrix.data
-    assert "check2" in matrix.data
+    assert "testsuite1.testcase1.check1" in matrix.data
+    assert "testsuite1.testcase1.check2" in matrix.data
     assert "__UNTRACEABLE__" in matrix.data
-    assert matrix.data["check1"] == []
-    assert matrix.data["check2"] == []
+    assert matrix.data["testsuite1.testcase1.check1"] == []
+    assert matrix.data["testsuite1.testcase1.check2"] == []
     assert matrix.data["__UNTRACEABLE__"] == []
 
 def test_prepare_matrix_02():
@@ -278,16 +278,16 @@ def test_prepare_matrix_02():
 
     The covered behavior is with an empty previous matrix
     """
-    checks = [Check(None, "check1"), Check(None, "check2")]
+    checks = [Check("testsuite1", "testcase1", "check1"), Check("testsuite1", "testcase1", "check2")]
     previous_matrix = Matrix()
     matrix = prepare_matrix(checks, previous_matrix)
 
     assert len(matrix.data) == 3
-    assert "check1" in matrix.data
-    assert "check2" in matrix.data
+    assert "testsuite1.testcase1.check1" in matrix.data
+    assert "testsuite1.testcase1.check2" in matrix.data
     assert "__UNTRACEABLE__" in matrix.data
-    assert matrix.data["check1"] == []
-    assert matrix.data["check2"] == []
+    assert matrix.data["testsuite1.testcase1.check1"] == []
+    assert matrix.data["testsuite1.testcase1.check2"] == []
     assert matrix.data["__UNTRACEABLE__"] == []
 
 def test_prepare_matrix_03():
@@ -295,17 +295,17 @@ def test_prepare_matrix_03():
 
     The covered behavior is with a previous matrix containing one of the check and having an untraceable element
     """
-    checks = [Check(None, "check1"), Check(None, "check2")]
-    valid_matrix = "element1;content1\ncheck2;content2;content3\n__UNTRACEABLE__;content4"
+    checks = [Check("testsuite1", "testcase1", "check1"), Check("testsuite1", "testcase1", "check2")]
+    valid_matrix = "testsuite1.testcase1.element1;content1\ntestsuite1.testcase1.check2;content2;content3\n__UNTRACEABLE__;content4"
     with patch("builtins.open", mock_open(read_data=valid_matrix)):
         previous_matrix = Matrix()
         previous_matrix.read("path")
     matrix = prepare_matrix(checks, previous_matrix)
 
     assert len(matrix.data) == 3
-    assert "check1" in matrix.data
-    assert "check2" in matrix.data
+    assert "testsuite1.testcase1.check1" in matrix.data
+    assert "testsuite1.testcase1.check2" in matrix.data
     assert "__UNTRACEABLE__" in matrix.data
-    assert matrix.data["check1"] == []
-    assert matrix.data["check2"] == ["content2", "content3"]
+    assert matrix.data["testsuite1.testcase1.check1"] == []
+    assert matrix.data["testsuite1.testcase1.check2"] == ["content2", "content3"]
     assert matrix.data["__UNTRACEABLE__"] == ["content4"]

@@ -50,7 +50,7 @@ class Analysis():
 
         # Data from the test analysis
         self.testsuites = {}
-        self.no_testsuite = []
+        self.num_checks_in_testsuites = {}
         self.skipped_checks = []
         self.unknown_checks = []
         self.num_successfull_checks = 0
@@ -103,15 +103,20 @@ class Analysis():
 
         # Sort tests in testsuites
         self.testsuites = {}
-        self.no_testsuite = []
+        self.num_checks_in_testsuites = {}
         for check in self.testdata:
-            if check.testsuite:
-                if check.testsuite in self.testsuites:
-                    self.testsuites[check.testsuite] += [check]
+            if check.testsuite in self.testsuites:
+                if check.testcase in self.testsuites[check.testsuite]:
+                    # add the check if both the testsuite and testcase exist
+                    self.testsuites[check.testsuite][check.testcase] += [check]
                 else:
-                    self.testsuites[check.testsuite] = [check]
+                    # create a dictionary if the testsuite exists but the testcase doesn't
+                    self.testsuites[check.testsuite][check.testcase] = [check]
+                self.num_checks_in_testsuites[check.testsuite] += 1
             else:
-                self.no_testsuite += [check]
+                # create a dictionary and initialize the table if none of the testsuite and testcase exist
+                self.testsuites[check.testsuite] = {check.testcase: [check]}
+                self.num_checks_in_testsuites[check.testsuite] = 1
 
         # List skipped checks
         self.skipped_checks = []

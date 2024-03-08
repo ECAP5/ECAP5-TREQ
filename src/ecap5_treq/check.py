@@ -26,13 +26,13 @@ import sys
 import csv
 import glob
 
-from ecap5_treq.log import log_warn, log_error
+from ecap5_treq.log import log_error
 
 class Check:
     """A Check is a test that can be traced to requirements
     """
 
-    def __init__(self, testsuite: str, id: str, status: int = None, error_msg: str = None):
+    def __init__(self, testsuite: str, testcase: str, shortid: str, status: int = None, error_msg: str = None):
         """Constructor of Check
 
         :param testsuite: name of the testsuite to which the check is associated
@@ -47,14 +47,11 @@ class Check:
         :param error_msg: message associated to a failed check
         :type error_msg: str, optional
         """
-        self.testsuite = None
-        if testsuite:
-            self.testsuite = testsuite.strip()
-            self.id = testsuite.strip() + "." + id.strip()
-        else:
-            self.id = id.strip()
+        self.testsuite = testsuite
+        self.testcase = testcase
+        self.shortid = shortid
 
-        self.shortid = self.id
+        self.id = testsuite + "." + testcase + "." + shortid
 
         self.status = None
         self.error_msg = None
@@ -72,7 +69,7 @@ class Check:
         if self.status is not None:
             status_and_error_msg = ", status={}, error_msg={}".format(self.status, self.error_msg)
 
-        return "CHECK(testsuite=\"{}\", id=\"{}\"{})".format(self.testsuite, self.id, status_and_error_msg)
+        return "CHECK(testsuite=\"{}\", testcase=\"{}\", shortid=\"{}\"{})".format(self.testsuite, self.testcase, self.id, status_and_error_msg)
 
     def __repr__(self) -> str:
         """Override of the __repr__ function used to output a string from an object
@@ -127,24 +124,9 @@ def import_checks(path) -> list[Check]:
             cur = process_keyword(i, content)      # Go to 1
             cur, id = process_string(cur, content) # Go from 1 to 2
 
-            # Recover the testsuite from the id
-            testsuite, id = process_check_id(id)
+            testsuite, testcase, shortid = process_check_id(id)
 
-            # Validate the testsuite and id
-            if len(id.strip()) == 0:
-                log_error("Missing id for test \"{}\" in file \"{}\"".format(content[i:cur], file))
-                # The program is interrupted here as this is a critical error
-                sys.exit(-1)
-
-            # If no testsuite was provided or the provided testsuite is empty
-            if testsuite is None:
-                log_warn("Test \"{}\" doesn't have any parent testsuite".format(content[i:cur]))
-            elif len(testsuite) == 0:
-                log_error("Provided testsuite for test \"{}\" is empty".format(content[i:cur]))
-                # The program is interrupted here as this is a critical error
-                sys.exit(-1)
-
-            checks += [Check(testsuite, id)]
+            checks += [Check(testsuite, testcase, shortid)]
     return checks 
 
 def import_testdata(path: str) -> list[Check]:
@@ -172,33 +154,45 @@ def import_testdata(path: str) -> list[Check]:
                     log_error("Incomplete test data in {} for row \"{}\"".format(file, row))
                     # The program is interrupted here as this is a critical error
                     sys.exit(-1)
+
                 # Read the check id from the testdata
-                testsuite, id = process_check_id(row[0])
+                testsuite, testcase, shortid = process_check_id(row[0])
                 # Add the check to the list providing both the status and error_msg parameters
-                checks += [Check(testsuite, id, int(row[1]), (row[2] if len(row) >= 3 else None))]
+                checks += [Check(testsuite, testcase, shortid, int(row[1]), (row[2] if len(row) >= 3 else None))]
     return checks
 
-def process_check_id(raw_check_id: str) -> tuple[str, str]:
-    """Converts a raw check id into both a the testsuite and the actual check id
+def process_check_id(id: str) -> [str, str, str]:
+    """Converts a raw check id to the appropriate fields
 
-    The format of the raw check id is : "testsuite.id"
+    The format of the raw check id is : "testsuite.testcase.id"
 
-    :param raw_check_id: raw check id
-    :type raw_check_id: str
+    :param id: raw check id
+    :type id: str
 
-    :returns: a tuple containing both the testsuite and the id
-    :rtype: tuple[str, str]
+    :returns: a tuple containing testsuite, testcase and id
+    :rtype: tuple[str, str, str]
     """
-    raw_check_id = raw_check_id.split(".")
+    if len(id.split(".")) < 3:
+        log_error("Wrong id format for check \"{}\". Expected format: <testsuite>.<testcase>.<id>".format(id))
+        # The program is interrupted here as this is a critical error
+        sys.exit(-1)
 
-    testsuite = None
-    id = None
-    if len(raw_check_id) == 1:
-        id = raw_check_id[0]
-    else:
-        testsuite = raw_check_id[0]
-        id = raw_check_id[1]
-    return (testsuite, id)
+    (testsuite, testcase, shortid) = id.split(".")
+    testsuite = testsuite.strip()
+    testcase = testcase.strip()
+    shortid = shortid.strip()
+
+    if len(testsuite) == 0:
+        log_error("Empty testsuite for check \"{}\"".format(id))
+        sys.exit(-1)
+    if len(testcase) == 0:
+        log_error("Empty testcase for check \"{}\"".format(id))
+        sys.exit(-1)
+    if len(shortid) == 0:
+        log_error("Empty shortid for check \"{}\"".format(id))
+        sys.exit(-1)
+
+    return (testsuite, testcase, shortid)
 
 def process_keyword(cur: int, content: str) -> int:
     """Increments cur to point to the char following the next parenthesis in content

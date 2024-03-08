@@ -120,43 +120,33 @@ def generate_test_report(analysis: Analysis) -> str:
     report += "    </tr>\n"
     report += "  </thead>\n"
 
-    # Handle checks that belong to testsuites
+    # Checks table
     failed_test_anchor_placed = False
-    for tid in analysis.testsuites:
-        for i, check in enumerate(analysis.testsuites[tid]):
-            check_status_icon = "✅" if check.status else "🚫"
-            report += "  <tr>\n"
-            # Insert the name of the testsuite on the first row
-            if i == 0:
-                report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[tid]))
-                report += "      <samp>{}</samp>\n".format(tid)
+    for testsuite in analysis.testsuites:
+        for i, testcase in enumerate(analysis.testsuites[testsuite]):
+            for j, check in enumerate(analysis.testsuites[testsuite][testcase]):
+                check_status_icon = "✅" if check.status else "🚫"
+                report += "  <tr>\n"
+                # Insert the name of the testsuite on the first row
+                if i == 0 and j == 0:
+                    report += "    <td rowspan=\"{}\">\n".format(analysis.num_checks_in_testsuites[testsuite])
+                    report += "      <samp>{}</samp>\n".format(testsuite)
+                    report += "    </td>\n"
+                    report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[testsuite][testcase]))
+                    report += "      <samp>{}</samp>\n".format(testcase)
+                    report += "    </td>\n"
+                report += "    <td>\n"
+                report += "      <samp>{}</samp>\n".format(check.shortid)
                 report += "    </td>\n"
-            report += "    <td>\n"
-            report += "      <samp>{}</samp>\n".format(check.shortid)
-            report += "    </td>\n"
-            report += "    <td align=\"center\">\n"
-            # Insert a specific anchor on the first failed check to easily jump to it
-            if not check.status and not failed_test_anchor_placed:
-                report += "      <a id=\"first-failed-check\"></a>"
-                failed_test_anchor_placed = True
-            report += "      {}\n".format(check_status_icon)
-            report += "    </td>\n"
-            report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
-            report += "  </tr>\n"
-
-    # Handle checks that do not belong to a testsuite
-    for i, check in enumerate(analysis.no_testsuite):
-        report += "  <tr>\n"
-        # Insert the name of the testsuite on the first row
-        if i == 0:
-            report += "    <td rowspan=\"{}\"></td>\n".format(len(analysis.no_testsuite))
-        report += "    <td>\n"
-        report += "      <samp>{}</samp>\n".format(check.shortid)
-        report += "    </td>\n"
-        report += "    <td align=\"center\">{}</td>\n".format("✅" if check.status else "🚫")
-        report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
-        report += "  </tr>\n"
-    report += "</table>\n"
+                report += "    <td align=\"center\">\n"
+                # Insert a specific anchor on the first failed check to easily jump to it
+                if not check.status and not failed_test_anchor_placed:
+                    report += "      <a id=\"first-failed-check\"></a>"
+                    failed_test_anchor_placed = True
+                report += "      {}\n".format(check_status_icon)
+                report += "    </td>\n"
+                report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
+                report += "  </tr>\n"
 
     # Handle skipped checks if any
     if len(analysis.skipped_checks) > 0:

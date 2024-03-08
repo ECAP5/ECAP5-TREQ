@@ -133,11 +133,11 @@ def test_cmd_print_checks(stub_import_checks, stub_print):
     """Unit test for the cmd_print_checks function
     """
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check5") \
     ]
 
     config = Config()
@@ -155,11 +155,11 @@ def test_cmd_print_testdata(stub_import_testdata, stub_print):
     """Unit test for the cmd_print_testdata function
     """
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None), \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None), \
+        Check("testsuite3", "testcase1", "check6", 1, None) \
     ]
 
     config = Config()
@@ -182,13 +182,13 @@ def test_cmd_prepare_matrix_01(stub_import_checks, stub_prepare_matrix, stub_pri
     The covered behavior is without a specified path for the previous matrix and without output
     """
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check(None, "check3"), \
-        Check(None, "check4") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
     ]
     stubbed_prepare_matrix.matrix = Matrix()
-    stubbed_prepare_matrix.matrix.add("check1", ["req1", "req2"])
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
 
     previous_matrix = MockMatrix()
 
@@ -201,7 +201,7 @@ def test_cmd_prepare_matrix_01(stub_import_checks, stub_prepare_matrix, stub_pri
 
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
 
-    stub_print.assert_called_once_with("check1;req1;req2\r\n")
+    stub_print.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
     stub_open.assert_not_called()
 
 @patch("ecap5_treq.main.Matrix", MockMatrix)
@@ -215,13 +215,13 @@ def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_pri
     The covered behavior is with a specified path for the previous matrix and with an output
     """
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check(None, "check3"), \
-        Check(None, "check4") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
     ]
     stubbed_prepare_matrix.matrix = Matrix()
-    stubbed_prepare_matrix.matrix.add("check1", ["req1", "req2"])
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
 
     config = Config()
     config.set("matrix_path", "path1")
@@ -239,7 +239,7 @@ def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_pri
 
     stub_print.assert_not_called()
     stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
-    stub_open.return_value.write.assert_called_once_with("check1;req1;req2\r\n")
+    stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
 
 @patch("ecap5_treq.main.Analysis", MockAnalysis)
 @patch("ecap5_treq.main.Matrix", MockMatrix)
@@ -263,21 +263,21 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
         Req("F_req3", "description3", {}), \
         Req("D_req4", "description4", {}), \
         Req("N_req5", "description5", {}), \
-        Req("req6", "description6", {}) \
+        Req("req6", "description6", {})    \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()
@@ -329,18 +329,18 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
         Req("req6", "description6", {}) \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()
@@ -394,18 +394,18 @@ def test_cmd_gen_test_result_badge_01(stub_import_reqs, stub_import_checks, stub
         Req("req6", "description6", {}) \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()
@@ -451,18 +451,18 @@ def test_cmd_gen_test_result_badge_02(stub_import_reqs, stub_import_checks, stub
         Req("req6", "description6", {}) \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()
@@ -510,18 +510,18 @@ def test_cmd_gen_traceability_result_badge_01(stub_import_reqs, stub_import_chec
         Req("req6", "description6", {}) \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()
@@ -567,18 +567,18 @@ def test_cmd_gen_traceability_result_badge_02(stub_import_reqs, stub_import_chec
         Req("req6", "description6", {}) \
     ]
     stubbed_import_checks.checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite4", "testcase1", "check4"), \
+        Check("testsuite3", "testcase1", "check6")  \
     ]
     stubbed_import_testdata.testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None),       \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite4", "testcase1", "check4", 1, None),       \
+        Check("testsuite3", "testcase1", "check6", 1, None)        \
     ]
 
     config = Config()

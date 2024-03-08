@@ -59,27 +59,24 @@ def test_Check_constructor():
         * Constructor without status
         * Constructor with status
     """
-    check = Check(None, "check1")
-    assert check.testsuite == None
-    assert check.id == "check1"
+    check = Check("testsuite", "testcase", "check1")
+    assert check.testsuite == "testsuite"
+    assert check.testcase == "testcase"
+    assert check.id == "testsuite.testcase.check1"
     assert check.status == None
     assert check.error_msg == None
 
-    check = Check("testsuite", "check1")
+    check = Check("testsuite", "testcase", "check1", 0, "msg")
     assert check.testsuite == "testsuite"
-    assert check.id == "testsuite.check1"
-    assert check.status == None
-    assert check.error_msg == None
-
-    check = Check("testsuite", "check1", 0, "msg")
-    assert check.testsuite == "testsuite"
-    assert check.id == "testsuite.check1"
+    assert check.testcase == "testcase"
+    assert check.id == "testsuite.testcase.check1"
     assert check.status == False
     assert check.error_msg == "msg"
 
-    check = Check("testsuite", "check1", 1, "msg")
+    check = Check("testsuite", "testcase", "check1", 1, "msg")
     assert check.testsuite == "testsuite"
-    assert check.id == "testsuite.check1"
+    assert check.testcase == "testcase"
+    assert check.id == "testsuite.testcase.check1"
     assert check.status == True
     assert check.error_msg == "msg"
 
@@ -92,10 +89,10 @@ def test_Check_to_str():
     
     There are no specific checks performed on the output string. The test only runs the function to check for exceptions.
     """
-    check = Check("testsuite", "check1")
+    check = Check("testsuite", "testcase", "check1")
     check.to_str()
 
-    check = Check("testsuite", "check1", 0, "msg")
+    check = Check("testsuite", "testcase", "check1", 0, "msg")
     check.to_str()
 
 def test_Check___repr__():
@@ -107,36 +104,40 @@ def test_Check___repr__():
     
     There are no specific checks performed on the output string. The test only runs the function to check for exceptions.
     """
-    check = Check("testsuite", "check1")
+    check = Check("testsuite", "testcase", "check1")
     repr(check)
 
-    check = Check("testsuite", "check1", 0, "msg")
+    check = Check("testsuite", "testcase", "check1", 0, "msg")
     str(check)
 
 def test_Check___eq__():
     """Unit test for the __eq__ method of the Check class
     """
-    check = Check("testsuite1", "check1", 1, "msg1")
-    other = Check("testsuite1", "check1", 1, "msg1")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite1", "testcase1", "check1", 1, "msg1")
     assert check == other
 
-    check = Check("testsuite1", "check1", 1, "msg1")
-    other = Check("testsuite1", "check1", 1, "msg2")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite1", "testcase1", "check1", 1, "msg2")
     assert check != other
 
-    check = Check("testsuite1", "check1", 1, "msg1")
-    other = Check("testsuite1", "check1", 0, "msg1")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite1", "testcase1", "check1", 0, "msg1")
     assert check != other
 
-    check = Check("testsuite1", "check1", 1, "msg1")
-    other = Check("testsuite1", "check2", 1, "msg1")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite1", "testcase1", "check2", 1, "msg1")
     assert check != other
 
-    check = Check("testsuite1", "check1", 1, "msg1")
-    other = Check("testsuite2", "check1", 1, "msg1")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite1", "testcase2", "check1", 1, "msg1")
     assert check != other
 
-    check = Check("testsuite1", "check1", 1, "msg1")
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
+    other = Check("testsuite2", "testcase1", "check1", 1, "msg1")
+    assert check != other
+
+    check = Check("testsuite1", "testcase1", "check1", 1, "msg1")
     other = "foo"
     assert check != other
 
@@ -175,82 +176,60 @@ def test_import_checks_03(stub_glob, stub_open):
 
     The covered behaviors are:
         * Two files with multiple checks
-        * Checks without testcases
-        * Checks with testcases
         * Checks with spaces to check the parsing
     """
     stubbed_glob.file_list = ["file1", "file2"]
     stubbed_open.file_contents["file1"] = """
-        CHECK("check1", cond, "error message 1");
-        CHECK( "testsuite1.check2", cond, "error message 2");
+        CHECK("testsuite1.testcase2.check1", cond, "error message 1");
+        CHECK( "testsuite1.testcase1.check2", cond, "error message 2");
     """
     stubbed_open.file_contents["file2"] = """
-        CHECK("check3" , cond, "error message 3");
-        CHECK("testsuite2.check4", cond, "error message 4");
+        CHECK("testsuite2.testcase3.check3" , cond, "error message 3");
+        CHECK("testsuite2.testcase1.check4" , cond, "error message 4");
     """
     checks = import_checks("path")
 
     assert len(checks) == 4
-    assert checks[0].testsuite == None
-    assert checks[0].id == "check1"
+    assert checks[0].testsuite == "testsuite1"
+    assert checks[0].testcase == "testcase2"
+    assert checks[0].id == "testsuite1.testcase2.check1"
     assert checks[1].testsuite == "testsuite1"
-    assert checks[1].id == "testsuite1.check2"
-    assert checks[2].testsuite == None
-    assert checks[2].id == "check3"
+    assert checks[1].testcase == "testcase1"
+    assert checks[1].id == "testsuite1.testcase1.check2"
+    assert checks[2].testsuite == "testsuite2"
+    assert checks[2].testcase == "testcase3"
+    assert checks[2].id == "testsuite2.testcase3.check3"
     assert checks[3].testsuite == "testsuite2"
-    assert checks[3].id == "testsuite2.check4"
-    # Two warning messages shall be generated for the empty testsuites
-    assert len(log_warn.msgs) == 2
+    assert checks[3].testcase == "testcase1"
+    assert checks[3].id == "testsuite2.testcase1.check4"
+    assert len(log_error.msgs) == 0
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
 def test_import_checks_04(stub_glob, stub_open):
     """Unit test for the import_check function
 
-    The covered behavior is missing check id
+    The covered behaviors are:
+      - Missing testsuite
+      - Missing testcase
+      - Missing shortid
     """
     stubbed_glob.file_list = ["file1"]
     stubbed_open.file_contents["file1"] = """
+        CHECK("", cond, "error message 1");
+        CHECK("testsuite1", cond, "error message 1");
+        CHECK("testsuite2.", cond, "error message 1");
+        CHECK("testsuite2.testcase1", cond, "error message 1");
+        CHECK("testsuite2.testcase1.", cond, "error message 1");
+        CHECK(".testcase1.", cond, "error message 1");
+        CHECK("testsuite2..shortid1", cond, "error message 1");
+        CHECK("..shortid1", cond, "error message 1");
         CHECK("", cond, "error message 1");
     """
     with pytest.raises(SystemExit) as e:
         checks = import_checks("path")
         assert len(checks) == 0
-        assert len(log_error.msgs) == 1
-
-    stubbed_glob.file_list = ["file1"]
-    stubbed_open.file_contents["file1"] = """
-        CHECK("testsuite.", cond, "error message 1");
-    """
-    with pytest.raises(SystemExit) as e:
-        checks = import_checks("path")
-        assert len(checks) == 0
-        assert len(log_error.msgs) == 2
-
-@patch("builtins.open", side_effect=stubbed_open)
-@patch("glob.glob", side_effect=stubbed_glob)
-def test_import_checks_05(stub_glob, stub_open):
-    """Unit test for the import_check function
-
-    The covered behavior is empty testsuite
-    """
-    stubbed_glob.file_list = ["file1"]
-    stubbed_open.file_contents["file1"] = """
-        CHECK(".check1", cond, "error message 1");
-    """
-    with pytest.raises(SystemExit) as e:
-        checks = import_checks("path")
-        assert len(checks) == 0
-        assert len(log_error.msgs) == 1
-
-    stubbed_glob.file_list = ["file1"]
-    stubbed_open.file_contents["file1"] = """
-        CHECK(".", cond, "error message 1");
-    """
-    with pytest.raises(SystemExit) as e:
-        checks = import_checks("path")
-        assert len(checks) == 0
-        assert len(log_error.msgs) == 2
+        assert len(log_error.msgs) == 9
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
@@ -271,33 +250,37 @@ def test_import_testdata_02(stub_glob, stub_open):
     """
     stubbed_glob.file_list = ["file1", "file2"]
     stubbed_open.file_contents["file1"] = """
-        check1;1
-        check2;0;error_msg1
+        testsuite1.testcase1.check1;1
+        testsuite1.testcase2.check2;0;error_msg1
     """
     stubbed_open.file_contents["file2"] = """
-        check3;0
-        check4;0;error_msg2
+        testsuite2.testcase3.check3;0
+        testsuite3.testcase4.check4;0;error_msg2
     """
     checks = import_testdata("path")
 
     assert len(checks) == 4
-    assert checks[0].testsuite == None
-    assert checks[0].id == "check1"
+    assert checks[0].testsuite == "testsuite1"
+    assert checks[0].testcase == "testcase1"
+    assert checks[0].id == "testsuite1.testcase1.check1"
     assert checks[0].status == True
     assert checks[0].error_msg == None
 
-    assert checks[1].testsuite == None
-    assert checks[1].id == "check2"
+    assert checks[1].testsuite == "testsuite1"
+    assert checks[1].testcase == "testcase2"
+    assert checks[1].id == "testsuite1.testcase2.check2"
     assert checks[1].status == False
     assert checks[1].error_msg == "error_msg1"
 
-    assert checks[2].testsuite == None
-    assert checks[2].id == "check3"
+    assert checks[2].testsuite == "testsuite2"
+    assert checks[2].testcase == "testcase3"
+    assert checks[2].id == "testsuite2.testcase3.check3"
     assert checks[2].status == False
     assert checks[2].error_msg == None
 
-    assert checks[3].testsuite == None
-    assert checks[3].id == "check4"
+    assert checks[3].testsuite == "testsuite3"
+    assert checks[3].testcase == "testcase4"
+    assert checks[3].id == "testsuite3.testcase4.check4"
     assert checks[3].status == False
     assert checks[3].error_msg == "error_msg2"
 
@@ -306,11 +289,36 @@ def test_import_testdata_02(stub_glob, stub_open):
 def test_import_testdata_03(stub_glob, stub_open):
     """Unit test for the import_testdata function
 
+    The covered behaviors are:
+      - Missing testsuite
+      - Missing testcase
+      - Missing shortid
+    """
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+        testsuite1;1
+        testsuite2.;1
+        testsuite2.testcase1;1
+        testsuite2.testcase1.;1
+        .testcase1.;1
+        testsuite2..shortid1;0;error_msg
+        ..shortid1;1
+    """
+    with pytest.raises(SystemExit) as e:
+        checks = import_testdata("path")
+        assert len(checks) == 0
+        assert len(log_error.msgs) == 9
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_import_testdata_04(stub_glob, stub_open):
+    """Unit test for the import_testdata function
+
     The covered behavior is incomplete testdata
     """
     stubbed_glob.file_list = ["file1"]
     stubbed_open.file_contents["file1"] = """
-        check1
+        testsuite1.testcase1.check1
     """
     with pytest.raises(SystemExit) as e:
         checks = import_testdata("path")
@@ -318,36 +326,67 @@ def test_import_testdata_03(stub_glob, stub_open):
 
     stubbed_glob.file_list = ["file1"]
     stubbed_open.file_contents["file1"] = """
-        check1;
+        testsuite1.testcase2.check1;
     """
     with pytest.raises(SystemExit) as e:
         checks = import_testdata("path")
         assert len(log_error.msgs) == 1
 
-def test_process_check_id():
+def test_process_check_id_01():
     """Unit test for the process_check_id function
 
     The covered behaviors are:
-        * missing testsuite and empty id
-        * empty testsuite and valid id
-        * valid testsuite and empty id
-        * valid testsuite and valid id
+        * missing testsuite
+        * missing testcase
+        * missing shortid
     """
-    testsuite, id = process_check_id("")
-    assert testsuite == None
-    assert id == ""
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("")
+        assert len(log_error.msgs) == 1
 
-    testsuite, id = process_check_id(".check1")
-    assert testsuite == ""
-    assert id == "check1"
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("testsuite")
+        assert len(log_error.msgs) == 1
 
-    testsuite, id = process_check_id("testsuite.")
-    assert testsuite == "testsuite"
-    assert id == ""
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("testsuite.testcase")
+        assert len(log_error.msgs) == 1
 
-    testsuite, id = process_check_id("testsuite.check1")
-    assert testsuite == "testsuite"
-    assert id == "check1"
+def test_process_check_id_02():
+    """Unit test for the process_check_id function
+
+    The covered behaviors are:
+        * empty testsuite
+        * empty testcase
+        * empty shortid
+    """
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("..")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("testsuite..")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id(".testcase.")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("..shortid")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("testsuite.testcase.")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id("testsuite..shortid")
+        assert len(log_error.msgs) == 1
+
+    with pytest.raises(SystemExit) as e:
+        testsuite, testcase, shortid = process_check_id(".testcase.shortid")
+        assert len(log_error.msgs) == 1
 
 def test_process_keyword_01():
     """Unit test for the process_keyword function
