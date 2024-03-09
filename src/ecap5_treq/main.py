@@ -33,6 +33,7 @@ from ecap5_treq.report import generate_report_warning_section,  \
                               generate_test_result_badge,       \
                               generate_traceability_result_badge                                                               
 from ecap5_treq.req import import_reqs 
+from ecap5_treq.html import markdown_to_html
 
 def cmd_print_reqs(config: dict[str, str]) -> None:
     """Handles the print_reqs command.
@@ -123,6 +124,10 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     else:
         report = report_warnings + report_summary + test_report + traceability_report
 
+    # Convert to html if requested
+    if config.get("html"):
+        report = markdown_to_html(report)
+
     if "output" in config:
         with open(config.get("output"), 'w', encoding="utf-8") as file:
             file.write(report)
@@ -204,12 +209,12 @@ The command option expects one of the following:
 The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.html""")
     parser.add_argument('command')
     parser.add_argument('-c', '--config')
-    parser.add_argument("-f", "--format", default="html")
     parser.add_argument('-s', '--spec')
     parser.add_argument('-t', '--tests')
     parser.add_argument('-d', '--data' )
     parser.add_argument('-m', '--matrix')
     parser.add_argument('-o', '--output')
+    parser.add_argument('--html', action='store_true')
 
     args = parser.parse_args()
 
@@ -229,6 +234,7 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
     # Add other arguments that are not present in configuration files
     if args.output:
         config.set("output", args.output)
+    config.set("html", args.html)
     
     # Handle the different commands provided
     if args.command == "print_reqs":
