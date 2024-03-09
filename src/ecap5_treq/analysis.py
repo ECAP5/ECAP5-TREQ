@@ -202,6 +202,7 @@ class Analysis():
         self.user_reqs = []
         self.external_interface_reqs = []
         self.functional_reqs = []
+        self.architecture_reqs = []
         self.design_reqs = []
         self.non_functional_reqs = []
         self.other_reqs = []
@@ -213,6 +214,8 @@ class Analysis():
                 self.external_interface_reqs += [req]
             elif prefix == "F":
                 self.functional_reqs += [req]
+            elif prefix == "A":
+                self.architecture_reqs += [req]
             elif prefix == "D":
                 self.design_reqs += [req]
             elif prefix == "N":
