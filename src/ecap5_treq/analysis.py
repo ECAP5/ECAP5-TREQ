@@ -55,6 +55,8 @@ class Analysis():
         self.unknown_checks = []
         self.num_successfull_checks = 0
         self.num_failed_checks = 0
+        self.num_successfull_unknown_checks = 0
+        self.num_failed_unknown_checks = 0
         self.check_status_by_check_id = {}
         self.test_result = 0
         
@@ -130,6 +132,10 @@ class Analysis():
         for check in self.testdata:
             if check.id not in [c.id for c in self.checks]:
                 self.unknown_checks += [check]
+                if check.status:
+                    self.num_successfull_unknown_checks += 1
+                else:
+                    self.num_failed_unknown_checks += 1
 
         # Compute the test result
         if len(self.checks) > 0:
