@@ -78,7 +78,7 @@ def test_Analysis_analyse_tests_01(stub_analyse):
     assert analysis.num_failed_checks == 0
     assert analysis.check_status_by_check_id == {}
     assert analysis.testsuites == {}
-    assert analysis.no_testsuite == []
+    assert analysis.num_checks_in_testsuites == {}
     assert analysis.skipped_checks == []
     assert analysis.unknown_checks == []
     assert analysis.test_result == 0
@@ -89,7 +89,7 @@ def test_Analysis_analyse_tests_02(stub_analyse):
 
     The covered behavior is checks with no testdata
     """
-    checks = [Check("testsuite1", "check1"), Check("testsuite2", "check2"), Check(None, "check3"), Check(None, "check4")]
+    checks = [Check("testsuite1", "testcase1", "check1"), Check("testsuite2", "testcase1", "check2"), Check("testsuite2", "testcase1", "check3"), Check("testsuite1", "testcase1", "check4")]
     testdata = []
     analysis = Analysis([], checks, testdata, None) 
 
@@ -99,7 +99,7 @@ def test_Analysis_analyse_tests_02(stub_analyse):
     assert analysis.num_failed_checks == 0
     assert analysis.check_status_by_check_id == {}
     assert analysis.testsuites == {}
-    assert analysis.no_testsuite == []
+    assert analysis.num_checks_in_testsuites == {}
     assert analysis.skipped_checks == checks
     assert analysis.unknown_checks == []
     assert analysis.test_result == 0
@@ -109,27 +109,31 @@ def test_Analysis_analyse_tests_03(stub_analyse):
     """Unit test for the analyse_tests method of the Analysis class
 
     The covered behavior is checks with testdata with:
-        * Testsuite with one check
-        * Testsuite with multiple checks
-        * Checks with no testsuite
+        * Testsuite with one testcase and one check
+        * Testsuite with one testcase and multiple checks
+        * Testsuite with multiple testcases and one check
+        * Testsuite with multiple testcases and multiple checks
         * Checks with true status
         * Checks with false status
         * Checks skipped
         * Checks unknown
     """
     checks = [ \
-        Check("testsuite1", "check1"), \
-        Check("testsuite2", "check2"), \
-        Check("testsuite2", "check3"), \
-        Check(None, "check4"), \
-        Check(None, "check5") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+        Check("testsuite3", "testcase2", "check5"), \
+        Check("testsuite4", "testcase1", "check5"), \
+        Check("testsuite4", "testcase1", "check6"), \
+        Check("testsuite4", "testcase2", "check7") \
     ]
     testdata = [ \
-        Check("testsuite1", "check1", 0, "message1"), \
-        Check("testsuite2", "check2", 1, None), \
-        Check("testsuite2", "check3", 0, "message2"), \
-        Check(None, "check4", 1, None), \
-        Check("testsuite3", "check6", 1, None) \
+        Check("testsuite1", "testcase1", "check1", 0, "message1"), \
+        Check("testsuite2", "testcase1", "check2", 1, None), \
+        Check("testsuite2", "testcase1", "check3", 0, "message2"), \
+        Check("testsuite3", "testcase1", "check4", 1, None), \
+        Check("testsuite3", "testcase2", "check9", 1, None) \
     ]
     analysis = Analysis([], checks, testdata, None) 
 
@@ -138,34 +142,48 @@ def test_Analysis_analyse_tests_03(stub_analyse):
     assert analysis.num_successfull_checks == 3
     assert analysis.num_failed_checks == 2
     assert analysis.check_status_by_check_id == { \
-        "testsuite1.check1":False, \
-        "testsuite2.check2":True, \
-        "testsuite2.check3":False, \
-        "check4":True, \
-        "testsuite3.check6":True \
+        "testsuite1.testcase1.check1":False, \
+        "testsuite2.testcase1.check2":True, \
+        "testsuite2.testcase1.check3":False, \
+        "testsuite3.testcase1.check4":True, \
+        "testsuite3.testcase2.check9":True \
     }
     assert analysis.testsuites == { \
-        "testsuite1": [ \
-            Check("testsuite1", "check1", 0, "message1") \
-        ], \
-        "testsuite2":[ \
-            Check("testsuite2", "check2", 1, None), \
-            Check("testsuite2", "check3", 0, "message2") \
-        ], \
-        "testsuite3":[ \
-            Check("testsuite3", "check6", 1, None) \
-        ] \
+        "testsuite1": { \
+            "testcase1": [ \
+                Check("testsuite1", "testcase1", "check1", 0, "message1") \
+            ], \
+        }, \
+        "testsuite2": { \
+            "testcase1": [ \
+                Check("testsuite2", "testcase1", "check2", 1, None), \
+                Check("testsuite2", "testcase1", "check3", 0, "message2") \
+            ] \
+        }, \
+        "testsuite3": { \
+            "testcase1": [ \
+                Check("testsuite3", "testcase1", "check4", 1, None) \
+            ], \
+            "testcase2": [ \
+                Check("testsuite3", "testcase2", "check9", 1, None) \
+            ] \
+        } \
     }
-    assert analysis.no_testsuite == [ \
-        Check(None, "check4", 1, None) \
-    ]
+    assert analysis.num_checks_in_testsuites == {
+        "testsuite1": 1,
+        "testsuite2": 2,
+        "testsuite3": 2
+    }
     assert analysis.skipped_checks == [ \
-        Check(None, "check5") \
+        Check("testsuite3", "testcase2", "check5"), \
+        Check("testsuite4", "testcase1", "check5"), \
+        Check("testsuite4", "testcase1", "check6"), \
+        Check("testsuite4", "testcase2", "check7") \
     ]
     assert analysis.unknown_checks == [ \
-        Check("testsuite3", "check6", 1, None)
+        Check("testsuite3", "testcase2", "check9", 1, None)
     ]
-    assert analysis.test_result == 60
+    assert analysis.test_result == 37
 
 @patch.object(Analysis, "analyse")
 def test_Analysis_analyse_traceability_01(stub_analyse):
@@ -259,16 +277,16 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("req8", "description8", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -280,9 +298,9 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         "req8": [ "D_req4" ] \
     }
     assert analysis.ids_checks_covering_reqs == { \
-        "F_req3": [ "check1" ], \
-        "D_req4": [ "check2" ], \
-        "req6": [ "check2" ] \
+        "F_req3": [ "testsuite1.testcase1.check1" ], \
+        "D_req4": [ "testsuite1.testcase1.check2" ], \
+        "req6": [ "testsuite1.testcase1.check2" ] \
     }
     assert analysis.ids_reqs_untraceable == [ \
         "req7" \
@@ -335,16 +353,16 @@ def test_Analysis_analyse_consistency_01():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -369,17 +387,17 @@ def test_Analysis_analyse_consistency_02():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2"), \
-        Check(None, "check3") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2"), \
+        Check("testsuite1", "testcase1", "check3") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -404,16 +422,16 @@ def test_Analysis_analyse_consistency_03():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3", "unknown1", "unknown2"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3", "unknown1", "unknown2"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7", "unknown3"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -438,16 +456,16 @@ def test_Analysis_analyse_consistency_04():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3", "req7"])
-    matrix.add("check2", ["D_req4", "req6", "req7"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3", "req7"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6", "req7"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -472,16 +490,16 @@ def test_Analysis_analyse_consistency_05():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3", "D_req4", "D_req4", "D_req4"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3", "D_req4", "D_req4", "D_req4"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7", "req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -509,16 +527,16 @@ def test_Analysis_analyse_consistency_06():
         Req("req7", "description8", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -543,16 +561,16 @@ def test_Analysis_analyse_consistency_07():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -577,16 +595,16 @@ def test_Analysis_analyse_consistency_08():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -611,21 +629,21 @@ def test_Analysis_analyse_consistency_09():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check1"), \
-        Check(None, "check1"), \
-        Check(None, "check2"), \
-        Check(None, "check2"), \
-        Check(None, "check3") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2"), \
+        Check("testsuite1", "testcase1", "check2"), \
+        Check("testsuite1", "testcase1", "check3") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
-    matrix.add("check3", [])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check3", [])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -651,16 +669,16 @@ def test_Analysis_analyse_consistency_10():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
