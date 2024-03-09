@@ -76,6 +76,8 @@ def test_Analysis_analyse_tests_01(stub_analyse):
 
     assert analysis.num_successfull_checks == 0
     assert analysis.num_failed_checks == 0
+    assert analysis.num_successfull_unknown_checks == 0
+    assert analysis.num_failed_unknown_checks == 0
     assert analysis.check_status_by_check_id == {}
     assert analysis.testsuites == {}
     assert analysis.num_checks_in_testsuites == {}
@@ -97,6 +99,8 @@ def test_Analysis_analyse_tests_02(stub_analyse):
 
     assert analysis.num_successfull_checks == 0
     assert analysis.num_failed_checks == 0
+    assert analysis.num_successfull_unknown_checks == 0
+    assert analysis.num_failed_unknown_checks == 0
     assert analysis.check_status_by_check_id == {}
     assert analysis.testsuites == {}
     assert analysis.num_checks_in_testsuites == {}
@@ -133,20 +137,26 @@ def test_Analysis_analyse_tests_03(stub_analyse):
         Check("testsuite2", "testcase1", "check2", 1, None), \
         Check("testsuite2", "testcase1", "check3", 0, "message2"), \
         Check("testsuite3", "testcase1", "check4", 1, None), \
-        Check("testsuite3", "testcase2", "check9", 1, None) \
+        Check("testsuite3", "testcase2", "check9", 1, None), \
+        Check("testsuite3", "testcase2", "check10", 0, "msg1"), \
+        Check("testsuite3", "testcase2", "check11", 0, "msg2") \
     ]
     analysis = Analysis([], checks, testdata, None) 
 
     analysis.analyse_tests()
 
     assert analysis.num_successfull_checks == 3
-    assert analysis.num_failed_checks == 2
+    assert analysis.num_failed_checks == 4
+    assert analysis.num_successfull_unknown_checks == 1
+    assert analysis.num_failed_unknown_checks == 2
     assert analysis.check_status_by_check_id == { \
         "testsuite1.testcase1.check1":False, \
         "testsuite2.testcase1.check2":True, \
         "testsuite2.testcase1.check3":False, \
         "testsuite3.testcase1.check4":True, \
-        "testsuite3.testcase2.check9":True \
+        "testsuite3.testcase2.check9":True, \
+        "testsuite3.testcase2.check10":False, \
+        "testsuite3.testcase2.check11":False \
     }
     assert analysis.testsuites == { \
         "testsuite1": { \
@@ -165,14 +175,16 @@ def test_Analysis_analyse_tests_03(stub_analyse):
                 Check("testsuite3", "testcase1", "check4", 1, None) \
             ], \
             "testcase2": [ \
-                Check("testsuite3", "testcase2", "check9", 1, None) \
+                Check("testsuite3", "testcase2", "check9", 1, None), \
+                Check("testsuite3", "testcase2", "check10", 0, "msg1"), \
+                Check("testsuite3", "testcase2", "check11", 0, "msg2") \
             ] \
         } \
     }
     assert analysis.num_checks_in_testsuites == {
         "testsuite1": 1,
         "testsuite2": 2,
-        "testsuite3": 2
+        "testsuite3": 4
     }
     assert analysis.skipped_checks == [ \
         Check("testsuite3", "testcase2", "check5"), \
@@ -181,7 +193,9 @@ def test_Analysis_analyse_tests_03(stub_analyse):
         Check("testsuite4", "testcase2", "check7") \
     ]
     assert analysis.unknown_checks == [ \
-        Check("testsuite3", "testcase2", "check9", 1, None)
+        Check("testsuite3", "testcase2", "check9", 1, None), \
+        Check("testsuite3", "testcase2", "check10", 0, "msg1"), \
+        Check("testsuite3", "testcase2", "check11", 0, "msg2") \
     ]
     assert analysis.test_result == 37
 
