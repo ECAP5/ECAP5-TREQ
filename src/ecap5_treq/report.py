@@ -105,7 +105,7 @@ def generate_test_report(analysis: Analysis) -> str:
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_failed_checks > 0, "#first-failed-check", str(analysis.num_failed_checks)))
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.skipped_checks) > 0, "#skipped-checks", str(len(analysis.skipped_checks))))
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(len(analysis.unknown_checks) > 0, "#unknown-checks", str(len(analysis.unknown_checks))))
-    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.checks))
+    report += "    <td align=\"right\">{}</td>\n".format(len(analysis.checks) - len(analysis.unknown_checks))
     report += "  </tr>\n"
     report += "</table>\n"
 
@@ -126,30 +126,32 @@ def generate_test_report(analysis: Analysis) -> str:
     for testsuite in analysis.testsuites:
         for i, testcase in enumerate(analysis.testsuites[testsuite]):
             for j, check in enumerate(analysis.testsuites[testsuite][testcase]):
-                check_status_icon = "✅" if check.status else "🚫"
-                report += "  <tr>\n"
-                # Insert the name of the testsuite on the first row of each test suite
-                if i == 0 and j == 0:
-                    report += "    <td rowspan=\"{}\">\n".format(analysis.num_checks_in_testsuites[testsuite])
-                    report += "      <samp>{}</samp>\n".format(testsuite)
+                # Skip checks that are unknown
+                if check not in analysis.unknown_checks:
+                    check_status_icon = "✅" if check.status else "🚫"
+                    report += "  <tr>\n"
+                    # Insert the name of the testsuite on the first row of each test suite
+                    if i == 0 and j == 0:
+                        report += "    <td rowspan=\"{}\">\n".format(analysis.num_checks_in_testsuites[testsuite])
+                        report += "      <samp>{}</samp>\n".format(testsuite)
+                        report += "    </td>\n"
+                    # Insert the name of the testcase on the first row of each testcase
+                    if j == 0:
+                        report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[testsuite][testcase]))
+                        report += "      <samp>{}</samp>\n".format(testcase)
+                        report += "    </td>\n"
+                    report += "    <td>\n"
+                    report += "      <samp>{}</samp>\n".format(check.id)
                     report += "    </td>\n"
-                # Insert the name of the testcase on the first row of each testcase
-                if j == 0:
-                    report += "    <td rowspan=\"{}\">\n".format(len(analysis.testsuites[testsuite][testcase]))
-                    report += "      <samp>{}</samp>\n".format(testcase)
+                    report += "    <td align=\"center\">\n"
+                    # Insert a specific anchor on the first failed check to easily jump to it
+                    if not check.status and not failed_test_anchor_placed:
+                        report += "      <a id=\"first-failed-check\"></a>"
+                        failed_test_anchor_placed = True
+                    report += "      {}\n".format(check_status_icon)
                     report += "    </td>\n"
-                report += "    <td>\n"
-                report += "      <samp>{}</samp>\n".format(check.id)
-                report += "    </td>\n"
-                report += "    <td align=\"center\">\n"
-                # Insert a specific anchor on the first failed check to easily jump to it
-                if not check.status and not failed_test_anchor_placed:
-                    report += "      <a id=\"first-failed-check\"></a>"
-                    failed_test_anchor_placed = True
-                report += "      {}\n".format(check_status_icon)
-                report += "    </td>\n"
-                report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
-                report += "  </tr>\n"
+                    report += "    <td>{}</td>\n".format(check.error_msg if check.error_msg else "")
+                    report += "  </tr>\n"
     report += "</table>\n"
 
     # Handle skipped checks if any
