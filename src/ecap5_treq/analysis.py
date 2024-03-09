@@ -68,6 +68,7 @@ class Analysis():
         self.user_reqs = []
         self.external_interface_reqs = []
         self.functional_reqs = []
+        self.architecture_reqs = []
         self.design_reqs = []
         self.non_functional_reqs = []
         self.other_reqs = []
