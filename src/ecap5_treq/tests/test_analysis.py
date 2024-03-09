@@ -207,6 +207,7 @@ def test_Analysis_analyse_traceability_01(stub_analyse):
     assert analysis.user_reqs == []
     assert analysis.external_interface_reqs == []
     assert analysis.functional_reqs == []
+    assert analysis.architecture_reqs == []
     assert analysis.design_reqs == []
     assert analysis.non_functional_reqs == []
     assert analysis.other_reqs == []
@@ -224,6 +225,7 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
         Req("U_req1", "description1", {}), \
         Req("I_req2", "description2", {}), \
         Req("F_req3", "description3", {}), \
+        Req("A_req7", "description7", {}), \
         Req("D_req4", "description4", {}), \
         Req("N_req5", "description5", {}), \
         Req("req6", "description6", {}) \
@@ -237,7 +239,7 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
     assert analysis.ids_reqs_untraceable == []
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
-    assert analysis.num_uncovered_reqs == 6
+    assert analysis.num_uncovered_reqs == 7
     assert analysis.user_reqs == [ \
         Req("U_req1", "description1", {}) \
     ]
@@ -246,6 +248,9 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
     ]
     assert analysis.functional_reqs == [ \
         Req("F_req3", "description3", {}) \
+    ]
+    assert analysis.architecture_reqs == [ \
+        Req("A_req7", "description7", {}) \
     ]
     assert analysis.design_reqs == [ \
         Req("D_req4", "description4", {}) \
@@ -274,7 +279,8 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
         Req("req6", "description6", {}), \
         Req("req7", "description7", {}), \
-        Req("req8", "description8", {}) \
+        Req("req8", "description8", {}), \
+        Req("A_req9", "description9", {}), \
     ]
     checks = [ \
         Check("testsuite1", "testcase1", "check1"), \
@@ -286,7 +292,7 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     ]
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
-    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6", "A_req9"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -300,12 +306,13 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     assert analysis.ids_checks_covering_reqs == { \
         "F_req3": [ "testsuite1.testcase1.check1" ], \
         "D_req4": [ "testsuite1.testcase1.check2" ], \
-        "req6": [ "testsuite1.testcase1.check2" ] \
+        "req6": [ "testsuite1.testcase1.check2" ], \
+        "A_req9" : [ "testsuite1.testcase1.check2" ] \
     }
     assert analysis.ids_reqs_untraceable == [ \
         "req7" \
     ]
-    assert analysis.num_covered_reqs == 6
+    assert analysis.num_covered_reqs == 7
     assert analysis.num_untraceable_reqs == 1
     assert analysis.num_uncovered_reqs == 1
     assert analysis.user_reqs == [ \
@@ -316,6 +323,9 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     ]
     assert analysis.functional_reqs == [ \
         Req("F_req3", "description3", {}, ReqStatus.COVERED) \
+    ]
+    assert analysis.architecture_reqs == [ \
+        Req("A_req9", "description9", {}, ReqStatus.COVERED, 100) \
     ]
     assert analysis.design_reqs == [ \
         Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}, ReqStatus.COVERED, 100) \
@@ -328,7 +338,7 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("req7", "description7", {}, ReqStatus.UNTRACEABLE), \
         Req("req8", "description8", {}, ReqStatus.COVERED), \
     ]
-    assert analysis.traceability_result == 87
+    assert analysis.traceability_result == 88
 
 def test_Analysis_analyse_consistency_01():
     """Unit test for the analyse_consistency method of the Analysis class

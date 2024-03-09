@@ -213,6 +213,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.functional_reqs))
+        filtered_architecture_reqs       = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.architecture_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.other_reqs))
@@ -238,6 +239,9 @@ def generate_traceability_report(analysis: Analysis) -> str:
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"5\"><i>Functional Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_architecture_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"5\"><i>Architecture Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"5\"><i>Design Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_design_reqs)
@@ -255,6 +259,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.functional_reqs))
+        filtered_architecture_reqs       = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.architecture_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.other_reqs))
@@ -277,6 +282,9 @@ def generate_traceability_report(analysis: Analysis) -> str:
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>Functional Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_architecture_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Architecture Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>Design Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_design_reqs)
@@ -294,6 +302,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         filtered_user_reqs               = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.user_reqs))
         filtered_external_interface_reqs = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.external_interface_reqs))
         filtered_functional_reqs         = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.functional_reqs))
+        filtered_architecture_reqs       = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.architecture_reqs))
         filtered_design_reqs             = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.design_reqs))
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.other_reqs))
@@ -316,6 +325,9 @@ def generate_traceability_report(analysis: Analysis) -> str:
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>Functional Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_functional_reqs)
+        if len(filtered_architecture_reqs) > 0:
+            report += "  <thead><tr><th colspan=\"2\"><i>Architecture Requirements</i></th></tr></thead>\n"
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"2\"><i>Design Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_design_reqs)
