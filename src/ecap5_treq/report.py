@@ -224,6 +224,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "    <tr>\n"
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
+        report += "      <th>Derived from</th>\n"
         report += "      <th>Covered by</th>\n"
         report += "      <th>Tested by</th>\n"
         report += "      <th>Test results</th>\n"
@@ -452,6 +453,11 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
         result += "      <samp><b>{}</b></samp>\n".format(req.id)
         result += "    </td>\n"
         result += "    <td valign=\"top\">{}</td>\n".format(latex_to_html(req.description))
+        # Adds the list of derived from reqs
+        if req.derived_from:
+            result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([rid for rid in req.derived_from]))
+        else:
+            result += "    <td></td>\n"
         if req.status == ReqStatus.COVERED:
             # Adds the list of covering reqs
             if req.id in analysis.ids_reqs_covering_reqs:
