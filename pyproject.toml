@@ -41,6 +41,7 @@ classifiers = [
   "Operating System :: OS Independent"
 ]
 dependencies = [
+  'Markdown ~=3.5.2'
 ]
 
 [project.optional-dependencies]
@@ -52,7 +53,6 @@ dev = [
   'pytest ~= 7.4.3',
   'pytest-cov ~= 4.1.0',
   'mock ~= 5.1.0',
-  'Markdown ~=3.5.2'
 ]
 
 [project.urls]
