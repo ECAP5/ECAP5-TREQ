@@ -19,7 +19,7 @@ In case where the matrix needs to be regenerated, providing the ``-m`` option wi
 Matrix format
 -------------
 
-The traceability matrix is a table stored as csv file. On each row, the first cell is a check and the following checks are the requirements traced to the check. An additional row marked as ``__UNTRACEABLE__`` contains requirements that shall be marked untraceable.
+The traceability matrix is a table stored as csv file. On each row, the first cell is a check and the following checks are the requirements traced to the check. A additional rows marked as ``__UNTRACEABLE__`` contain requirements that shall be marked untraceable with a justification.
 
 The following table is a representation of a sample traceability matrix :
 
@@ -43,5 +43,9 @@ The following table is a representation of a sample traceability matrix :
      -
    * - ``__UNTRACEABLE__``
      - ``req7``
+     - ``justification for req7 being untraceable``
+     -
+   * - ``__UNTRACEABLE__``
      - ``req8``
+     - ``justification for req8 being untraceable``
      -

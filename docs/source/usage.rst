@@ -90,3 +90,7 @@ The following command-line options can be provided to ECAP5-TREQ.
    .. note::
       The result is outputed to ``stdout`` if no output is provided.
 
+.. option:: --html
+
+   Flag indicating that reports shall be generated in html instead of markdown.
+
