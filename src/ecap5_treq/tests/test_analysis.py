@@ -214,7 +214,7 @@ def test_Analysis_analyse_traceability_01(stub_analyse):
 
     assert analysis.ids_reqs_covering_reqs == {}
     assert analysis.ids_checks_covering_reqs == {}
-    assert analysis.ids_reqs_untraceable == []
+    assert analysis.justif_reqs_untraceable == {}
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
     assert analysis.num_uncovered_reqs == 0
@@ -250,7 +250,7 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
 
     assert analysis.ids_reqs_covering_reqs == {}
     assert analysis.ids_checks_covering_reqs == {}
-    assert analysis.ids_reqs_untraceable == []
+    assert analysis.justif_reqs_untraceable == {}
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
     assert analysis.num_uncovered_reqs == 7
@@ -307,7 +307,7 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6", "A_req9"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
     analysis.analyse_traceability()
@@ -323,9 +323,9 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         "req6": [ "testsuite1.testcase1.check2" ], \
         "A_req9" : [ "testsuite1.testcase1.check2" ] \
     }
-    assert analysis.ids_reqs_untraceable == [ \
-        "req7" \
-    ]
+    assert analysis.justif_reqs_untraceable == { \
+        "req7": "just1" \
+    }
     assert analysis.num_covered_reqs == 7
     assert analysis.num_untraceable_reqs == 1
     assert analysis.num_uncovered_reqs == 1
@@ -387,7 +387,7 @@ def test_Analysis_analyse_consistency_01():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -422,7 +422,7 @@ def test_Analysis_analyse_consistency_02():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -456,7 +456,8 @@ def test_Analysis_analyse_consistency_03():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3", "unknown1", "unknown2"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7", "unknown3"])
+    matrix.add_untraceable("req7", "just1")
+    matrix.add_untraceable("unknown3", "just2")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -490,7 +491,7 @@ def test_Analysis_analyse_consistency_04():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3", "req7"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6", "req7"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -524,7 +525,8 @@ def test_Analysis_analyse_consistency_05():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3", "D_req4", "D_req4", "D_req4"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7", "req7"])
+    matrix.add_untraceable("req7", "just1")
+    matrix.add_untraceable("req7", "just2")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -533,6 +535,44 @@ def test_Analysis_analyse_consistency_05():
     assert len(log_error.msgs) == 0
 
 def test_Analysis_analyse_consistency_06():
+    """Unit test for the analyse_consistency method of the Analysis class
+
+    The covered behaviors are :
+        * Untraceable requirements with no justification
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}), \
+        Req("req8", "description8", {}), \
+        Req("req9", "description9", {}) \
+    ]
+    checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
+    ]
+    testdata = [ \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
+    matrix.add_untraceable("req7")
+    matrix.add_untraceable("req8", "just1")
+    matrix.add_untraceable("req9")
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    assert len(log_imp.msgs) == 0
+    assert len(log_warn.msgs) == 2
+    assert len(log_error.msgs) == 0
+
+def test_Analysis_analyse_consistency_07():
     """Unit test for the analyse_consistency method of the Analysis class
 
     The covered behaviors are :
@@ -561,7 +601,7 @@ def test_Analysis_analyse_consistency_06():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -569,7 +609,7 @@ def test_Analysis_analyse_consistency_06():
     assert len(log_warn.msgs) == 0
     assert len(log_error.msgs) == 2
 
-def test_Analysis_analyse_consistency_07():
+def test_Analysis_analyse_consistency_08():
     """Unit test for the analyse_consistency method of the Analysis class
 
     The covered behaviors are :
@@ -595,7 +635,7 @@ def test_Analysis_analyse_consistency_07():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -603,7 +643,7 @@ def test_Analysis_analyse_consistency_07():
     assert len(log_warn.msgs) == 2
     assert len(log_error.msgs) == 0
 
-def test_Analysis_analyse_consistency_08():
+def test_Analysis_analyse_consistency_09():
     """Unit test for the analyse_consistency method of the Analysis class
 
     The covered behaviors are :
@@ -629,7 +669,7 @@ def test_Analysis_analyse_consistency_08():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -637,7 +677,7 @@ def test_Analysis_analyse_consistency_08():
     assert len(log_warn.msgs) == 2
     assert len(log_error.msgs) == 0
 
-def test_Analysis_analyse_consistency_09():
+def test_Analysis_analyse_consistency_10():
     """Unit test for the analyse_consistency method of the Analysis class
 
     The covered behaviors are :
@@ -668,7 +708,7 @@ def test_Analysis_analyse_consistency_09():
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("testsuite1.testcase1.check3", [])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -677,7 +717,7 @@ def test_Analysis_analyse_consistency_09():
     assert len(log_warn.msgs) == 0
     assert len(log_error.msgs) == 2
 
-def test_Analysis_analyse_consistency_10():
+def test_Analysis_analyse_consistency_11():
     """Unit test for the analyse_consistency method of the Analysis class
 
     The covered behaviors are :
@@ -703,7 +743,7 @@ def test_Analysis_analyse_consistency_10():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
-    matrix.add("__UNTRACEABLE__", ["req7"])
+    matrix.add_untraceable("req7", "just1")
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 

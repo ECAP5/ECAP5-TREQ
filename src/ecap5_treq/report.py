@@ -274,29 +274,30 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
+        report += "      <th>Justification</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
         # Add rows for each type of untraceable requirements
         if len(filtered_user_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>User Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>User Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_user_reqs)
         if len(filtered_external_interface_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>External Interface Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>External Interface Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
         if len(filtered_functional_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>Functional Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>Functional Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_functional_reqs)
         if len(filtered_architecture_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>Architecture Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>Architecture Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>Design Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>Design Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_design_reqs)
         if len(filtered_non_functional_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>Non-Functional Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>Non-Functional Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_non_functional_reqs)
         if len(filtered_other_reqs) > 0:
-            report += "  <thead><tr><th colspan=\"3\"><i>Other Requirements</i></th></tr></thead>\n"
+            report += "  <thead><tr><th colspan=\"4\"><i>Other Requirements</i></th></tr></thead>\n"
             report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
@@ -477,5 +478,7 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
             else:
                 result += "    <td></td>\n"
                 result += "    <td></td>\n"
+        if req.status == ReqStatus.UNTRACEABLE:
+            result += "    <td valign=\"top\">{}</td>\n".format(analysis.justif_reqs_untraceable[req.id])
         result += "  </tr>\n"
     return result

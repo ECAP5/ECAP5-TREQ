@@ -66,7 +66,7 @@ class Analysis():
         self.num_uncovered_reqs = 0
         self.ids_reqs_covering_reqs = {}
         self.ids_checks_covering_reqs = {}
-        self.ids_reqs_untraceable = []
+        self.justif_reqs_untraceable = {}
         self.user_reqs = []
         self.external_interface_reqs = []
         self.functional_reqs = []
@@ -166,9 +166,7 @@ class Analysis():
                     else:
                         self.ids_checks_covering_reqs[rid] += [check.id]
         # Recover untraceable requirements
-        self.ids_reqs_untraceable = []
-        for rid in self.matrix.get("__UNTRACEABLE__"):
-            self.ids_reqs_untraceable += [rid]
+        self.justif_reqs_untraceable = self.matrix.untraceable
         
         # Set the requirement flags
         self.num_covered_reqs = 0
@@ -178,7 +176,7 @@ class Analysis():
             if (req.id in self.ids_reqs_covering_reqs) or (req.id in self.ids_checks_covering_reqs):
                 req.status = ReqStatus.COVERED
                 self.num_covered_reqs += 1
-            elif req.id in self.ids_reqs_untraceable:
+            elif req.id in self.justif_reqs_untraceable:
                 req.status = ReqStatus.UNTRACEABLE
                 self.num_untraceable_reqs += 1
             else:
@@ -253,7 +251,7 @@ class Analysis():
             log_imp("The traceability matrix is not up to date and shall be regenerated")
 
         # Checks if checks are traced to untraceable requirements
-        for rid in self.ids_reqs_untraceable:
+        for rid in self.justif_reqs_untraceable:
             if rid in self.ids_checks_covering_reqs:
                 log_warn("Requirement \"{}\" is marked untraceable but it is traced to the following tests: {}"\
                             .format(rid, ", ".join([cid for cid in self.ids_checks_covering_reqs[rid]])))
@@ -262,10 +260,10 @@ class Analysis():
         for cid in self.matrix.data:
             for rid in self.matrix.get(cid):
                 if rid not in reqs_ids:
-                    if cid == "__UNTRACEABLE__":
-                        log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid))
-                    else:
-                        log_warn("Missing requirement \"{}\" traced to check \"{}\" in the matrix".format(rid, cid))
+                    log_warn("Missing requirement \"{}\" traced to check \"{}\" in the matrix".format(rid, cid))
+        for rid in self.matrix.untraceable:
+            if rid not in reqs_ids:
+                log_warn("Missing requirement \"{}\" marked untraceable in the matrix".format(rid))
 
         # Check if the same requirement is traced multiple times to the same check
         for cid in self.matrix.data:
@@ -274,10 +272,13 @@ class Analysis():
 
             if len(duplicate_reqs) > 0:
                 for rid in duplicate_reqs:
-                    if cid == "__UNTRACEABLE__":
-                        log_warn("Requirement \"{}\" is marked untraceable multiple times".format(rid))
-                    else:
-                        log_warn("Requirement \"{}\" is traced multiple times to the same test \"{}\"".format(rid, cid))
+                    log_warn("Requirement \"{}\" is traced multiple times to the same test \"{}\"".format(rid, cid))
+        # Duplicate untraceable requirements are checks when created the matrix
+
+        # Check if there is any missing justification for untraceable requirements
+        for rid in self.matrix.untraceable:
+            if len(self.matrix.untraceable[rid]) == 0:
+                log_warn("Missing justification for untraceable requirement \"{}\"".format(rid))
 
         ###################################################
         #              Check reqs                         #

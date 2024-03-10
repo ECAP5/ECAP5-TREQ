@@ -210,7 +210,12 @@ def test_generate_traceability_report_01():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_cov3"])
     matrix.add("testsuite1.testcase1.check2", ["D_cov4", "N_cov5", "A_cov6"])
-    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5", "A_untra6"])
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
+    matrix.add_untraceable("A_untra6", "just6");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -235,7 +240,16 @@ def test_generate_traceability_report_02():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["F_cov3"])
     matrix.add("testsuite1.testcase1.check2", ["D_cov4", "cov6", "N_cov5"])
-    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5", "untra6"])
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -267,7 +281,7 @@ def test_generate_traceability_report_03():
     matrix = Matrix()
     matrix.add("testsuite1.testcase1.check1", ["cov1"])
     matrix.add("testsuite1.testcase1.check2", [])
-    matrix.add("__UNTRACEABLE__", ["untra2"])
+    matrix.add_untraceable("untra2", "just2");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 

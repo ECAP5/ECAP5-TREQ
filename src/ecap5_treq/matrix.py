@@ -25,6 +25,8 @@ import io
 from ecap5_treq.check import Check
 from ecap5_treq.req import Req
 
+from ecap5_treq.log import log_warn
+
 class Matrix:
     """A Matrix contains the traceability data between checks and requirements
     """
@@ -36,6 +38,7 @@ class Matrix:
         :type: path: str
         """
         self.data = {}
+        self.untraceable = {}
         if path:
             self.read(path)
 
@@ -49,14 +52,24 @@ class Matrix:
         :rtype: Matrix
         """
         self.data = {}
+        self.untraceable = {}
         with open(path, newline='', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar='|')
             for row in reader:
-                # keep the content of the row if it was filled in
-                if len(row) > 1:
-                    self.data[row[0]] = row[1:]
+                if row[0] == "__UNTRACEABLE__":
+                    if len(row) > 1:
+                        if row[1] in self.untraceable:
+                            log_warn("Requirement \"{}\" is marked untraceable multiple times".format(row[1]))
+                        if len(row) == 2:
+                            # No justification provided
+                            self.untraceable[row[1]] = ""
+                        else:
+                            self.untraceable[row[1]] = row[2]
                 else:
-                    self.data[row[0]] = []
+                    if len(row) > 1:
+                        self.data[row[0]] = row[1:]
+                    else:
+                        self.data[row[0]] = []
 
     def check(self, checks: list[Check]) -> bool:
         """Checks if the checks in the matrix are strictly equal to the checks provided as parameter
@@ -67,7 +80,7 @@ class Matrix:
         :returns: a boolean indicating the result of the comparison
         :rtype: bool
         """
-        check_ids = [c.id for c in checks] + ["__UNTRACEABLE__"]
+        check_ids = [c.id for c in checks]
         matrix_ids = list(self.data.keys())
 
         check_ids.sort()
@@ -85,6 +98,19 @@ class Matrix:
         :type traced_reqs: list[Req]
         """
         self.data[check_id] = traced_reqs
+
+    def add_untraceable(self, rid: str, justification: str = "") -> None:
+        """Adds untraceable traceability data to the matrix
+
+        :param rid: untraceable requirement id
+        :type rid: str
+
+        :param justification: untraceable requirement justification
+        :type justification: str
+        """
+        if rid in self.untraceable:
+            log_warn("Requirement \"{}\" is marked untraceable multiple times".format(rid))
+        self.untraceable[rid] = justification
 
     def get(self, check_id: str) -> list[Req]:
         """Return the requirements traced to check_id
@@ -119,8 +145,10 @@ class Matrix:
         """
         result = io.StringIO()
         writer = csv.writer(result, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for check_id in self.data:
-            writer.writerow([check_id] + self.data[check_id])
+        for cid in self.data:
+            writer.writerow([cid] + self.data[cid])
+        for rid in self.untraceable:
+            writer.writerow(["__UNTRACEABLE__", rid, self.untraceable[rid]])
         return result.getvalue()
 
     def __repr__(self):
@@ -146,7 +174,8 @@ class Matrix:
         :rtype: bool
         """
         return (isinstance(other, Matrix) and \
-                self.data == other.data)
+                self.data == other.data and \
+                self.untraceable == other.untraceable)
 
 
 def prepare_matrix(checks: list[Check], previous_matrix: Matrix) -> Matrix:
@@ -168,6 +197,9 @@ def prepare_matrix(checks: list[Check], previous_matrix: Matrix) -> Matrix:
     for check in checks:
         # write the check and add the previous matrix content if there was any
         matrix.add(check.id, previous_matrix.get(check.id))
-    # add a row at the end for requirements that cannot be traced
-    matrix.add("__UNTRACEABLE__", previous_matrix.get("__UNTRACEABLE__"))
+
+    if previous_matrix.untraceable:
+        # add previous untraceable requirements
+        for rid in previous_matrix.untraceable:
+            matrix.add_untraceable(rid, previous_matrix.untraceable[rid])
     return matrix
