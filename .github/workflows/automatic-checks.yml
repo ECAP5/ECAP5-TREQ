@@ -15,11 +15,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -41,7 +41,7 @@ jobs:
     - name: Save cache
       id: cache-dependencies-save
       if: ${{ steps.cache-dependencies-restore.outputs.cache-hit != 'true' }}
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -51,11 +51,11 @@ jobs:
     needs: prepare
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -73,11 +73,11 @@ jobs:
     needs: lint
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -92,7 +92,7 @@ jobs:
 
     - name: Save coverage data in cache
       id: cache-coverage-data-save
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4.0.1
       with:
         path: ${{ github.workspace }}/.coverage
         key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
@@ -102,11 +102,11 @@ jobs:
     needs: tests
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -116,7 +116,7 @@ jobs:
 
     - name: Restore cached coverage data
       id: cache-coverage-data-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/.coverage
         key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
@@ -135,7 +135,7 @@ jobs:
 
     - name: Upload coverage report
       if: ${{ always() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: ${{env.COVERAGE_REPORT_ARTIFACT_NAME}}
         path: ${{github.workspace}}/htmlcov
@@ -145,11 +145,11 @@ jobs:
     needs: prepare
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4.0.1
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -160,7 +160,7 @@ jobs:
     - name: Generate documentation
       run: make -C ${{github.workspace}}/docs/ html SPHINXOPTS="-W --keep-going"
 
-    - uses: actions/upload-pages-artifact@v2
+    - uses: actions/upload-pages-artifact@v3.0.1
       with: 
         name: ${{env.DOCUMENTATION_ARTIFACT_NAME}}
         path: ${{github.workspace}}/docs/build/html
@@ -180,7 +180,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-    - uses: actions/deploy-pages@v2
+    - uses: actions/deploy-pages@v4.0.4
       id: deployment
       with:
         artifact_name: ${{env.DOCUMENTATION_ARTIFACT_NAME}}
