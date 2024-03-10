@@ -85,37 +85,35 @@ def test_Req_constructor_01():
     assert req.id == "req1_foo"
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
-    assert req.derived_from == "req2"
+    assert req.derived_from == ["req2"]
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2", "req3"]})
     assert req.id == "req1_foo"
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
-    assert req.derived_from == "req2"
+    assert req.derived_from == ["req2", "req3"]
     assert req.result == 0
-    # An error is raised when multiple values are given in option derivedFrom
-    assert len(log_error.msgs) == 1
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]})
     assert req.id == "req1_foo"
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
-    assert req.derived_from == "req2"
+    assert req.derived_from == ["req2"]
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]}, ReqStatus.COVERED)
     assert req.id == "req1_foo"
     assert req.description == "description"
     assert req.status == ReqStatus.COVERED
-    assert req.derived_from == "req2"
+    assert req.derived_from == ["req2"]
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]}, ReqStatus.COVERED, 85)
     assert req.id == "req1_foo"
     assert req.description == "description"
     assert req.status == ReqStatus.COVERED
-    assert req.derived_from == "req2"
+    assert req.derived_from == ["req2"]
     assert req.result == 85
 
 def test_Req_to_str():
@@ -132,7 +130,7 @@ def test_Req_to_str():
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     req.to_str()
 
-    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]})
+    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
     req.to_str()
 
 def test_Req___repr__():
@@ -149,11 +147,11 @@ def test_Req___repr__():
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     repr(req)
 
-    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]})
+    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
     repr(req)
 
-def test_Req_to_str():
-    """Unit test for the __repr__ method of the Req class
+def test_Req___str__():
+    """Unit test for the __str__ method of the Req class
 
     There are no specific checks performed on the output string. The test only runs the function to check for exceptions.
     """
@@ -166,29 +164,33 @@ def test_Req_to_str():
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     str(req)
 
-    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]})
+    req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
     str(req)
 
 def test_Req___eq__():
     """Unit test for the __eq__ method of the Req class
     """
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
-    other = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
     assert req == other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
-    other = Req("req2", "description1", {"derivedfrom": ["dreq1"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    other = Req("req2", "description1", {"derivedfrom": ["dreq1", "req2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
-    other = Req("req1", "description2", {"derivedfrom": ["dreq1"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    other = Req("req1", "description2", {"derivedfrom": ["dreq1", "req2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
-    other = Req("req1", "description1", {"derivedfrom": ["dreq2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq2", "req2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req1"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    assert req != other
+
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
     other = "foo"
     assert req != other
 
@@ -230,13 +232,15 @@ def test_import_reqs_03(stub_glob, stub_open):
         * Req without option
         * Req with options
     """
-    stubbed_glob.file_list = ["file1", "file2"]
+    stubbed_glob.file_list = ["file1", "file2", "file3"]
     stubbed_open.file_contents["file1"] = """
         \\req{req1}{description1}
 
         \\req{req2}{
             description2
         }
+
+        \\reqponpon{req}{des}
     """
     stubbed_open.file_contents["file2"] = """
         \\req{req3}{description3}
@@ -245,9 +249,14 @@ def test_import_reqs_03(stub_glob, stub_open):
             description4
         }[option1=content1, derivedfrom=req1]
     """
+    stubbed_open.file_contents["file3"] = """
+        \\req{req5}{
+            description5
+        }[option1=content1, derivedfrom={req1, req2}]
+    """
     reqs = import_reqs("path")
 
-    assert len(reqs) == 4
+    assert len(reqs) == 5
     assert reqs[0].id == "req1"
     assert reqs[0].description == "description1"
     assert reqs[0].derived_from == None
@@ -262,7 +271,11 @@ def test_import_reqs_03(stub_glob, stub_open):
 
     assert reqs[3].id == "req4"
     assert reqs[3].description == "description4"
-    assert reqs[3].derived_from == "req1"
+    assert reqs[3].derived_from == ["req1"]
+
+    assert reqs[4].id == "req5"
+    assert reqs[4].description == "description5"
+    assert reqs[4].derived_from == ["req1", "req2"]
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)

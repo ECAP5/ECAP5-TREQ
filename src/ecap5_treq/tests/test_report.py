@@ -76,16 +76,16 @@ def test_generate_report_summary():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase2", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite2", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite2", "testcase2", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite2.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -96,8 +96,6 @@ def test_generate_test_report_01():
     """Unit test for the generate_test_report function
 
     The covered behaviors are:
-        * Checks with testsuite
-        * Checks without testsuites
         * No Skipped checks
         * No Unknown checks
 
@@ -110,25 +108,26 @@ def test_generate_test_report_01():
         Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
         Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
         Req("req6", "description6", {}), \
-        Req("req7", "description7", {}) \
+        Req("req7", "description7", {}), \
+        Req("A_req8", "description8", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check("testsuite1", "check2"), \
-        Check("testsuite1", "check3"), \
-        Check(None, "check4") \
+        Check("testsuite2", "testcase1", "check1"), \
+        Check("testsuite1", "testcase2", "check2"), \
+        Check("testsuite1", "testcase2", "check3"), \
+        Check("testsuite2", "testcase1", "check4") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check("testsuite1", "check2", 1, "msg1"), \
-        Check("testsuite1", "check3", 0, "msg1"), \
-        Check(None, "check4", 1), \
+        Check("testsuite2", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase2", "check2", 1, "msg1"), \
+        Check("testsuite1", "testcase2", "check3", 0, "msg1"), \
+        Check("testsuite2", "testcase1", "check4", 1), \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("testsuite1.check2", ["D_req4", "req6"])
-    matrix.add("testsuite1.check3", ["D_req4", "req6"])
-    matrix.add("check4", [])
+    matrix.add("testsuite2.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase2.check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase2.check3", ["D_req4", "req6"])
+    matrix.add("testsuite2.testcase1.check4", [])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -151,17 +150,18 @@ def test_generate_test_report_02():
         Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
         Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
         Req("req6", "description6", {}), \
-        Req("req7", "description7", {}) \
+        Req("req7", "description7", {}), \
+        Req("A_req8", "description8", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check("testsuite1", "unknown") \
+        Check("testsuite2", "testcase1", "check1"), \
+        Check("testsuite1", "testcase2", "unknown") \
     ]
     testdata = [ \
-        Check(None, "unknown1", 1, "msg1") \
+        Check("testsuite3", "testcase3", "unknown1", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
+    matrix.add("testsuite2.testcase1.check1", ["F_req3"])
     matrix.add("testsuite1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
@@ -185,29 +185,37 @@ def test_generate_traceability_report_01():
         Req("F_cov3", "description3", {}), \
         Req("D_cov4", "description4", {"derivedfrom": ["I_cov2"]}), \
         Req("N_cov5", "description5", {"derivedfrom": ["I_cov2"]}), \
+        Req("A_cov6", "description6", {}), \
         Req("U_untra1", "description1", {}), \
         Req("I_untra2", "description2", {}),
         Req("F_untra3", "description3", {}), \
         Req("D_untra4", "description4", {}),
         Req("N_untra5", "description5", {}),
+        Req("A_untra6", "description6", {}), \
         Req("U_uncov1", "description1", {}), \
         Req("I_uncov2", "description2", {}), \
         Req("F_uncov3", "description3", {}), \
         Req("D_uncov4", "description4", {}), \
         Req("N_uncov5", "description5", {}), \
+        Req("A_uncov6", "description6", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_cov3"])
-    matrix.add("check2", ["D_cov4", "N_cov5"])
-    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5"])
+    matrix.add("testsuite1.testcase1.check1", ["F_cov3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_cov4", "N_cov5", "A_cov6"])
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
+    matrix.add_untraceable("A_untra6", "just6");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -222,17 +230,26 @@ def test_generate_traceability_report_02():
     """
     reqs = []
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_cov3"])
-    matrix.add("check2", ["D_cov4", "cov6", "N_cov5"])
-    matrix.add("__UNTRACEABLE__", ["U_untra1", "I_untra2", "F_untra3", "D_untra4", "N_untra5", "untra6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_cov3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_cov4", "cov6", "N_cov5"])
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
+    matrix.add_untraceable("U_untra1", "just1");
+    matrix.add_untraceable("I_untra2", "just2");
+    matrix.add_untraceable("F_untra3", "just3");
+    matrix.add_untraceable("D_untra4", "just4");
+    matrix.add_untraceable("N_untra5", "just5");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -254,17 +271,17 @@ def test_generate_traceability_report_03():
         Req("uncov3", "description3", {}), \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["cov1"])
-    matrix.add("check2", [])
-    matrix.add("__UNTRACEABLE__", ["untra2"])
+    matrix.add("testsuite1.testcase1.check1", ["cov1"])
+    matrix.add("testsuite1.testcase1.check2", [])
+    matrix.add_untraceable("untra2", "just2");
 
     analysis = Analysis(reqs, checks, testdata, matrix)
 
@@ -285,16 +302,16 @@ def test_generate_test_result_badge():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -316,16 +333,16 @@ def test_generate_traceability_result_badge():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
-    matrix.add("check1", ["F_req3"])
-    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6"])
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
@@ -379,12 +396,12 @@ def test_req_list_to_table_rows():
         Req("req7", "description7", {}) \
     ]
     checks = [ \
-        Check(None, "check1"), \
-        Check(None, "check2") \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
     ]
     testdata = [ \
-        Check(None, "check1", 0, "msg1"), \
-        Check(None, "check2", 1, "msg1") \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
     ]
     matrix = Matrix()
     matrix.add("check1", ["F_req3"])

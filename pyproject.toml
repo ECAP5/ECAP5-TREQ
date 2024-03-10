@@ -27,7 +27,7 @@ requires = [
 
 [project]
 name = "ECAP5-TREQ"
-version = "0.1.0"
+version = "2.0.0"
 authors = [
   { name = "Clément Chaine", email="clement.chaine25@gmail.com" }
 ]
@@ -41,6 +41,7 @@ classifiers = [
   "Operating System :: OS Independent"
 ]
 dependencies = [
+  'Markdown ~=3.5.2'
 ]
 
 [project.optional-dependencies]
@@ -51,7 +52,7 @@ dev = [
   'pylint ~= 3.0.3',
   'pytest ~= 7.4.3',
   'pytest-cov ~= 4.1.0',
-  'mock ~= 5.1.0'
+  'mock ~= 5.1.0',
 ]
 
 [project.urls]
