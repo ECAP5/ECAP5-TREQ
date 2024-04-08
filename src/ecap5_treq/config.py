@@ -26,6 +26,8 @@ import os
 from ecap5_treq.log import log_error
 
 class SpecFormat:
+    """A SpecFormat details the specification language format
+    """
     RST = "RST"
     TEX = "TEX"
 
@@ -86,6 +88,8 @@ class Config:
                     self.data[key] = path_to_abs_path(self.data[key], self.path)
 
     def defaults(self) -> None:
+        """Initializes mandatory configuration fields
+        """
         self.set("spec_format", SpecFormat.TEX)
 
     def get(self, key: str) -> str:

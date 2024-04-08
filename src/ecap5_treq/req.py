@@ -106,7 +106,17 @@ class Req:
                 self.result == other.result)
 
 def import_reqs(path: str, spec_format: SpecFormat) -> list[Req]:
-    print(spec_format)
+    """Imports reqs from the specification source files
+
+    :param path: path to the root of the specification source files
+    :type path: str
+
+    :param spec_format: language format of the specification
+    :type spec_format: SpecFormat
+
+    :returns: a list of checks from the specification source files
+    :rtype: list[Req]
+    """
     match spec_format:
         case SpecFormat.RST:
             return rst_import_reqs(path)
