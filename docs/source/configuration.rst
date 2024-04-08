@@ -11,7 +11,8 @@ For example:
       "spec_dir_path": "relative/path1",
       "test_dir_path": "relative/path2",
       "testdata_dir_path": "/absolute/path1",
-      "matrix_path": "/absolute/path2.csv"
+      "matrix_path": "/absolute/path2.csv",
+      "spec_format": "RST"
    }
 
 Configuration options
@@ -54,8 +55,18 @@ The following options are allowed in the configuration of ECAP5-TREQ.
 
 .. confval:: matrix_path
 
-   Specified the path to the traceability matrix file.
+   Specifies the path to the traceability matrix file.
 
    :type: string path
    :required: Yes
 
+.. confval:: spec_format
+
+   Specifies the language format of the specification source files.
+
+   The following values are supported :
+     - :code:`RST`: reStructuredText / Sphinx
+     - :code:`TEX`: LaTeX
+
+   :type: string spec_format
+   :required: Yes
