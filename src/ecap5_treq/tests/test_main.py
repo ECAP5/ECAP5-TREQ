@@ -850,3 +850,20 @@ def test_main_10(stub_Config___init__, stub_Config_set_path, stub_Config_set):
             call("matrix_path", "path5") \
         ], any_order=True)
         stub_Config_set.assert_has_calls([call("output", "path6"), call("html", False)])
+
+@patch("ecap5_treq.main.cmd_gen_report")
+@patch.object(Config, "set")
+@patch.object(Config, "set_path")
+@patch.object(Config, "__init__", return_value=None)
+def test_main_11(stub_Config___init__, stub_Config_set_path, stub_Config_set, stub_cmd_gen_report):
+    """Unit test for the main function
+
+    The covered behavior is gen_report command
+    """
+    args = ["ecap5-treq", "-c", "path1", "--spec-format", "RST", "gen_report"]
+    with patch.object(sys, 'argv', args):
+        main()
+        stub_Config___init__.assert_called_once_with("path1")
+        stub_Config_set_path.assert_not_called()
+        stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("html", False)])
+        stub_cmd_gen_report.assert_called_once()

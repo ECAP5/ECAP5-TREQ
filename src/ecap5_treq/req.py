@@ -154,13 +154,18 @@ def rst_import_reqs(path: str) -> list[Req]:
                 cur += 1
                 continue
 
-            print(lines[cur])
-
             cur, id      = rst_process_id(cur, lines)
             cur          = rst_skip_empty_lines(cur, lines)
             cur, options = rst_process_options(cur, lines)
             cur          = rst_skip_empty_lines(cur, lines)
             cur, desc    = rst_process_desc(cur, lines)
+
+            if len(id) == 0:
+                log_error("Missing id for requirement")
+                # The program is interrupted here as this is a critical error
+                sys.exit(-1)
+            if len(("".join(desc.split("\n"))).strip()) == 0:
+                log_warn("Missing description for requirement: \"{}\"".format(id))
 
             reqs += [Req(id, desc, options)]
             print(Req(id, desc, options))
@@ -212,17 +217,37 @@ def rst_process_options(cur: int, lines: list[str]) -> tuple[int, dict[str, list
     """
     optdict = {}
     # loop while there are options
-    while (":rationale:" in lines[cur]) or (":derivedfrom:" in lines[cur]):
+    done = False
+    while not done:
+        cur = rst_skip_empty_lines(cur, lines)
+
         line = lines[cur]
+
+        # skip tab
+        i = 0
+        while i < len(line) and line[i] == " ":
+            i += 1
+
+        # if no more option
+        if line[i] != ':':
+            done = True
+            continue
+
+        # skip :
+        i += 1
+
         optid = ""
+        # go to next :
+        while i < len(line) and line[i] != ":":
+            optid += line[i]
+            i += 1
+
+        # skip :
+        i += 1
+
         optval = ""
-        if ":rationale:" in line:
-            optid = "rationale"
-            optval = line.split(":rationale:")[1].strip()
-        if ":derivedfrom:" in line:
-            optid = "derivedfrom"
-            # A dict of all derivedfrom requirements is created
-            optval = [x.strip() for x in line.split(":derivedfrom:")[1].split(",")]
+        optval = [x.strip() for x in line[i:].split(",")]
+
         optdict[optid] = optval
         cur += 1
     return (cur, optdict)
