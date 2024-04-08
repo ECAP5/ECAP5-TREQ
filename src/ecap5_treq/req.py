@@ -26,6 +26,7 @@ import re
 import glob
 
 from ecap5_treq.log import log_error, log_warn
+from ecap5_treq.config import SpecFormat
 
 class ReqStatus:
     """A ReqStatus details the traceability status of requirements
@@ -104,8 +105,203 @@ class Req:
                 self.status == other.status and \
                 self.result == other.result)
 
-def import_reqs(path: str) -> list[Req]:
+def import_reqs(path: str, spec_format: SpecFormat) -> list[Req]:
     """Imports reqs from the specification source files
+
+    :param path: path to the root of the specification source files
+    :type path: str
+
+    :param spec_format: language format of the specification
+    :type spec_format: SpecFormat
+
+    :returns: a list of checks from the specification source files
+    :rtype: list[Req]
+    """
+    match spec_format:
+        case SpecFormat.RST:
+            return rst_import_reqs(path)
+        case SpecFormat.TEX:
+            return tex_import_reqs(path)
+        case _:
+            log_error("Unknown specification format: {}".format(spec_format))
+            # The program is interrupted here as this is a critical error
+            sys.exit(-1)
+
+#
+# rst parsing
+#
+
+def rst_import_reqs(path: str) -> list[Req]:
+    """Imports reqs from the specification rst source files
+
+    :param path: path to the root of the specification source files
+    :type path: str
+
+    :returns: a list of checks from the specification source files
+    :rtype: list[Req]
+    """
+    reqs = []
+    # Get the list of specification source files
+    files = glob.glob(path + "/**/*.rst", recursive=True)
+    for file in files:
+        # Get the content of the specification source file
+        lines = [l[:-1] for l in open(file, encoding="utf-8")]
+        cur = 0
+        while cur < len(lines):
+            matches = list(re.finditer(r"\.\.\s*requirement::", lines[cur]))
+
+            if len(matches) == 0:
+                cur += 1
+                continue
+
+            cur, id      = rst_process_id(cur, lines)
+            cur          = rst_skip_empty_lines(cur, lines)
+            cur, options = rst_process_options(cur, lines)
+            cur          = rst_skip_empty_lines(cur, lines)
+            cur, desc    = rst_process_desc(cur, lines)
+
+            if len(id) == 0:
+                log_error("Missing id for requirement")
+                # The program is interrupted here as this is a critical error
+                sys.exit(-1)
+            if len(("".join(desc.split("\n"))).strip()) == 0:
+                log_warn("Missing description for requirement: \"{}\"".format(id))
+
+            reqs += [Req(id, desc, options)]
+            print(Req(id, desc, options))
+    return reqs
+
+def rst_process_id(cur: int, lines: list[str]) -> tuple[int, str]:
+    """Processes the requirement id from the requirement directive line
+
+    :param cur: pointer to the content's current line being processed
+    :type cur: int
+
+    :param lines: list of lines to process 
+    :type lines: list[str]
+
+    :returns: a tuple with both the incremented cur and the processed id
+    :rtype: tuple[int, str]
+    """
+    line = lines[cur]
+    # Move to the beginning of the id
+    i = 0
+    while line[i] != ":":
+        i += 1
+    i += 2
+
+    # Extract the id up to the end of the line
+    id = ""
+    while i < len(line):
+        id += line[i]
+        i += 1
+    
+    id = id.strip()
+
+    # Move to the next line
+    cur += 1
+
+    return (cur, id)
+
+def rst_process_options(cur: int, lines: list[str]) -> tuple[int, dict[str, list[str]]]:
+    """Processes the options if any
+
+    :param cur: pointer to the content's current line being processed
+    :type cur: int
+
+    :param lines: list of lines to process 
+    :type lines: list[str]
+
+    :returns: a tuple with both the incremented cur and the processed options
+    :rtype: tuple[int, dict[str, list[str]]]
+    """
+    optdict = {}
+    # loop while there are options
+    done = False
+    while not done:
+        cur = rst_skip_empty_lines(cur, lines)
+
+        line = lines[cur]
+
+        # skip tab
+        i = 0
+        while i < len(line) and line[i] == " ":
+            i += 1
+
+        # if no more option
+        if line[i] != ':':
+            done = True
+            continue
+
+        # skip :
+        i += 1
+
+        optid = ""
+        # go to next :
+        while i < len(line) and line[i] != ":":
+            optid += line[i]
+            i += 1
+
+        # skip :
+        i += 1
+
+        optval = ""
+        optval = [x.strip() for x in line[i:].split(",")]
+
+        optdict[optid] = optval
+        cur += 1
+    return (cur, optdict)
+
+def rst_process_desc(cur: int, lines: list[str]) -> tuple[int, str]:
+    """Processes the description
+
+    :param cur: pointer to the content's current line being processed
+    :type cur: int
+
+    :param lines: list of lines to process 
+    :type lines: list[str]
+
+    :returns: a tuple with both the incremented cur and the processed description
+    :rtype: tuple[int, str]
+    """
+    desc = []
+    # While the line is either empty of there are tabs
+    while cur < len(lines) and (len(lines[cur]) == 0 or (lines[cur][0] == " ")):
+        desc += [lines[cur]]
+        cur += 1
+
+    # Remove the empty trailing lines
+    i = len(desc)-1
+    while i > 0 and desc[i].strip() == "":
+        i -= 1
+    desc = [x.strip() for x in desc[0:i+1]]
+
+    desc = "\n".join(desc)
+    return (cur, desc)
+
+def rst_skip_empty_lines(cur: int, lines: list[str]) -> int:
+    """Advances the cursor to the next non-empty line
+
+    :param cur: pointer to the content's current line being processed
+    :type cur: int
+
+    :param lines: list of lines to process 
+    :type lines: list[str]
+
+    :returns: the incremented cursor
+    :rtype: tuple[int, str]
+    """
+    while lines[cur].strip() == "":
+        cur += 1
+
+    return cur
+
+#
+# tex parsing
+#
+
+def tex_import_reqs(path: str) -> list[Req]:
+    """Imports reqs from the specification latex source files
 
     :param path: path to the root of the specification source files
     :type path: str
@@ -125,10 +321,10 @@ def import_reqs(path: str) -> list[Req]:
             #
             #     \req{<id>}{<description>}[<options>]
             #         1     2              3         4
-            cur = process_keyword(i, content)                                 # Go to 1
-            cur, id          = process_matching_token(cur, content, "{", "}") # Go from 1 to 2
-            cur, description = process_matching_token(cur, content, "{", "}") # Go from 2 to 3
-            cur, options     = process_matching_token(cur, content, "[", "]") # Go from 3 to 4
+            cur = tex_process_keyword(i, content)                                 # Go to 1
+            cur, id          = tex_process_matching_token(cur, content, "{", "}") # Go from 1 to 2
+            cur, description = tex_process_matching_token(cur, content, "{", "}") # Go from 2 to 3
+            cur, options     = tex_process_matching_token(cur, content, "[", "]") # Go from 3 to 4
 
             if len(id) == 0:
                 log_error("Missing id for requirement: \"{}\"".format(content[i:cur]))
@@ -140,13 +336,13 @@ def import_reqs(path: str) -> list[Req]:
             # convert the options string to a dictionary
             options_dict = None
             if options:
-                options_dict = process_options(options)
+                options_dict = tex_process_options(options)
 
             reqs += [Req(id, description, options_dict)]
     return reqs
 
-def process_keyword(cur: int, content: str) -> int:
-    """Increments cur to point to the char following the next curly bracket in content
+def tex_process_keyword(cur: int, content: str) -> int:
+    """Increments cur to point to the char following the next curly bracket in latex content
 
     :param cur: pointer to a char in content
     :type cur: int
@@ -168,8 +364,8 @@ def process_keyword(cur: int, content: str) -> int:
 
     return cur
 
-def process_matching_token(cur: int, content: str, opening_token: str, closing_token: str) -> tuple[int, str]:
-    """Recovers a string containined in matching tokens provided as parameters
+def tex_process_matching_token(cur: int, content: str, opening_token: str, closing_token: str) -> tuple[int, str]:
+    """Recovers a string containined in matching tokens provided as parameters for latex specification
 
     :param cur: pointer to the starting char in content
     :type cur: int
@@ -213,8 +409,8 @@ def process_matching_token(cur: int, content: str, opening_token: str, closing_t
     result = result[:-1]
     return (cur, result.strip())
 
-def process_options(options: str) -> dict[str, list[str]]:
-    """Converts the options string to a dictionary
+def tex_process_options(options: str) -> dict[str, list[str]]:
+    """Converts the latex options string to a dictionary
 
     :param options: the options string
     :type options: str

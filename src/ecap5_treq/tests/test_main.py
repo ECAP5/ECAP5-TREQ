@@ -102,7 +102,7 @@ class MockConfig:
 # Stub side_effect definitions
 #
 
-def stubbed_import_reqs(path):
+def stubbed_import_reqs(path, spec_format):
     return stubbed_import_reqs.reqs
 
 def stubbed_import_checks(path):
@@ -140,7 +140,7 @@ def test_cmd_print_reqs(stub_import_reqs, stub_print):
 
     cmd_print_reqs(config)
 
-    stub_import_reqs.assert_called_once_with("path")
+    stub_import_reqs.assert_called_once_with("path", "TEX")
 
     stub_print.assert_has_calls([call(r) for r in stubbed_import_reqs.reqs])
 
@@ -306,7 +306,7 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -373,7 +373,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -440,7 +440,7 @@ def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -501,7 +501,7 @@ def test_cmd_gen_test_result_badge_01(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -559,7 +559,7 @@ def test_cmd_gen_test_result_badge_02(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -617,7 +617,7 @@ def test_cmd_gen_traceability_result_badge_01(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -675,7 +675,7 @@ def test_cmd_gen_traceability_result_badge_02(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -850,3 +850,20 @@ def test_main_10(stub_Config___init__, stub_Config_set_path, stub_Config_set):
             call("matrix_path", "path5") \
         ], any_order=True)
         stub_Config_set.assert_has_calls([call("output", "path6"), call("html", False)])
+
+@patch("ecap5_treq.main.cmd_gen_report")
+@patch.object(Config, "set")
+@patch.object(Config, "set_path")
+@patch.object(Config, "__init__", return_value=None)
+def test_main_11(stub_Config___init__, stub_Config_set_path, stub_Config_set, stub_cmd_gen_report):
+    """Unit test for the main function
+
+    The covered behavior is gen_report command
+    """
+    args = ["ecap5-treq", "-c", "path1", "--spec-format", "RST", "gen_report"]
+    with patch.object(sys, 'argv', args):
+        main()
+        stub_Config___init__.assert_called_once_with("path1")
+        stub_Config_set_path.assert_not_called()
+        stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("html", False)])
+        stub_cmd_gen_report.assert_called_once()

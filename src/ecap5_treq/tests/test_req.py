@@ -25,7 +25,7 @@ from mock import patch, Mock, mock_open, call
 import pytest
 import io
 
-from ecap5_treq.req import Req, ReqStatus, import_reqs, process_keyword, process_matching_token, process_options
+from ecap5_treq.req import Req, ReqStatus, import_reqs, rst_import_reqs, tex_import_reqs, tex_process_keyword, tex_process_matching_token, tex_process_options
 from ecap5_treq.log import log_error, log_warn, log_clear
 
 #
@@ -198,20 +198,49 @@ def test_Req___eq__():
 # Tests targetting functions in req module
 #
 
+@patch("ecap5_treq.req.rst_import_reqs", return_value=["val"])
+def test_import_reqs_01(stub_rst_import_reqs):
+    """Unit test for the import_reqs function
+
+    The covered behavior is RST format
+    """
+    reqs = import_reqs("path1", "RST")
+    stub_rst_import_reqs.assert_called_once_with("path1")
+    assert reqs == ["val"]
+
+@patch("ecap5_treq.req.tex_import_reqs", return_value=["val"])
+def test_import_reqs_02(stub_tex_import_reqs):
+    """Unit test for the import_reqs function
+
+    The covered behavior is TEX format
+    """
+    reqs = import_reqs("path1", "TEX")
+    stub_tex_import_reqs.assert_called_once_with("path1")
+    assert reqs == ["val"]
+
+def test_import_reqs_03():
+    """Unit test for the import_reqs function
+
+    The covered behavior is unknown format
+    """
+    with pytest.raises(SystemExit) as e:
+        reqs = import_reqs("path1", "unknown")
+        assert len(log_error.msgs) == 1
+
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_01(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_rst_import_reqs_01(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
 
     The covered behavior is no specification source file
     """
-    reqs = import_reqs("path")
+    reqs = rst_import_reqs("path")
     assert len(reqs) == 0
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_02(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_rst_import_reqs_02(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
 
     The covered behavior is two files with no reqs
     """
@@ -219,13 +248,152 @@ def test_import_reqs_02(stub_glob, stub_open):
     stubbed_open.file_contents["file1"] = "content1"
     stubbed_open.file_contents["file2"] = "content2"
 
-    reqs = import_reqs("path")
+    reqs = rst_import_reqs("path")
     assert len(reqs) == 0
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_03(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_rst_import_reqs_03(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
+
+    The covered behaviors are:
+        * Two files with multiple reqs
+        * Req without option
+        * Req with options
+    """
+    stubbed_glob.file_list = ["file1", "file2", "file3"]
+    stubbed_open.file_contents["file1"] = """
+        \\req{req1}{description1}
+.. requirement:: req1
+    
+    description1
+
+.. requirement:: req2
+
+    description2
+
+.. directive:: ponpon
+
+    ponpon
+    """
+    stubbed_open.file_contents["file2"] = """
+.. requirement:: req3
+
+    description3
+
+.. requirement:: req4
+    :option1: content1
+    :derivedfrom: req1
+    
+    description4
+
+    """
+    stubbed_open.file_contents["file3"] = """
+.. requirement:: req5
+    :option1: content1
+    :derivedfrom: req1, req2
+
+    description5
+    """
+    reqs = rst_import_reqs("path")
+
+    assert len(reqs) == 5
+    assert reqs[0].id == "req1"
+    assert reqs[0].description == "description1"
+    assert reqs[0].derived_from == None
+
+    assert reqs[1].id == "req2"
+    assert reqs[1].description == "description2"
+    assert reqs[1].derived_from == None
+
+    assert reqs[2].id == "req3"
+    assert reqs[2].description == "description3"
+    assert reqs[2].derived_from == None
+
+    assert reqs[3].id == "req4"
+    assert reqs[3].description == "description4"
+    assert reqs[3].derived_from == ["req1"]
+
+    assert reqs[4].id == "req5"
+    assert reqs[4].description == "description5"
+    assert reqs[4].derived_from == ["req1", "req2"]
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_rst_import_reqs_04(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
+
+    The covered behavior is Req with empty id
+    """
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+.. requirement:: 
+
+content
+    """
+    with pytest.raises(SystemExit) as e:
+        reqs = rst_import_reqs("path")
+        assert len(log_error.msgs) == 1
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_rst_import_reqs_05(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
+
+    The covered behavior is Req with missing description
+    """
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+.. requirement:: req1
+content
+    """
+    reqs = rst_import_reqs("path")
+    assert len(log_warn.msgs) == 1
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_rst_import_reqs_06(stub_glob, stub_open):
+    """Unit test for the rst_import_reqs function
+
+    The covered behavior is Req with empty description
+    """
+    stubbed_glob.file_list = ["file1"]
+    stubbed_open.file_contents["file1"] = """
+.. requirement:: req1
+
+content
+    """
+    reqs = rst_import_reqs("path")
+    assert len(log_warn.msgs) == 1
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_tex_import_reqs_01(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
+
+    The covered behavior is no specification source file
+    """
+    reqs = tex_import_reqs("path")
+    assert len(reqs) == 0
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_tex_import_reqs_02(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
+
+    The covered behavior is two files with no reqs
+    """
+    stubbed_glob.file_list = ["file1", "file2"]
+    stubbed_open.file_contents["file1"] = "content1"
+    stubbed_open.file_contents["file2"] = "content2"
+
+    reqs = tex_import_reqs("path")
+    assert len(reqs) == 0
+
+@patch("builtins.open", side_effect=stubbed_open)
+@patch("glob.glob", side_effect=stubbed_glob)
+def test_tex_import_reqs_03(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
 
     The covered behaviors are:
         * Two files with multiple reqs
@@ -254,7 +422,7 @@ def test_import_reqs_03(stub_glob, stub_open):
             description5
         }[option1=content1, derivedfrom={req1, req2}]
     """
-    reqs = import_reqs("path")
+    reqs = tex_import_reqs("path")
 
     assert len(reqs) == 5
     assert reqs[0].id == "req1"
@@ -279,8 +447,8 @@ def test_import_reqs_03(stub_glob, stub_open):
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_04(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_tex_import_reqs_04(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
 
     The covered behavior is Req with empty id
     """
@@ -289,13 +457,13 @@ def test_import_reqs_04(stub_glob, stub_open):
         \\req{}{description}
     """
     with pytest.raises(SystemExit) as e:
-        reqs = import_reqs("path")
+        reqs = tex_import_reqs("path")
         assert len(log_error.msgs) == 1
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_05(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_tex_import_reqs_05(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
 
     The covered behavior is Req with missing description
     """
@@ -303,13 +471,13 @@ def test_import_reqs_05(stub_glob, stub_open):
     stubbed_open.file_contents["file1"] = """
         \\req{req1}
     """
-    reqs = import_reqs("path")
+    reqs = tex_import_reqs("path")
     assert len(log_warn.msgs) == 1
 
 @patch("builtins.open", side_effect=stubbed_open)
 @patch("glob.glob", side_effect=stubbed_glob)
-def test_import_reqs_06(stub_glob, stub_open):
-    """Unit test for the import_reqs function
+def test_tex_import_reqs_06(stub_glob, stub_open):
+    """Unit test for the tex_import_reqs function
 
     The covered behavior is Req with empty description
     """
@@ -317,11 +485,11 @@ def test_import_reqs_06(stub_glob, stub_open):
     stubbed_open.file_contents["file1"] = """
         \\req{req1}{}
     """
-    reqs = import_reqs("path")
+    reqs = tex_import_reqs("path")
     assert len(log_warn.msgs) == 1
 
-def test_process_keyword_01():
-    """Unit test for the process_keyword function
+def test_tex_process_keyword_01():
+    """Unit test for the tex_process_keyword function
 
     The covered behaviors are :
         * Cur equal zero
@@ -329,23 +497,23 @@ def test_process_keyword_01():
         * Keyword without spaces
         * Keyword with spaces
     """
-    cur = process_keyword(0, "\\req{id}")
+    cur = tex_process_keyword(0, "\\req{id}")
     assert cur == 4
 
-    cur = process_keyword(5, "     \\req {  id}")
+    cur = tex_process_keyword(5, "     \\req {  id}")
     assert cur == 10
 
-def test_process_keyword_02():
-    """Unit test for the process_keyword function
+def test_tex_process_keyword_02():
+    """Unit test for the tex_process_keyword function
 
     The covered behavior is syntax error in keyword
     """
     with pytest.raises(SystemExit) as e:
-        cur = process_keyword(0, "\\req id}")
+        cur = tex_process_keyword(0, "\\req id}")
         assert len(log_error.msgs) == 1
 
-def test_process_matching_token_01():
-    """Unit test for the process_matching_token function
+def test_tex_process_matching_token_01():
+    """Unit test for the tex_process_matching_token function
 
     The covered behaviors are:
         * Cur equal to zero
@@ -354,20 +522,20 @@ def test_process_matching_token_01():
         * multiple valid levels of tokens
         * different sets of tokens
     """
-    cur, result = process_matching_token(0, "{content1}", "{", "}")
+    cur, result = tex_process_matching_token(0, "{content1}", "{", "}")
     assert cur == 10
     assert result == "content1"
 
-    cur, result = process_matching_token(5, "     [content1]", "[", "]")
+    cur, result = tex_process_matching_token(5, "     [content1]", "[", "]")
     assert cur == 15
     assert result == "content1"
 
-    cur, result = process_matching_token(0, "{content1 {second_level} end}", "{", "}")
+    cur, result = tex_process_matching_token(0, "{content1 {second_level} end}", "{", "}")
     assert cur == 29
     assert result == "content1 {second_level} end"
 
-def test_process_matching_token_02():
-    """Unit test for the process_matching_token function
+def test_tex_process_matching_token_02():
+    """Unit test for the tex_process_matching_token function
 
     The covered behaviors are:
         * missing opening token in one level
@@ -375,48 +543,48 @@ def test_process_matching_token_02():
         * missing opening token in multiple levels
         * missing closing token in multiple levels
     """
-    cur, result = process_matching_token(0, "content1", "{", "}")
+    cur, result = tex_process_matching_token(0, "content1", "{", "}")
     assert cur == 0
     assert result == None
 
     with pytest.raises(SystemExit) as e:
-        cur, result = process_matching_token(0, "{content1", "{", "}")
+        cur, result = tex_process_matching_token(0, "{content1", "{", "}")
         assert len(log_error.msgs) == 1
 
-    cur, result = process_matching_token(0, "content1 {content2}}", "{", "}")
+    cur, result = tex_process_matching_token(0, "content1 {content2}}", "{", "}")
     assert cur == 0
     assert result == None
 
     with pytest.raises(SystemExit) as e:
-        cur, result = process_matching_token(0, "{content1 {content2} end", "{", "}")
+        cur, result = tex_process_matching_token(0, "{content1 {content2} end", "{", "}")
         assert len(log_error.msgs) == 2
 
-def test_process_options_01():
-    """Unit test for the process_options function
+def test_tex_process_options_01():
+    """Unit test for the tex_process_options function
 
     The covered behaviors are:
         * Empty options
         * multiple options with single values
         * multiple options with complex values
     """
-    options = process_options("")
+    options = tex_process_options("")
     assert len(options.keys()) == 0
 
-    options = process_options("option1=content1, option2=content2")
+    options = tex_process_options("option1=content1, option2=content2")
     assert len(options.keys()) == 2
     assert options["option1"] == ["content1"]
     assert options["option2"] == ["content2"]
 
-    options = process_options("option1={content1, content2, content3}, option2={content3 = content4}")
+    options = tex_process_options("option1={content1, content2, content3}, option2={content3 = content4}")
     assert len(options.keys()) == 2
     assert options["option1"] == ["content1", "content2", "content3"]
     assert options["option2"] == ["content3 = content4"]
 
-def test_process_options_02():
-    """Unit test for the process_options function
+def test_tex_process_options_02():
+    """Unit test for the tex_process_options function
 
     The covered behavior is syntax error in option
     """
     with pytest.raises(SystemExit) as e:
-        options = process_options("option1, option2=content2")
+        options = tex_process_options("option1, option2=content2")
         assert len(log_error.msgs) == 1
