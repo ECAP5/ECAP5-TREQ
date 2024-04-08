@@ -25,6 +25,10 @@ import os
 
 from ecap5_treq.log import log_error
 
+class SpecFormat:
+    RST = "RST"
+    TEX = "TEX"
+
 class Config:
     """A Config stores input parameters such as paths to the specification, 
     tests, testdata or the traceability matrix.
@@ -38,6 +42,8 @@ class Config:
         """
         self.data = {}
         self.path = path
+
+        self.defaults()
 
         if self.path:
             self.load_config(path)
@@ -65,7 +71,9 @@ class Config:
             "testdata_dir_path",
             "matrix_path"
         ]
-        allowed_other_keys = []
+        allowed_other_keys = [
+            "spec_format"
+        ]
 
         # Check if there are any unknown keys
         for key in self.data.keys():
@@ -76,6 +84,9 @@ class Config:
                 if key in allowed_path_keys: # pragma: no cover
                     # coverage is disabled on the branch above as for now there are only path options in config
                     self.data[key] = path_to_abs_path(self.data[key], self.path)
+
+    def defaults(self) -> None:
+        self.set("spec_format", SpecFormat.TEX)
 
     def get(self, key: str) -> str:
         """Return the configuration data pointed by key

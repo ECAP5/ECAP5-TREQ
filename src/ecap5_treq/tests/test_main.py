@@ -102,7 +102,7 @@ class MockConfig:
 # Stub side_effect definitions
 #
 
-def stubbed_import_reqs(path):
+def stubbed_import_reqs(path, spec_format):
     return stubbed_import_reqs.reqs
 
 def stubbed_import_checks(path):
@@ -140,7 +140,7 @@ def test_cmd_print_reqs(stub_import_reqs, stub_print):
 
     cmd_print_reqs(config)
 
-    stub_import_reqs.assert_called_once_with("path")
+    stub_import_reqs.assert_called_once_with("path", "TEX")
 
     stub_print.assert_has_calls([call(r) for r in stubbed_import_reqs.reqs])
 
@@ -306,7 +306,7 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -373,7 +373,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -440,7 +440,7 @@ def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -501,7 +501,7 @@ def test_cmd_gen_test_result_badge_01(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -559,7 +559,7 @@ def test_cmd_gen_test_result_badge_02(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -617,7 +617,7 @@ def test_cmd_gen_traceability_result_badge_01(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -675,7 +675,7 @@ def test_cmd_gen_traceability_result_badge_02(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
