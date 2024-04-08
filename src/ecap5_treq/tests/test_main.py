@@ -229,7 +229,7 @@ def test_cmd_prepare_matrix_01(stub_import_checks, stub_prepare_matrix, stub_pri
 def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
     """Unit test for the cmd_prepare_matrix function
 
-    The covered behavior is with a specified path for the previous matrix and with an output
+    The covered behavior is with a specified path for the different previous matrix and with an output
     """
     stubbed_import_checks.checks = [ \
         Check("testsuite1", "testcase1", "check1"), \
@@ -254,7 +254,7 @@ def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_pri
 
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
 
-    stub_print.assert_not_called()
+    stub_print.assert_called_once()
     stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
     stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
 

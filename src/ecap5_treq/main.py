@@ -20,6 +20,7 @@
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import subprocess
 
 from ecap5_treq.analysis import Analysis
 from ecap5_treq.check import import_checks, import_testdata
@@ -94,6 +95,14 @@ def cmd_prepare_matrix(config: dict[str, str]) -> None:
     if "output" in config:
         with open(config.get("output"), 'w', encoding="utf-8") as file:
             file.write(matrix.to_csv())
+
+        if "matrix_path" in config:
+            # print diff
+            try:
+                subprocess.check_output(['diff', config.get("output"), config.get("matrix_path")])
+                print("Matrix unchanged")
+            except subprocess.CalledProcessError as e:
+                print(e.output.decode())
     else:
         print(matrix.to_csv())
 
