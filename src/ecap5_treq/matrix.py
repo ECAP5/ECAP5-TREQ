@@ -56,6 +56,10 @@ class Matrix:
         with open(path, newline='', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar='|')
             for row in reader:
+                # Skip empty lines
+                if len(row) == 0:
+                    continue
+
                 if row[0] == "__UNTRACEABLE__":
                     if len(row) > 1:
                         if row[1] in self.untraceable:

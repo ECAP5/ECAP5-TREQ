@@ -135,6 +135,23 @@ def test_Matrix_read_05():
     assert matrix.data["element2"] == []
     assert matrix.untraceable == {"req1": "just1", "req2": ""}
 
+def test_Matrix_read_06():
+    """Unit test for the read method of the Matrix class
+
+    The covered behavior is a valid matrix with an empty line
+    """
+    empty_element_matrix = "element1;content1\n\nelement2\n__UNTRACEABLE__;req1;just1\n__UNTRACEABLE__;req2\n"
+    with patch("builtins.open", mock_open(read_data=empty_element_matrix)):
+        matrix = Matrix()
+        matrix.read("path")
+
+    assert len(matrix.data.keys()) == 2
+    assert "element1" in matrix.data
+    assert "element2" in matrix.data
+    assert matrix.data["element1"] == ["content1"]
+    assert matrix.data["element2"] == []
+    assert matrix.untraceable == {"req1": "just1", "req2": ""}
+
 def test_Matrix_check_01():
     """Unit test for the check method of the Matrix class
 
