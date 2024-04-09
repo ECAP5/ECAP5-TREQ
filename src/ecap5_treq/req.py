@@ -172,7 +172,6 @@ def rst_import_reqs(path: str) -> list[Req]:
                 log_warn("Missing description for requirement: \"{}\"".format(id))
 
             reqs += [Req(id, desc, options)]
-            print(Req(id, desc, options))
     return reqs
 
 def rst_process_id(cur: int, lines: list[str]) -> tuple[int, str]:
