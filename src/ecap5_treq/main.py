@@ -20,6 +20,7 @@
 # along with ECAP5-TREQ.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import subprocess
 
 from ecap5_treq.analysis import Analysis
 from ecap5_treq.check import import_checks, import_testdata
@@ -44,7 +45,7 @@ def cmd_print_reqs(config: dict[str, str]) -> None:
     :param config: a configuration dictionnary providing path to input files
     :type config: dict[str, str]
     """
-    reqs = import_reqs(config.get("spec_dir_path"))
+    reqs = import_reqs(config.get("spec_dir_path"), config.get("spec_format"))
     for req in reqs:
         print(req)
 
@@ -94,6 +95,14 @@ def cmd_prepare_matrix(config: dict[str, str]) -> None:
     if "output" in config:
         with open(config.get("output"), 'w', encoding="utf-8") as file:
             file.write(matrix.to_csv())
+
+        if "matrix_path" in config:
+            # print diff
+            try:
+                subprocess.check_output(['diff', config.get("output"), config.get("matrix_path")])
+                print("Matrix unchanged")
+            except subprocess.CalledProcessError as e:
+                print(e.output.decode())
     else:
         print(matrix.to_csv())
 
@@ -105,7 +114,7 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     :param config: a configuration dictionnary providing path to input files
     :type config: dict[str, str]
     """
-    reqs = import_reqs(config.get("spec_dir_path"))
+    reqs = import_reqs(config.get("spec_dir_path"), config.get("spec_format"))
     checks = import_checks(config.get("test_dir_path"))
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
@@ -143,7 +152,7 @@ def cmd_gen_test_result_badge(config: dict[str, str]) -> None:
     :param config: a configuration dictionnary providing path to input files
     :type config: dict[str, str]
     """
-    reqs = import_reqs(config.get("spec_dir_path"))
+    reqs = import_reqs(config.get("spec_dir_path"), config.get("spec_format"))
     checks = import_checks(config.get("test_dir_path"))
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
@@ -168,7 +177,7 @@ def cmd_gen_traceability_result_badge(config: dict[str, str]) -> None:
     :param config: a configuration dictionnary providing path to input files
     :type config: dict[str, str]
     """
-    reqs = import_reqs(config.get("spec_dir_path"))
+    reqs = import_reqs(config.get("spec_dir_path"), config.get("spec_format"))
     checks = import_checks(config.get("test_dir_path"))
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
@@ -215,6 +224,7 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
     parser.add_argument('-m', '--matrix')
     parser.add_argument('-o', '--output')
     parser.add_argument('--html', action='store_true')
+    parser.add_argument('--spec-format')
 
     args = parser.parse_args()
 
@@ -230,7 +240,9 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
         config.set_path("testdata_dir_path", args.data)
     if args.matrix:
         config.set_path("matrix_path", args.matrix)
-    
+    if args.spec_format:
+        config.set("spec_format", args.spec_format)
+
     # Add other arguments that are not present in configuration files
     if args.output:
         config.set("output", args.output)

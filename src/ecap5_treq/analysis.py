@@ -64,6 +64,7 @@ class Analysis():
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
+        self.num_allocated_reqs = 0
         self.ids_reqs_covering_reqs = {}
         self.ids_checks_covering_reqs = {}
         self.justif_reqs_untraceable = {}
@@ -172,6 +173,7 @@ class Analysis():
         self.num_covered_reqs = 0
         self.num_untraceable_reqs = 0
         self.num_uncovered_reqs = 0
+        self.num_allocated_reqs = 0
         for req in self.reqs:
             if (req.id in self.ids_reqs_covering_reqs) or (req.id in self.ids_checks_covering_reqs):
                 req.status = ReqStatus.COVERED
@@ -182,6 +184,9 @@ class Analysis():
             else:
                 req.status = ReqStatus.UNCOVERED
                 self.num_uncovered_reqs += 1
+
+            if(req.allocation):
+                self.num_allocated_reqs += 1
 
         # Compute the requirement test result
         for req in self.reqs:
@@ -230,7 +235,9 @@ class Analysis():
 
         # Compute traceability result
         if len(self.reqs) > 0:
-            self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
+            coverage_ratio = (self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100
+            allocation_ratio = self.num_allocated_reqs / len(self.reqs) * 100
+            self.traceability_result = int((coverage_ratio + allocation_ratio) / 2)
         else:
             self.traceability_result = 0
 

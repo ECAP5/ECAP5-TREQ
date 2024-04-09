@@ -197,6 +197,8 @@ def generate_traceability_report(analysis: Analysis) -> str:
     report += "      <th>Covered</th>\n"
     report += "      <th>Untraceable</th>\n"
     report += "      <th>Uncovered</th>\n"
+    report += "      <th>Allocated</th>\n"
+    report += "      <th>Unallocated</th>\n"
     report += "      <th>Total</th>\n"
     report += "    </tr>\n"
     report += "  </thead>\n"
@@ -205,6 +207,8 @@ def generate_traceability_report(analysis: Analysis) -> str:
     report += "    <td align=\"right\">{}</td>\n".format(analysis.num_covered_reqs)
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_untraceable_reqs > 0, "#untraceable-reqs", str(analysis.num_untraceable_reqs)))
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_uncovered_reqs > 0, "#uncovered-reqs", str(analysis.num_uncovered_reqs)))
+    report += "    <td align=\"right\">{}</td>\n".format(analysis.num_allocated_reqs)
+    report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if((len(analysis.reqs) - analysis.num_allocated_reqs) > 0, "#first-unallocated-req", len(analysis.reqs) - analysis.num_allocated_reqs))
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
     report += "</table>\n"
@@ -227,6 +231,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
+        report += "      <th>Allocated to</th>\n"
         report += "      <th>Covered by</th>\n"
         report += "      <th>Tested by</th>\n"
         report += "      <th>Test results</th>\n"
@@ -274,6 +279,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
+        report += "      <th>Allocated to</th>\n"
         report += "      <th>Justification</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
@@ -319,6 +325,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
+        report += "      <th>Allocated to</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
         # Add rows for each type of uncovered requirements
@@ -451,6 +458,8 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
     :returns: html table rows containing the list of reqs
     :rtype: str
     """
+    unallocated_anchor_placed = False
+
     result = ""
     for req in reqs:
         result += "  <tr>\n"
@@ -462,6 +471,15 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
         if req.derived_from:
             result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([rid for rid in req.derived_from]))
         else:
+            result += "    <td></td>\n"
+        # Adds the list of allocations
+        if req.allocation:
+            result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([mid for mid in req.allocation]))
+        else:
+            # This is performed multiple times but the link will point to the first one
+            if not unallocated_anchor_placed:
+                result += "      <a id=\"first-unallocated-req\"></a>"
+                unallocated_anchor_placed = True
             result += "    <td></td>\n"
         if req.status == ReqStatus.COVERED:
             # Adds the list of covering reqs

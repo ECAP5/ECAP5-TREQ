@@ -94,3 +94,11 @@ The following command-line options can be provided to ECAP5-TREQ.
 
    Flag indicating that reports shall be generated in html instead of markdown.
 
+.. option:: --spec-format
+
+   Language format of the specification source files.
+
+   The following values are supported :
+     - :code:`RST`: reStructuredText / Sphinx
+     - :code:`TEX`: LaTeX
+

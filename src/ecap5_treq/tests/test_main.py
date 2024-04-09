@@ -102,7 +102,7 @@ class MockConfig:
 # Stub side_effect definitions
 #
 
-def stubbed_import_reqs(path):
+def stubbed_import_reqs(path, spec_format):
     return stubbed_import_reqs.reqs
 
 def stubbed_import_checks(path):
@@ -140,7 +140,7 @@ def test_cmd_print_reqs(stub_import_reqs, stub_print):
 
     cmd_print_reqs(config)
 
-    stub_import_reqs.assert_called_once_with("path")
+    stub_import_reqs.assert_called_once_with("path", "TEX")
 
     stub_print.assert_has_calls([call(r) for r in stubbed_import_reqs.reqs])
 
@@ -229,7 +229,7 @@ def test_cmd_prepare_matrix_01(stub_import_checks, stub_prepare_matrix, stub_pri
 def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
     """Unit test for the cmd_prepare_matrix function
 
-    The covered behavior is with a specified path for the previous matrix and with an output
+    The covered behavior is with a specified path for the different previous matrix and with an output
     """
     stubbed_import_checks.checks = [ \
         Check("testsuite1", "testcase1", "check1"), \
@@ -254,7 +254,77 @@ def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_pri
 
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
 
-    stub_print.assert_not_called()
+    stub_print.assert_called_once()
+    stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
+    stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
+
+@patch("ecap5_treq.main.Matrix", MockMatrix)
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+@patch("subprocess.check_output")
+def test_cmd_prepare_matrix_03(stub_check_output, stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is with a specified path for the same previous matrix and with an output
+    """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
+
+    config = Config()
+    config.set("matrix_path", "path1")
+    config.set("test_dir_path", "path2")
+    config.set("output", "path3")
+
+    cmd_prepare_matrix(config)
+
+    previous_matrix = MockMatrix()
+    previous_matrix.read("path")
+
+    stub_import_checks.assert_called_once_with("path2")
+
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
+
+    stub_print.assert_called_once()
+    stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
+    stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
+
+@patch("ecap5_treq.main.Matrix", MockMatrix)
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+def test_cmd_prepare_matrix_04(stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is without a specified path for the previous matrix and with output
+    """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
+
+    previous_matrix = MockMatrix()
+
+    config = Config()
+    config.set("test_dir_path", "path")
+    config.set("output", "path3")
+    
+    cmd_prepare_matrix(config)
+
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
+
     stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
     stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
 
@@ -306,7 +376,7 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -373,7 +443,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -440,7 +510,7 @@ def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_tes
 
     cmd_gen_report(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -501,7 +571,7 @@ def test_cmd_gen_test_result_badge_01(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -559,7 +629,7 @@ def test_cmd_gen_test_result_badge_02(stub_import_reqs, stub_import_checks, stub
 
     cmd_gen_test_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -617,7 +687,7 @@ def test_cmd_gen_traceability_result_badge_01(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -675,7 +745,7 @@ def test_cmd_gen_traceability_result_badge_02(stub_import_reqs, stub_import_chec
 
     cmd_gen_traceability_result_badge(config)
 
-    stub_import_reqs.assert_called_once_with("path1")
+    stub_import_reqs.assert_called_once_with("path1", "TEX")
     stub_import_checks.assert_called_once_with("path2")
     stub_import_testdata.assert_called_once_with("path3")
 
@@ -850,3 +920,20 @@ def test_main_10(stub_Config___init__, stub_Config_set_path, stub_Config_set):
             call("matrix_path", "path5") \
         ], any_order=True)
         stub_Config_set.assert_has_calls([call("output", "path6"), call("html", False)])
+
+@patch("ecap5_treq.main.cmd_gen_report")
+@patch.object(Config, "set")
+@patch.object(Config, "set_path")
+@patch.object(Config, "__init__", return_value=None)
+def test_main_11(stub_Config___init__, stub_Config_set_path, stub_Config_set, stub_cmd_gen_report):
+    """Unit test for the main function
+
+    The covered behavior is gen_report command
+    """
+    args = ["ecap5-treq", "-c", "path1", "--spec-format", "RST", "gen_report"]
+    with patch.object(sys, 'argv', args):
+        main()
+        stub_Config___init__.assert_called_once_with("path1")
+        stub_Config_set_path.assert_not_called()
+        stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("html", False)])
+        stub_cmd_gen_report.assert_called_once()

@@ -218,6 +218,7 @@ def test_Analysis_analyse_traceability_01(stub_analyse):
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
     assert analysis.num_uncovered_reqs == 0
+    assert analysis.num_allocated_reqs == 0
     assert analysis.user_reqs == []
     assert analysis.external_interface_reqs == []
     assert analysis.functional_reqs == []
@@ -254,6 +255,7 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
     assert analysis.num_covered_reqs == 0
     assert analysis.num_untraceable_reqs == 0
     assert analysis.num_uncovered_reqs == 7
+    assert analysis.num_allocated_reqs == 0
     assert analysis.user_reqs == [ \
         Req("U_req1", "description1", {}) \
     ]
@@ -281,7 +283,7 @@ def test_Analysis_analyse_traceability_02(stub_analyse):
 def test_Analysis_analyse_traceability_03(stub_analyse):
     """Unit test for the analyse_traceability method of the Analysis class
 
-    The covered behavior is reqs with derivedfrom and checks covering reqs
+    The covered behavior is reqs with derivedfrom, allocation and checks covering reqs
 
     The analyse method is stubbed so the analyse_traceability is called on its own.
     """
@@ -290,9 +292,9 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
         Req("F_req3", "description3", {}), \
         Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}), \
-        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"], "allocation": ["module2"]}), \
         Req("req6", "description6", {}), \
-        Req("req7", "description7", {}), \
+        Req("req7", "description7", {"allocation": ["module1", "module2"]}), \
         Req("req8", "description8", {}), \
         Req("A_req9", "description9", {}), \
     ]
@@ -329,6 +331,7 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     assert analysis.num_covered_reqs == 7
     assert analysis.num_untraceable_reqs == 1
     assert analysis.num_uncovered_reqs == 1
+    assert analysis.num_allocated_reqs == 2
     assert analysis.user_reqs == [ \
         Req("U_req1", "description1", {}, ReqStatus.COVERED) \
     ]
@@ -345,14 +348,14 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
         Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}, ReqStatus.COVERED, 100) \
     ]
     assert analysis.non_functional_reqs == [ \
-        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}, ReqStatus.UNCOVERED) \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"], "allocation": ["module2"]}, ReqStatus.UNCOVERED) \
     ]
     assert analysis.other_reqs == [ \
         Req("req6", "description6", {}, ReqStatus.COVERED, 100), \
-        Req("req7", "description7", {}, ReqStatus.UNTRACEABLE), \
+        Req("req7", "description7", {"allocation": ["module1", "module2"]}, ReqStatus.UNTRACEABLE), \
         Req("req8", "description8", {}, ReqStatus.COVERED), \
     ]
-    assert analysis.traceability_result == 88
+    assert analysis.traceability_result == 55
 
 def test_Analysis_analyse_consistency_01():
     """Unit test for the analyse_consistency method of the Analysis class
