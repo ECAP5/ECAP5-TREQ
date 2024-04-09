@@ -229,7 +229,7 @@ def test_cmd_prepare_matrix_01(stub_import_checks, stub_prepare_matrix, stub_pri
 def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
     """Unit test for the cmd_prepare_matrix function
 
-    The covered behavior is with a specified path for the previous matrix and with an output
+    The covered behavior is with a specified path for the different previous matrix and with an output
     """
     stubbed_import_checks.checks = [ \
         Check("testsuite1", "testcase1", "check1"), \
@@ -254,7 +254,77 @@ def test_cmd_prepare_matrix_02(stub_import_checks, stub_prepare_matrix, stub_pri
 
     stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
 
-    stub_print.assert_not_called()
+    stub_print.assert_called_once()
+    stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
+    stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
+
+@patch("ecap5_treq.main.Matrix", MockMatrix)
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+@patch("subprocess.check_output")
+def test_cmd_prepare_matrix_03(stub_check_output, stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is with a specified path for the same previous matrix and with an output
+    """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
+
+    config = Config()
+    config.set("matrix_path", "path1")
+    config.set("test_dir_path", "path2")
+    config.set("output", "path3")
+
+    cmd_prepare_matrix(config)
+
+    previous_matrix = MockMatrix()
+    previous_matrix.read("path")
+
+    stub_import_checks.assert_called_once_with("path2")
+
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
+
+    stub_print.assert_called_once()
+    stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
+    stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
+
+@patch("ecap5_treq.main.Matrix", MockMatrix)
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
+@patch("ecap5_treq.main.prepare_matrix", side_effect=stubbed_prepare_matrix)
+@patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
+def test_cmd_prepare_matrix_04(stub_import_checks, stub_prepare_matrix, stub_print, stub_open):
+    """Unit test for the cmd_prepare_matrix function
+
+    The covered behavior is without a specified path for the previous matrix and with output
+    """
+    stubbed_import_checks.checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite2", "testcase1", "check2"), \
+        Check("testsuite2", "testcase1", "check3"), \
+        Check("testsuite3", "testcase1", "check4"), \
+    ]
+    stubbed_prepare_matrix.matrix = Matrix()
+    stubbed_prepare_matrix.matrix.add("testsuite1.testcase1.check1", ["req1", "req2"])
+
+    previous_matrix = MockMatrix()
+
+    config = Config()
+    config.set("test_dir_path", "path")
+    config.set("output", "path3")
+    
+    cmd_prepare_matrix(config)
+
+    stub_prepare_matrix.assert_called_once_with(stubbed_import_checks.checks, previous_matrix)
+
     stub_open.assert_called_once_with("path3", "w", encoding="utf-8")
     stub_open.return_value.write.assert_called_once_with("testsuite1.testcase1.check1;req1;req2\r\n")
 
