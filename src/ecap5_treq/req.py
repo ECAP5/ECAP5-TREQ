@@ -59,13 +59,16 @@ class Req:
         self.id = id.replace("\\", "")
         self.description = description
         self.derived_from = None
+        self.allocation = None
         self.status = status
         self.result = result
 
         # Validate the requirement options
         if options:
             if "derivedfrom" in options:
-                self.derived_from = [x.replace("\\", "") for x in options["derivedfrom"]]
+                self.derived_from = [x for x in options["derivedfrom"]]
+            if "allocation" in options:
+                self.allocation = [x for x in options["allocation"]]
 
     def to_str(self) -> str:
         """Convert the req to a string
@@ -73,8 +76,8 @@ class Req:
         :returns: a string representing the req 
         :rtype: str
         """
-        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\", status={}, result={})" \
-                    .format(self.id, self.description, self.derived_from, self.status, self.result)
+        return "REQ(id=\"{}\", description=\"{}\", derivedFrom=\"{}\", allocation=\"{}\", status={}, result={})" \
+                    .format(self.id, self.description, self.derived_from, self.allocation, self.status, self.result)
 
     def __repr__(self):
         """Override of the __repr__ function used to output a string from an object
@@ -102,6 +105,7 @@ class Req:
                 self.id == other.id and \
                 self.description == other.description and \
                 self.derived_from == other.derived_from and \
+                self.allocation == other.allocation and \
                 self.status == other.status and \
                 self.result == other.result)
 
@@ -462,5 +466,6 @@ def tex_process_options(options: str) -> dict[str, list[str]]:
             option_content_list = option_content[1:-1].split(", ")
         else:
             option_content_list = [option_content]
+        option_content_list = [x.replace("\\", "") for x in option_content_list]
         options_dict[option[0].strip()] = option_content_list
     return options_dict
