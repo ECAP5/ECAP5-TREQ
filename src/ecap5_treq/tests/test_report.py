@@ -176,6 +176,8 @@ def test_generate_traceability_report_01():
         * Covered requirements of all types but other
         * Untraceable requirements of all types but other
         * Uncovered requirements of all types but other
+        * Allocated requirements
+        * Unallocated requirements
 
     The function is run but no checks are performed on the output
     """
@@ -196,8 +198,8 @@ def test_generate_traceability_report_01():
         Req("I_uncov2", "description2", {}), \
         Req("F_uncov3", "description3", {}), \
         Req("D_uncov4", "description4", {}), \
-        Req("N_uncov5", "description5", {}), \
-        Req("A_uncov6", "description6", {}) \
+        Req("N_uncov5", "description5", {"allocation": ["module1", "module2"]}), \
+        Req("A_uncov6", "description6", {"allocation": ["module2"]}) \
     ]
     checks = [ \
         Check("testsuite1", "testcase1", "check1"), \

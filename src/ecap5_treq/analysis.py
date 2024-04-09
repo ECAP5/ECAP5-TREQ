@@ -235,7 +235,9 @@ class Analysis():
 
         # Compute traceability result
         if len(self.reqs) > 0:
-            self.traceability_result = int((self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100)
+            coverage_ratio = (self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100
+            allocation_ratio = self.num_allocated_reqs / len(self.reqs) * 100
+            self.traceability_result = int((coverage_ratio + allocation_ratio) / 2)
         else:
             self.traceability_result = 0
 

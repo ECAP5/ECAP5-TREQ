@@ -59,6 +59,8 @@ def test_Req_constructor_01():
         * no options
         * with derivedfrom options containing one value
         * with derivedfrom options containing multiple value
+        * with allocation options containing one value
+        * with allocation options containing multiple value
         * with other options
     """
     req = Req("req1", "description", None)
@@ -72,6 +74,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
     assert req.derived_from == None
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1"]})
@@ -79,6 +82,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
     assert req.derived_from == None
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
@@ -86,6 +90,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
     assert req.derived_from == ["req2"]
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2", "req3"]})
@@ -93,6 +98,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
     assert req.derived_from == ["req2", "req3"]
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]})
@@ -100,6 +106,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.UNCOVERED
     assert req.derived_from == ["req2"]
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]}, ReqStatus.COVERED)
@@ -107,6 +114,7 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.COVERED
     assert req.derived_from == ["req2"]
+    assert req.allocation == None
     assert req.result == 0
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2"]}, ReqStatus.COVERED, 85)
@@ -114,7 +122,16 @@ def test_Req_constructor_01():
     assert req.description == "description"
     assert req.status == ReqStatus.COVERED
     assert req.derived_from == ["req2"]
+    assert req.allocation == None
     assert req.result == 85
+    
+    req = Req("req1\\_foo", "description", {"allocation": ["content1"]})
+    assert req.id == "req1_foo"
+    assert req.description == "description"
+    assert req.status == ReqStatus.UNCOVERED
+    assert req.derived_from == None
+    assert req.allocation == ["content1"]
+    assert req.result == 0
 
 def test_Req_to_str():
     """Unit test for the to_str method of the Req class
@@ -128,6 +145,9 @@ def test_Req_to_str():
     req.to_str()
 
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
+    req.to_str()
+
+    req = Req("req1\\_foo", "description", {"allocation": ["module2"]})
     req.to_str()
 
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
@@ -147,6 +167,9 @@ def test_Req___repr__():
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     repr(req)
 
+    req = Req("req1\\_foo", "description", {"allocation": ["module2"]})
+    repr(req)
+
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
     repr(req)
 
@@ -164,33 +187,40 @@ def test_Req___str__():
     req = Req("req1\\_foo", "description", {"derivedfrom": ["req2"]})
     str(req)
 
+    req = Req("req1\\_foo", "description", {"allocation": ["module2"]})
+    str(req)
+
     req = Req("req1\\_foo", "description", {"other": ["content1", "content2"], "derivedfrom": ["req2", "req3"]})
     str(req)
 
 def test_Req___eq__():
     """Unit test for the __eq__ method of the Req class
     """
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
-    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
     assert req == other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
-    other = Req("req2", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
+    other = Req("req2", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
-    other = Req("req1", "description2", {"derivedfrom": ["dreq1", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
+    other = Req("req1", "description2", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
-    other = Req("req1", "description1", {"derivedfrom": ["dreq2", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq2", "req2"], "allocation": ["module1", "module2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req1"]})
-    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req1"], "allocation": ["module1", "module2"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
     assert req != other
 
-    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"]})
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module1"]})
+    other = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
+    assert req != other
+
+    req = Req("req1", "description1", {"derivedfrom": ["dreq1", "req2"], "allocation": ["module1", "module2"]})
     other = "foo"
     assert req != other
 

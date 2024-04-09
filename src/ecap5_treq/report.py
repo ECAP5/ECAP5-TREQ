@@ -28,9 +28,6 @@ from ecap5_treq.analysis import Analysis
 from ecap5_treq.req import Req, ReqStatus
 from ecap5_treq.log import log_error, log_imp, log_warn
 
-# The scope of this variable is 
-unallocated_anchor_placed = False
-
 def generate_report_warning_section() -> str:
     """Generates a string containing messages logged in this tool during the report generation
 
@@ -192,9 +189,6 @@ def generate_traceability_report(analysis: Analysis) -> str:
     :returns: a string containing the traceability section of the report
     :rtype: str
     """
-    global unallocated_anchor_placed 
-    unallocated_anchor_placed = False
-
     report = "\n## <a id=\"traceability-report\"></a> Traceability report\n"
     report += "<table>\n"
     report += "  <thead>\n"
@@ -464,7 +458,7 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
     :returns: html table rows containing the list of reqs
     :rtype: str
     """
-    global unallocated_anchor_placed 
+    unallocated_anchor_placed = False
 
     result = ""
     for req in reqs:
@@ -482,6 +476,7 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
         if req.allocation:
             result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([mid for mid in req.allocation]))
         else:
+            # This is performed multiple times but the link will point to the first one
             if not unallocated_anchor_placed:
                 result += "      <a id=\"first-unallocated-req\"></a>"
                 unallocated_anchor_placed = True
