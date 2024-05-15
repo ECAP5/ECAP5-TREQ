@@ -27,7 +27,7 @@ from ecap5_treq.req import Req
 from ecap5_treq.check import Check
 from ecap5_treq.matrix import Matrix 
 from ecap5_treq.analysis import Analysis 
-from ecap5_treq.report import generate_report_warning_section, generate_report_summary, generate_test_report, generate_traceability_report, generate_test_result_badge, generate_traceability_result_badge, surround_with_link_if, latex_to_html, gen_result_badge, req_list_to_table_rows
+from ecap5_treq.report import generate_report_warning_section, generate_report_summary, generate_test_report, generate_traceability_report, generate_test_result_badge, generate_traceability_result_badge, generate_report_footer, surround_with_link_if, latex_to_html, gen_result_badge, req_list_to_table_rows
 from ecap5_treq.log import log_error, log_clear, log_imp, log_warn
 
 #
@@ -320,6 +320,13 @@ def test_generate_traceability_report_03():
     analysis = Analysis(reqs, checks, testdata, matrix)
 
     generate_traceability_report(analysis)
+
+def test_generate_report_footer():
+    """Unit test for the generate_report_footer function
+
+    The function is run but no checks are performed on the output
+    """
+    generate_report_footer()
 
 def test_generate_test_result_badge():
     """Unit test for the generate_test_result_badge function
