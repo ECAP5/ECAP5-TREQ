@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath('../../src/'))
 project = 'ECAP5-TREQ'
 copyright = '2023, Clément Chaine'
 author = 'Clément Chaine'
-release = '0.1.0'
+version = '2.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
