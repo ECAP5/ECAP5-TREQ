@@ -289,6 +289,38 @@ def test_generate_traceability_report_03():
 
     generate_traceability_report(analysis)
 
+def test_generate_traceability_report_03():
+    """Unit test for the generate_traceability_report function
+
+    The covered behaviors are :
+        * One covered requirement with other type
+        * One untraceable requirement with other type
+        * One uncovered requirement with other type
+
+    The function is run but no checks are performed on the output
+    """
+    reqs = [ \
+        Req("cov1", "description1", {}), \
+        Req("untra2", "description2", {}), \
+        Req("uncov3", "description3", {}), \
+    ]
+    checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
+    ]
+    testdata = [ \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("testsuite1.testcase1.check1", ["cov1"])
+    matrix.add("testsuite1.testcase1.check2", [])
+    matrix.add_untraceable("untra2", "just2");
+
+    analysis = Analysis(reqs, checks, testdata, matrix)
+
+    generate_traceability_report(analysis)
+
 def test_generate_test_result_badge():
     """Unit test for the generate_test_result_badge function
 
@@ -383,7 +415,7 @@ def test_gen_result_badge():
     gen_result_badge(80)
     gen_result_badge(100)
 
-def test_req_list_to_table_rows():
+def test_req_list_to_table_rows_01():
     """Unit test for the req_list_to_table_rows function
 
     The function is run but no checks are performed on the output
@@ -411,5 +443,38 @@ def test_req_list_to_table_rows():
     matrix.add("__UNTRACEABLE__", ["req7"])
 
     analysis = Analysis(reqs, checks, testdata, matrix)
+
+    req_list_to_table_rows(analysis, reqs)
+
+def test_req_list_to_table_rows_02():
+    """Unit test for the req_list_to_table_rows function
+
+    The function is run but no checks are performed on the output
+
+    The covered behavior is disabled allocation
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {}) \
+    ]
+    checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
+    ]
+    testdata = [ \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("check1", ["F_req3"])
+    matrix.add("check2", ["D_req4", "req6"])
+    matrix.add("__UNTRACEABLE__", ["req7"])
+
+    analysis = Analysis(reqs, checks, testdata, matrix, False)
 
     req_list_to_table_rows(analysis, reqs)

@@ -67,7 +67,7 @@ class MockMatrix:
                self.path == other.path
 
 class MockAnalysis:
-    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix):
+    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix, enable_allocation: bool = True):
         self.reqs = reqs
         self.checks = checks
         self.testdata = testdata
@@ -936,4 +936,21 @@ def test_main_11(stub_Config___init__, stub_Config_set_path, stub_Config_set, st
         stub_Config___init__.assert_called_once_with("path1")
         stub_Config_set_path.assert_not_called()
         stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("html", False)])
+        stub_cmd_gen_report.assert_called_once()
+
+@patch("ecap5_treq.main.cmd_gen_report")
+@patch.object(Config, "set")
+@patch.object(Config, "set_path")
+@patch.object(Config, "__init__", return_value=None)
+def test_main_12(stub_Config___init__, stub_Config_set_path, stub_Config_set, stub_cmd_gen_report):
+    """Unit test for the main function
+
+    The covered behavior is gen_report command
+    """
+    args = ["ecap5-treq", "-c", "path1", "--spec-format", "RST", "gen_report", "--disable-allocation"]
+    with patch.object(sys, 'argv', args):
+        main()
+        stub_Config___init__.assert_called_once_with("path1")
+        stub_Config_set_path.assert_not_called()
+        stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("disable_allocation", True), call("html", False)])
         stub_cmd_gen_report.assert_called_once()

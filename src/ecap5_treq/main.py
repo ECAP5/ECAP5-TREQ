@@ -119,7 +119,7 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
     # Perform the test result and traceability analysis
-    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis = Analysis(reqs, checks, testdata, matrix, not config.get("disable_allocation"))
 
     # Generate report sections
     report_warnings = generate_report_warning_section()
@@ -225,6 +225,7 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
     parser.add_argument('-o', '--output')
     parser.add_argument('--html', action='store_true')
     parser.add_argument('--spec-format')
+    parser.add_argument('--disable-allocation', action='store_true')
 
     args = parser.parse_args()
 
@@ -242,6 +243,8 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
         config.set_path("matrix_path", args.matrix)
     if args.spec_format:
         config.set("spec_format", args.spec_format)
+    if args.disable_allocation:
+        config.set("disable_allocation", args.disable_allocation)
 
     # Add other arguments that are not present in configuration files
     if args.output:
