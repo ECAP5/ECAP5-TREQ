@@ -12,7 +12,8 @@ For example:
       "test_dir_path": "relative/path2",
       "testdata_dir_path": "/absolute/path1",
       "matrix_path": "/absolute/path2.csv",
-      "spec_format": "RST"
+      "spec_format": "RST",
+      "disable_allocation": 1
    }
 
 Configuration options
@@ -70,3 +71,7 @@ The following options are allowed in the configuration of ECAP5-TREQ.
 
    :type: string spec_format
    :required: Yes
+
+.. confval:: disable_allocation
+
+   Disables the requirement allocation feature
