@@ -55,7 +55,7 @@ def generate_report_summary(analysis: Analysis) -> str:
     :returns: a string containing the summary section of the report
     :rtype: str
     """
-    report = "# Summary\n"
+    report = "# <a id=\"summary\"></a> Summary\n"
 
     test_result_icon = "✅" if analysis.test_result == 100 else "🚫"
     traceability_result_icon = "✅" if analysis.traceability_result == 100 else "🚫"
@@ -359,6 +359,12 @@ def generate_traceability_report(analysis: Analysis) -> str:
         report += "</table>\n"
 
     return report
+
+def generate_report_footer(analysis: Analysis) -> str:
+    """Generates a string containing the report footer
+    """
+    footer = "<a href=\"#summary\">Back to top</a>"
+    return footer
 
 def generate_test_result_badge(analysis: Analysis) -> str:
     """Generate badge data indicating the test result, which color changes on the result

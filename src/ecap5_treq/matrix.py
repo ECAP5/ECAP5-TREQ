@@ -60,6 +60,10 @@ class Matrix:
                 if len(row) == 0:
                     continue
 
+                # Skip comment lines
+                if row[0][0] == '%':
+                    continue
+
                 if row[0] == "__UNTRACEABLE__":
                     if len(row) > 1:
                         if row[1] in self.untraceable:

@@ -126,12 +126,13 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
     traceability_report = generate_traceability_report(analysis)
+    report_footer = generate_report_footer(analysis)
 
     # Only output the full report if there are no error messages
     if len(log_error.msgs) > 0:
         report = report_warnings + "\n**Report generation failed.**"
     else:
-        report = report_warnings + report_summary + test_report + traceability_report
+        report = report_warnings + report_summary + test_report + traceability_report + report_footer
 
     # Convert to html if requested
     if config.get("html"):
