@@ -27,12 +27,13 @@ from ecap5_treq.check import import_checks, import_testdata
 from ecap5_treq.config import Config
 from ecap5_treq.log import log_error
 from ecap5_treq.matrix import Matrix, prepare_matrix
-from ecap5_treq.report import generate_report_warning_section,  \
-                              generate_report_summary,          \
-                              generate_test_report,             \
-                              generate_traceability_report,     \
-                              generate_test_result_badge,       \
-                              generate_traceability_result_badge                                                               
+from ecap5_treq.report import generate_report_warning_section,    \
+                              generate_report_summary,            \
+                              generate_test_report,               \
+                              generate_traceability_report,       \
+                              generate_test_result_badge,         \
+                              generate_traceability_result_badge, \
+                              generate_report_footer
 from ecap5_treq.req import import_reqs 
 from ecap5_treq.html import markdown_to_html
 
@@ -119,19 +120,20 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
     # Perform the test result and traceability analysis
-    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis = Analysis(reqs, checks, testdata, matrix, not config.get("disable_allocation"))
 
     # Generate report sections
     report_warnings = generate_report_warning_section()
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
     traceability_report = generate_traceability_report(analysis)
+    report_footer = generate_report_footer()
 
     # Only output the full report if there are no error messages
     if len(log_error.msgs) > 0:
         report = report_warnings + "\n**Report generation failed.**"
     else:
-        report = report_warnings + report_summary + test_report + traceability_report
+        report = report_warnings + report_summary + test_report + traceability_report + report_footer
 
     # Convert to html if requested
     if config.get("html"):
@@ -225,6 +227,7 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
     parser.add_argument('-o', '--output')
     parser.add_argument('--html', action='store_true')
     parser.add_argument('--spec-format')
+    parser.add_argument('--disable-allocation', action='store_true')
 
     args = parser.parse_args()
 
@@ -242,6 +245,8 @@ The full documentation is available at https://ecap5.github.io/ECAP5-TREQ/index.
         config.set_path("matrix_path", args.matrix)
     if args.spec_format:
         config.set("spec_format", args.spec_format)
+    if args.disable_allocation:
+        config.set("disable_allocation", args.disable_allocation)
 
     # Add other arguments that are not present in configuration files
     if args.output:

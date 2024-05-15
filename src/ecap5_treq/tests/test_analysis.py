@@ -357,6 +357,84 @@ def test_Analysis_analyse_traceability_03(stub_analyse):
     ]
     assert analysis.traceability_result == 55
 
+@patch.object(Analysis, "analyse")
+def test_Analysis_analyse_traceability_04(stub_analyse):
+    """Unit test for the analyse_traceability method of the Analysis class
+
+    The covered behavior is allocation disabled
+
+    The analyse method is stubbed so the analyse_traceability is called on its own.
+    """
+    reqs = [ \
+        Req("U_req1", "description1", {}), \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}), \
+        Req("F_req3", "description3", {}), \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}), \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"], "allocation": ["module2"]}), \
+        Req("req6", "description6", {}), \
+        Req("req7", "description7", {"allocation": ["module1", "module2"]}), \
+        Req("req8", "description8", {}), \
+        Req("A_req9", "description9", {}), \
+    ]
+    checks = [ \
+        Check("testsuite1", "testcase1", "check1"), \
+        Check("testsuite1", "testcase1", "check2") \
+    ]
+    testdata = [ \
+        Check("testsuite1", "testcase1", "check1", 0, "msg1"), \
+        Check("testsuite1", "testcase1", "check2", 1, "msg1") \
+    ]
+    matrix = Matrix()
+    matrix.add("testsuite1.testcase1.check1", ["F_req3"])
+    matrix.add("testsuite1.testcase1.check2", ["D_req4", "req6", "A_req9"])
+    matrix.add_untraceable("req7", "just1")
+
+    analysis = Analysis(reqs, checks, testdata, matrix, False)
+    analysis.analyse_traceability()
+
+    assert analysis.ids_reqs_covering_reqs == { \
+        "U_req1": [ "I_req2" ], \
+        "I_req2": [ "D_req4", "N_req5" ], \
+        "req8": [ "D_req4" ] \
+    }
+    assert analysis.ids_checks_covering_reqs == { \
+        "F_req3": [ "testsuite1.testcase1.check1" ], \
+        "D_req4": [ "testsuite1.testcase1.check2" ], \
+        "req6": [ "testsuite1.testcase1.check2" ], \
+        "A_req9" : [ "testsuite1.testcase1.check2" ] \
+    }
+    assert analysis.justif_reqs_untraceable == { \
+        "req7": "just1" \
+    }
+    assert analysis.num_covered_reqs == 7
+    assert analysis.num_untraceable_reqs == 1
+    assert analysis.num_uncovered_reqs == 1
+    assert analysis.num_allocated_reqs == 2
+    assert analysis.user_reqs == [ \
+        Req("U_req1", "description1", {}, ReqStatus.COVERED) \
+    ]
+    assert analysis.external_interface_reqs == [ \
+        Req("I_req2", "description2", {"derivedfrom": ["U_req1"]}, ReqStatus.COVERED) \
+    ]
+    assert analysis.functional_reqs == [ \
+        Req("F_req3", "description3", {}, ReqStatus.COVERED) \
+    ]
+    assert analysis.architecture_reqs == [ \
+        Req("A_req9", "description9", {}, ReqStatus.COVERED, 100) \
+    ]
+    assert analysis.design_reqs == [ \
+        Req("D_req4", "description4", {"derivedfrom": ["I_req2", "req8"]}, ReqStatus.COVERED, 100) \
+    ]
+    assert analysis.non_functional_reqs == [ \
+        Req("N_req5", "description5", {"derivedfrom": ["I_req2"], "allocation": ["module2"]}, ReqStatus.UNCOVERED) \
+    ]
+    assert analysis.other_reqs == [ \
+        Req("req6", "description6", {}, ReqStatus.COVERED, 100), \
+        Req("req7", "description7", {"allocation": ["module1", "module2"]}, ReqStatus.UNTRACEABLE), \
+        Req("req8", "description8", {}, ReqStatus.COVERED), \
+    ]
+    assert analysis.traceability_result == 88
+
 def test_Analysis_analyse_consistency_01():
     """Unit test for the analyse_consistency method of the Analysis class
 

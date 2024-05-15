@@ -45,10 +45,10 @@ class Config:
         self.data = {}
         self.path = path
 
-        self.defaults()
-
         if self.path:
             self.load_config(path)
+
+        self.defaults()
 
     def load_config(self, path: str) -> None:
         """Loads the Config object with data from the configuration file pointed by path.
@@ -74,7 +74,8 @@ class Config:
             "matrix_path"
         ]
         allowed_other_keys = [
-            "spec_format"
+            "spec_format",
+            "disable_allocation"
         ]
 
         # Check if there are any unknown keys
@@ -90,7 +91,10 @@ class Config:
     def defaults(self) -> None:
         """Initializes mandatory configuration fields
         """
-        self.set("spec_format", SpecFormat.TEX)
+        if "spec_format" not in self:
+            self.set("spec_format", SpecFormat.TEX)
+        if "disable_allocation" not in self:
+            self.set("disable_allocation", False)
 
     def get(self, key: str) -> str:
         """Return the configuration data pointed by key

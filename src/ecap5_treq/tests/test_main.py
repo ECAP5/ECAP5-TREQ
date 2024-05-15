@@ -67,7 +67,7 @@ class MockMatrix:
                self.path == other.path
 
 class MockAnalysis:
-    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix):
+    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix, enable_allocation: bool = True):
         self.reqs = reqs
         self.checks = checks
         self.testdata = testdata
@@ -332,6 +332,7 @@ def test_cmd_prepare_matrix_04(stub_import_checks, stub_prepare_matrix, stub_pri
 @patch("ecap5_treq.main.Matrix", MockMatrix)
 @patch("builtins.open", new_callable=mock_open)
 @patch("builtins.print")
+@patch("ecap5_treq.main.generate_report_footer", return_value="generate_report_footer\n")
 @patch("ecap5_treq.main.generate_traceability_report", return_value="generate_traceability_report\n")
 @patch("ecap5_treq.main.generate_test_report", return_value="generate_test_report\n")
 @patch("ecap5_treq.main.generate_report_summary", return_value="generate_report_summary\n")
@@ -339,7 +340,7 @@ def test_cmd_prepare_matrix_04(stub_import_checks, stub_prepare_matrix, stub_pri
 @patch("ecap5_treq.main.import_testdata", side_effect=stubbed_import_testdata)
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch("ecap5_treq.main.import_reqs", side_effect=stubbed_import_reqs)
-def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_print, stub_open):
+def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_generate_report_footer, stub_print, stub_open):
     """Unit test for the cmd_gen_report function
 
     The covered behavior is no error message and no output specified
@@ -388,14 +389,16 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
     stub_generate_report_summary.assert_called_once_with(analysis)
     stub_generate_test_report.assert_called_once_with(analysis)
     stub_generate_traceability_report.assert_called_once_with(analysis)
+    stub_generate_report_footer.assert_called_once()
 
-    stub_print.assert_called_once_with("generate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\n")
+    stub_print.assert_called_once_with("generate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\ngenerate_report_footer\n")
     stub_open.assert_not_called()
 
 @patch("ecap5_treq.main.Analysis", MockAnalysis)
 @patch("ecap5_treq.main.Matrix", MockMatrix)
 @patch("builtins.open", new_callable=mock_open)
 @patch("builtins.print")
+@patch("ecap5_treq.main.generate_report_footer", return_value="generate_report_footer\n")
 @patch("ecap5_treq.main.generate_traceability_report", return_value="generate_traceability_report\n")
 @patch("ecap5_treq.main.generate_test_report", return_value="generate_test_report\n")
 @patch("ecap5_treq.main.generate_report_summary", return_value="generate_report_summary\n")
@@ -403,7 +406,7 @@ def test_cmd_gen_report_01(stub_import_reqs, stub_import_checks, stub_import_tes
 @patch("ecap5_treq.main.import_testdata", side_effect=stubbed_import_testdata)
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch("ecap5_treq.main.import_reqs", side_effect=stubbed_import_reqs)
-def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_print, stub_open):
+def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_generate_report_footer, stub_print, stub_open):
     """Unit test for the cmd_gen_report function
 
     The covered behavior is one error message and an output specified
@@ -455,6 +458,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
     stub_generate_report_summary.assert_called_once_with(analysis)
     stub_generate_test_report.assert_called_once_with(analysis)
     stub_generate_traceability_report.assert_called_once_with(analysis)
+    stub_generate_report_footer.assert_called_once()
 
     # The print function is called only once for the log_error
     stub_print.assert_called_once()
@@ -466,6 +470,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
 @patch("builtins.open", new_callable=mock_open)
 @patch("builtins.print")
 @patch("ecap5_treq.main.markdown_to_html", side_effect=stubbed_markdown_to_html)
+@patch("ecap5_treq.main.generate_report_footer", return_value="generate_report_footer\n")
 @patch("ecap5_treq.main.generate_traceability_report", return_value="generate_traceability_report\n")
 @patch("ecap5_treq.main.generate_test_report", return_value="generate_test_report\n")
 @patch("ecap5_treq.main.generate_report_summary", return_value="generate_report_summary\n")
@@ -473,7 +478,7 @@ def test_cmd_gen_report_02(stub_import_reqs, stub_import_checks, stub_import_tes
 @patch("ecap5_treq.main.import_testdata", side_effect=stubbed_import_testdata)
 @patch("ecap5_treq.main.import_checks", side_effect=stubbed_import_checks)
 @patch("ecap5_treq.main.import_reqs", side_effect=stubbed_import_reqs)
-def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_markdown_to_html, stub_print, stub_open):
+def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_testdata, stub_generate_report_warning_section, stub_generate_report_summary, stub_generate_test_report, stub_generate_traceability_report, stub_generate_report_footer, stub_markdown_to_html, stub_print, stub_open):
     """Unit test for the cmd_gen_report function
 
     The covered behavior is generate an html report
@@ -522,9 +527,10 @@ def test_cmd_gen_report_03(stub_import_reqs, stub_import_checks, stub_import_tes
     stub_generate_report_summary.assert_called_once_with(analysis)
     stub_generate_test_report.assert_called_once_with(analysis)
     stub_generate_traceability_report.assert_called_once_with(analysis)
-    stub_markdown_to_html.assert_called_once_with("generate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\n")
+    stub_generate_report_footer.assert_called_once()
+    stub_markdown_to_html.assert_called_once_with("generate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\ngenerate_report_footer\n")
 
-    stub_print.assert_called_once_with("html\ngenerate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\n")
+    stub_print.assert_called_once_with("html\ngenerate_report_warning_section\ngenerate_report_summary\ngenerate_test_report\ngenerate_traceability_report\ngenerate_report_footer\n")
     stub_open.assert_not_called()
 
 @patch("ecap5_treq.main.Analysis", MockAnalysis)
@@ -936,4 +942,21 @@ def test_main_11(stub_Config___init__, stub_Config_set_path, stub_Config_set, st
         stub_Config___init__.assert_called_once_with("path1")
         stub_Config_set_path.assert_not_called()
         stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("html", False)])
+        stub_cmd_gen_report.assert_called_once()
+
+@patch("ecap5_treq.main.cmd_gen_report")
+@patch.object(Config, "set")
+@patch.object(Config, "set_path")
+@patch.object(Config, "__init__", return_value=None)
+def test_main_12(stub_Config___init__, stub_Config_set_path, stub_Config_set, stub_cmd_gen_report):
+    """Unit test for the main function
+
+    The covered behavior is gen_report command
+    """
+    args = ["ecap5-treq", "-c", "path1", "--spec-format", "RST", "gen_report", "--disable-allocation"]
+    with patch.object(sys, 'argv', args):
+        main()
+        stub_Config___init__.assert_called_once_with("path1")
+        stub_Config_set_path.assert_not_called()
+        stub_Config_set.assert_has_calls([call("spec_format", "RST"), call("disable_allocation", True), call("html", False)])
         stub_cmd_gen_report.assert_called_once()
