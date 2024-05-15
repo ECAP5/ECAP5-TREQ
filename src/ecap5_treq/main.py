@@ -119,13 +119,13 @@ def cmd_gen_report(config: dict[str, str]) -> None:
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
     # Perform the test result and traceability analysis
-    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis = Analysis(reqs, checks, testdata, matrix, not config.get("disable_allocation"))
 
     # Generate report sections
     report_warnings = generate_report_warning_section()
     report_summary = generate_report_summary(analysis)
     test_report = generate_test_report(analysis)
-    traceability_report = generate_traceability_report(analysis, not config.get("disable_allocation"))
+    traceability_report = generate_traceability_report(analysis)
 
     # Only output the full report if there are no error messages
     if len(log_error.msgs) > 0:

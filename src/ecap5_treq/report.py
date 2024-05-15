@@ -180,7 +180,7 @@ def generate_test_report(analysis: Analysis) -> str:
 
     return report
 
-def generate_traceability_report(analysis: Analysis, enable_allocation: bool) -> str:
+def generate_traceability_report(analysis: Analysis) -> str:
     """Generates a string containing the traceability section of the report
 
     :param analysis: the analysis from which data shall be used
@@ -197,8 +197,8 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
     report += "      <th>Covered</th>\n"
     report += "      <th>Untraceable</th>\n"
     report += "      <th>Uncovered</th>\n"
-    report += "      <th>Allocated</th>\n" if enable_allocation else ""
-    report += "      <th>Unallocated</th>\n" if enable_allocation else ""
+    report += "      <th>Allocated</th>\n" if analysis.enable_allocation else ""
+    report += "      <th>Unallocated</th>\n" if analysis.enable_allocation else ""
     report += "      <th>Total</th>\n"
     report += "    </tr>\n"
     report += "  </thead>\n"
@@ -207,8 +207,8 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
     report += "    <td align=\"right\">{}</td>\n".format(analysis.num_covered_reqs)
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_untraceable_reqs > 0, "#untraceable-reqs", str(analysis.num_untraceable_reqs)))
     report += "    <td align=\"right\">{}</td>\n".format(surround_with_link_if(analysis.num_uncovered_reqs > 0, "#uncovered-reqs", str(analysis.num_uncovered_reqs)))
-    report += ("    <td align=\"right\">{}</td>\n".format(analysis.num_allocated_reqs)) if enable_allocation else ""
-    report += ("    <td align=\"right\">{}</td>\n".format(surround_with_link_if((len(analysis.reqs) - analysis.num_allocated_reqs) > 0, "#first-unallocated-req", len(analysis.reqs) - analysis.num_allocated_reqs))) if enable_allocation else ""
+    report += ("    <td align=\"right\">{}</td>\n".format(analysis.num_allocated_reqs)) if analysis.enable_allocation else ""
+    report += ("    <td align=\"right\">{}</td>\n".format(surround_with_link_if((len(analysis.reqs) - analysis.num_allocated_reqs) > 0, "#first-unallocated-req", len(analysis.reqs) - analysis.num_allocated_reqs))) if analysis.enable_allocation else ""
     report += "    <td align=\"right\">{}</td>\n".format(len(analysis.reqs))
     report += "  </tr>\n"
     report += "</table>\n"
@@ -224,7 +224,7 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.COVERED, analysis.other_reqs))
         
-        colspan = 7 if enable_allocation else 6
+        colspan = 7 if analysis.enable_allocation else 6
 
         report += "\n### Covered requirements\n"
         report += "<table>\n"
@@ -233,7 +233,7 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
-        report += "      <th>Allocated to</th>\n" if enable_allocation else ""
+        report += "      <th>Allocated to</th>\n" if analysis.enable_allocation else ""
         report += "      <th>Covered by</th>\n"
         report += "      <th>Tested by</th>\n"
         report += "      <th>Test results</th>\n"
@@ -242,25 +242,25 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         # Add rows for each type of covered requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>User Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_user_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
         if len(filtered_external_interface_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>External Interface Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
         if len(filtered_architecture_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Architecture Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_architecture_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Design Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_design_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_design_reqs)
         if len(filtered_non_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Non-Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs)
         if len(filtered_other_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Other Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_other_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
     # Handle untraceable requirements if any
@@ -274,7 +274,7 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNTRACEABLE, analysis.other_reqs))
 
-        colspan = 5 if enable_allocation else 4
+        colspan = 5 if analysis.enable_allocation else 4
 
         report += "\n### <a id=\"untraceable-reqs\"></a> Untraceable requirements\n"
         report += "<table>\n"
@@ -283,32 +283,32 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
-        report += "      <th>Allocated to</th>\n" if enable_allocation else ""
+        report += "      <th>Allocated to</th>\n" if analysis.enable_allocation else ""
         report += "      <th>Justification</th>\n"
         report += "    </tr>\n"
         report += "  </thead>\n"
         # Add rows for each type of untraceable requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>User Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_user_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
         if len(filtered_external_interface_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>External Interface Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
         if len(filtered_architecture_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Architecture Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_architecture_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Design Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_design_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_design_reqs)
         if len(filtered_non_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Non-Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs)
         if len(filtered_other_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Other Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_other_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
     # Handle untraceable requirements if any
@@ -322,7 +322,7 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         filtered_non_functional_reqs     = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.non_functional_reqs))
         filtered_other_reqs              = list(filter(lambda r: r.status == ReqStatus.UNCOVERED, analysis.other_reqs))
 
-        colspan = 4 if enable_allocation else 3
+        colspan = 4 if analysis.enable_allocation else 3
             
         report += "\n### <a id=\"uncovered-reqs\"></a> Uncovered requirements\n"
         report += "<table>\n"
@@ -331,31 +331,31 @@ def generate_traceability_report(analysis: Analysis, enable_allocation: bool) ->
         report += "      <th>Requirement</th>\n"
         report += "      <th>Description</th>\n"
         report += "      <th>Derived from</th>\n"
-        report += "      <th>Allocated to</th>\n" if enable_allocation else ""
+        report += "      <th>Allocated to</th>\n" if analysis.enable_allocation else ""
         report += "    </tr>\n"
         report += "  </thead>\n"
         # Add rows for each type of uncovered requirements
         if len(filtered_user_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>User Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_user_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_user_reqs)
         if len(filtered_external_interface_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>External Interface Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_external_interface_reqs)
         if len(filtered_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_functional_reqs)
         if len(filtered_architecture_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Architecture Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_architecture_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_architecture_reqs)
         if len(filtered_design_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Design Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_design_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_design_reqs)
         if len(filtered_non_functional_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Non-Functional Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_non_functional_reqs)
         if len(filtered_other_reqs) > 0:
             report += "  <thead><tr><th colspan=\"{}\"><i>Other Requirements</i></th></tr></thead>\n".format(colspan)
-            report += req_list_to_table_rows(analysis, filtered_other_reqs, enable_allocation)
+            report += req_list_to_table_rows(analysis, filtered_other_reqs)
         report += "</table>\n"
 
     return report
@@ -452,7 +452,7 @@ def gen_result_badge(result: float) -> str:
     badge = "<img src=\"https://img.shields.io/badge/{}%25-{}\"/>".format(int(result), hex_color)
     return badge
 
-def req_list_to_table_rows(analysis: Analysis, reqs: list[Req], enable_allocation: bool) -> str:
+def req_list_to_table_rows(analysis: Analysis, reqs: list[Req]) -> str:
     """Converts a list of reqs into html table rows
 
     :param analysis: the analysis from which data shall be used
@@ -460,6 +460,9 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req], enable_allocatio
 
     :param reqs: the list of reqs to convert
     :type reqs: list[Req]
+
+    :param enable_allocation: enable the allocation column
+    :type enable_allocation: bool
 
     :returns: html table rows containing the list of reqs
     :rtype: str
@@ -479,7 +482,7 @@ def req_list_to_table_rows(analysis: Analysis, reqs: list[Req], enable_allocatio
         else:
             result += "    <td></td>\n"
         # Adds the list of allocations
-        if enable_allocation:
+        if analysis.enable_allocation:
             if req.allocation:
                 result += "    <td valign=\"top\"><samp>{}</samp></td>\n".format("<br>".join([mid for mid in req.allocation]))
             else:

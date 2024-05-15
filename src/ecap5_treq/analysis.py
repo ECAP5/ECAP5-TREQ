@@ -28,7 +28,8 @@ class Analysis():
     """An Analysis contains data analyzed from a requirements, checks, testdata and the traceability matrix
     """
 
-    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], matrix: Matrix):
+    def __init__(self, reqs: list[Req], checks: list[Check], testdata: list[Check], 
+                 matrix: Matrix, enable_allocation: bool = True):
         """Constructor of Analysis
 
         :param reqs: list of requirements from the specification
@@ -42,6 +43,9 @@ class Analysis():
 
         :param matrix: traceability matrix
         :type matrix: Matrix
+
+        :param enable_allocation: enables the requirement allocation feature
+        :type enable_allocation: bool
         """
         self.reqs = reqs
         self.checks = checks
@@ -76,6 +80,8 @@ class Analysis():
         self.non_functional_reqs = []
         self.other_reqs = []
         self.traceability_result = 0
+
+        self.enable_allocation = enable_allocation
 
         self.analyse()
 
@@ -236,8 +242,11 @@ class Analysis():
         # Compute traceability result
         if len(self.reqs) > 0:
             coverage_ratio = (self.num_covered_reqs + self.num_untraceable_reqs) / len(self.reqs) * 100
-            allocation_ratio = self.num_allocated_reqs / len(self.reqs) * 100
-            self.traceability_result = int((coverage_ratio + allocation_ratio) / 2)
+            if self.enable_allocation:
+                allocation_ratio = self.num_allocated_reqs / len(self.reqs) * 100
+                self.traceability_result = int((coverage_ratio + allocation_ratio) / 2)
+            else:
+                self.traceability_result = int(coverage_ratio)
         else:
             self.traceability_result = 0
 

@@ -116,6 +116,21 @@ def test_Config_load_config_04(stub_path_to_abs_path):
     assert config.data["spec_dir_path"] == "spec_dir_path_content"
     assert config.data["test_dir_path"] == "test_dir_path_content"
 
+def test_Config_defaults():
+    """Unit test for the defaults method of the Config class
+    """
+    config = Config()
+
+    assert "spec_format" in config
+    assert "disable_allocation" in config
+
+    configuration = "{ \"spec_format\": \"spec_format\", \"disable_allocation\": \"disable_allocation\" }"
+    with patch("builtins.open", mock_open(read_data=configuration)):
+        config = Config("path")
+
+        assert "spec_format" in config
+        assert "disable_allocation" in config
+
 def test_Config_get(stub_path_to_abs_path):
     """Unit test for the get method of the Config class
 
