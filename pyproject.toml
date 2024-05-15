@@ -27,7 +27,7 @@ requires = [
 
 [project]
 name = "ECAP5-TREQ"
-version = "2.1.0"
+version = "2.2.0"
 authors = [
   { name = "Clément Chaine", email="clement.chaine25@gmail.com" }
 ]
@@ -56,8 +56,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/cchaine/ECAP5-TREQ"
-"Bug Tracker" = "https://github.com/cchaine/ecap5-treq/ECAP5-TREQ"
+"Homepage" = "https://github.com/ecap5/ECAP5-TREQ"
+"Bug Tracker" = "https://github.com/ecap5/ecap5-treq/ECAP5-TREQ"
 
 [project.scripts]
 ecap5-treq = "ecap5_treq.main:main"
