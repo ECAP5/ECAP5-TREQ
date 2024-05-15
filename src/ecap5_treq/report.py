@@ -360,7 +360,7 @@ def generate_traceability_report(analysis: Analysis) -> str:
 
     return report
 
-def generate_report_footer(analysis: Analysis) -> str:
+def generate_report_footer() -> str:
     """Generates a string containing the report footer
     """
     footer = "<a href=\"#summary\">Back to top</a>"
