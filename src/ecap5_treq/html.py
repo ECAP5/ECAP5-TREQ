@@ -25,7 +25,7 @@ import re
 import markdown
 
 STYLE = """
-body {
+#report {
     font: 400 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #111;
     background-color: #fbfbfb;
@@ -39,15 +39,15 @@ body {
 }
 
 @media only screen and (max-width: 600px) {
-    body {
+    #report {
         padding: 5px;
     }
-    body>#content {
+    #report>#content {
         padding: 0px 20px 20px 20px !important;
     }
 }
 
-body>#content {
+#report>#content {
     margin: 0px;
     max-width: 900px;
     border: 1px solid #e1e4e8;
@@ -58,12 +58,12 @@ body>#content {
     margin-right: auto;
 }
 
-summary {
+#report summary {
     cursor: pointer;
     text-decoration: underline;
 }
 
-hr {
+#report hr {
     color: #bbb;
     background-color: #bbb;
     height: 1px;
@@ -73,7 +73,7 @@ hr {
     border: none;
 }
 
-.hljs-operator {
+#report .hljs-operator {
     color: #868686;
     /* There is a bug where the syntax highlighter would pick no color for e.g. `&&` symbols in the code samples. Let's overwrite this */
 }
@@ -83,21 +83,21 @@ hr {
  * Links
  */
 
-a {
+#report a {
     color: #0366d6;
     text-decoration: none;
 }
 
-a:visited {
+#report a:visited {
     color: #0366d6;
 }
 
-a:hover {
+#report a:hover {
     color: #0366d6;
     text-decoration: underline;
 }
 
-pre {
+#report pre {
     background-color: #f6f8fa;
     border-radius: 3px;
     font-size: 85%;
@@ -111,7 +111,7 @@ pre {
   * Code blocks
   */
 
-code {
+#report code {
     background-color: rgba(27, 31, 35, .05);
     border-radius: 3px;
     font-size: 85%;
@@ -121,7 +121,7 @@ code {
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
 }
 
-pre>code {
+#report pre>code {
     background-color: transparent;
     border: 0;
     display: inline;
@@ -138,7 +138,7 @@ pre>code {
  * Blockquotes
  */
 
-blockquote {
+#report blockquote {
     margin-left: 30px;
     margin-top: 0px;
     margin-bottom: 16px;
@@ -152,7 +152,7 @@ blockquote {
     font-style: italic;
 }
 
-blockquote * {
+#report blockquote * {
     font-style: normal !important;
     letter-spacing: 0;
     color: #6a737d !important;
@@ -163,7 +163,7 @@ blockquote * {
  * Tables
  */
 
-table {
+#report table {
     border-spacing: 2px;
     display: block;
     font-size: 14px;
@@ -174,23 +174,23 @@ table {
     border-collapse: collapse;
 }
 
-td {
+#report td {
     padding: 6px 13px;
     border: 1px solid #dfe2e5;
 }
 
-th {
+#report th {
     font-weight: 600;
     padding: 6px 13px;
     border: 1px solid #dfe2e5;
 }
 
-tr {
+#report tr {
     background-color: #fff;
     border-top: 1px solid #c6cbd1;
 }
 
-table tr:nth-child(2n) {
+#report table tr:nth-child(2n) {
     background-color: #f6f8fa;
 }
 
@@ -199,92 +199,92 @@ table tr:nth-child(2n) {
  * Others
  */
 
-img {
+#report img {
     max-width: 100%;
 }
 
-p {
+#report p {
     line-height: 24px;
     font-weight: 400;
     font-size: 16px;
     color: #24292e;
 }
 
-ul {
+#report ul {
     margin-top: 0;
 }
 
-li {
+#report li {
     color: #24292e;
     font-size: 16px;
     font-weight: 400;
     line-height: 1.5;
 }
 
-li+li {
+#report li+li {
     margin-top: 0.25em;
 }
 
-* {
+#report * {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     color: #24292e;
 }
 
-a:visited {
+#report a:visited {
     color: #0366d6;
 }
 
-h1,
-h2,
-h3 {
+#report h1,
+#report h2,
+#report h3 {
     border-bottom: 1px solid #eaecef;
     color: #111;
     /* Darker */
 }
 
-code>* {
+#report code>* {
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace !important;
 }
 
-.markdown-alert {
+#report .markdown-alert {
     padding: 0.5rem 1rem;
     margin-bottom: 15px;
     color: inherit;
     border-left: .25em solid #d0d7de;
 }
 
-.markdown-alert-caution {
+#report .markdown-alert-caution {
     border-left-color: #cf222e;
 }
 
-.markdown-alert-warning {
+#report .markdown-alert-warning {
     border-left-color: #9a6700;
 }
 
-.markdown-alert-important {
+#report .markdown-alert-important {
     border-left-color: #8250df;
 }
 
-.markdown-alert-title {
+#report .markdown-alert-title {
     display: flex;
     font-weight: 500;
     align-items: center;
     line-height: 1;
 }
 
-.markdown-alert-caution .markdown-alert-title {
+#report .markdown-alert-caution .markdown-alert-title {
     color: #d1242f;
 }
 
-.markdown-alert-warning .markdown-alert-title {
+#report .markdown-alert-warning .markdown-alert-title {
     color: #9a6700;
 }
 
-.markdown-alert-important .markdown-alert-title {
+#report .markdown-alert-important .markdown-alert-title {
     color: #8250df;
 }
 
-.markdown-alert svg {
+#report .markdown-alert svg {
     margin-right: 0.5rem;
     width: 16px;
     height: 16px;
@@ -293,27 +293,27 @@ code>* {
     vertical-align: text-bottom;
 }
 
-.markdown-alert-caution svg {
+#report .markdown-alert-caution svg {
     fill: #cf222e;
 }
 
-.markdown-alert-warning svg {
+#report .markdown-alert-warning svg {
     fill: #9a6700;
 }
 
-.markdown-alert-important svg {
+#report .markdown-alert-important svg {
     fill: #8250df;
 }
 
-.markdown-alert>:first-child {
+#report .markdown-alert>:first-child {
     margin-top: 0;
 }
 
-.markdown-alert>:last-child {
+#report .markdown-alert>:last-child {
     margin-bottom: 0;
 }
 
-samp {
+#report samp {
     font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
     font-size: 85%;
 }
@@ -329,9 +329,9 @@ def markdown_to_html(content: str) -> str:
     :rtype: str
     """
     content = process_alerts(content)
-    html = "<html><head><meta charset=\"utf-8\"><style>{}</style></head><body>".format(STYLE)
+    html = "<html><head><meta charset=\"utf-8\"><style>{}</style></head><body><div id=\"report\">".format(STYLE)
     html += markdown.markdown(content)
-    html += "</body></html>"
+    html += "</div></body></html>"
     return html
 
 REPLACE_WARNING = r'<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><svg class="octicon octicon-alert mr-2" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>Warning</p><p>\1</p></div>'
