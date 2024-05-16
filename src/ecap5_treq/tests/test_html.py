@@ -41,7 +41,7 @@ def test_markdown_to_html(stub_markdown, stub_process_alerts):
 
     stub_process_alerts.assert_called_once_with("content")
     stub_markdown.assert_called_once_with("processed")
-    assert result == "<html><head><meta charset=\"utf-8\"><style>style</style></head><body>html</body></html>"
+    assert result == "<html><head><meta charset=\"utf-8\"><style>style</style></head><body><div id=\"report\">html</div></body></html>"
 
 @patch("ecap5_treq.html.REPLACE_WARNING", r'\1')
 @patch("ecap5_treq.html.REPLACE_CAUTION", r'\1')
