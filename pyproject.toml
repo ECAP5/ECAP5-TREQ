@@ -27,7 +27,7 @@ requires = [
 
 [project]
 name = "ECAP5-TREQ"
-version = "2.2.0"
+version = "2.3.1"
 authors = [
   { name = "Clément Chaine", email="clement.chaine25@gmail.com" }
 ]
