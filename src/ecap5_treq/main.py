@@ -159,7 +159,7 @@ def cmd_gen_test_result_badge(config: dict[str, str]) -> None:
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
     # Perform the test result and traceability analysis
-    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis = Analysis(reqs, checks, testdata, matrix, not config.get("disable_allocation"))
 
     # Generate a test result badge
     badge = generate_test_result_badge(analysis)
@@ -184,7 +184,7 @@ def cmd_gen_traceability_result_badge(config: dict[str, str]) -> None:
     testdata = import_testdata(config.get("testdata_dir_path"))
     matrix = Matrix(config.get("matrix_path"))
     # Perform the test result and traceability analysis
-    analysis = Analysis(reqs, checks, testdata, matrix)
+    analysis = Analysis(reqs, checks, testdata, matrix, not config.get("disable_allocation"))
 
     # Generate a traceability result badge
     badge = generate_traceability_result_badge(analysis)
