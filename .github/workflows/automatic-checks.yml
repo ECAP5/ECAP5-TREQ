@@ -19,7 +19,7 @@ jobs:
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -41,7 +41,7 @@ jobs:
     - name: Save cache
       id: cache-dependencies-save
       if: ${{ steps.cache-dependencies-restore.outputs.cache-hit != 'true' }}
-      uses: actions/cache/save@v4.0.1
+      uses: actions/cache/save@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -55,7 +55,7 @@ jobs:
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -77,7 +77,7 @@ jobs:
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -92,7 +92,7 @@ jobs:
 
     - name: Save coverage data in cache
       id: cache-coverage-data-save
-      uses: actions/cache/save@v4.0.1
+      uses: actions/cache/save@v4.3.0
       with:
         path: ${{ github.workspace }}/.coverage
         key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
@@ -106,7 +106,7 @@ jobs:
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
@@ -116,7 +116,7 @@ jobs:
 
     - name: Restore cached coverage data
       id: cache-coverage-data-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/.coverage
         key: coverage-data-${{github.run_id}}-${{github.run_attempt}}
@@ -149,7 +149,7 @@ jobs:
 
     - name: Restore cache
       id: cache-dependencies-restore
-      uses: actions/cache/restore@v4.0.1
+      uses: actions/cache/restore@v4.3.0
       with:
         path: ${{ github.workspace }}/venv
         key: venv-${{ hashFiles('pyproject.toml') }}
